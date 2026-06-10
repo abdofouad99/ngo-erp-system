@@ -1,0 +1,555 @@
+// =============================================================================
+// NGO ERP System — Prisma Schema
+// Database: PostgreSQL via Supabase
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // Required for Supabase connection pooling
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum Role {
+  ADMIN      // Full system access
+  MANAGER    // Read + approve operations
+  DATA_ENTRY // Create & update records only
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum BeneficiaryCategory {
+  ORPHAN   // Orphan child
+  STUDENT  // Student receiving educational aid
+  PATIENT  // Patient receiving medical aid
+  GENERAL  // General aid recipient
+}
+
+enum ProjectCategory {
+  CASH     // Cash transfer programs
+  IN_KIND  // Physical goods (food baskets, clothing, etc.)
+  TRAINING // Capacity building & training programs
+  MEDICAL  // Medical support programs
+  OTHER
+}
+
+enum ProjectStatus {
+  DRAFT     // Planning phase
+  ACTIVE    // Ongoing
+  COMPLETED // Successfully finished
+  SUSPENDED // Temporarily halted
+  CANCELLED // Permanently cancelled
+}
+
+enum SponsorshipStatus {
+  ACTIVE    // Payments are ongoing
+  PAUSED    // Temporarily suspended
+  STOPPED   // Permanently ended
+}
+
+enum PaymentCycle {
+  MONTHLY
+  QUARTERLY
+  SEMI_ANNUAL
+  ANNUAL
+  ONE_TIME
+}
+
+enum DocumentType {
+  NATIONAL_ID         // National identity card
+  BIRTH_CERTIFICATE   // Birth certificate
+  DEATH_CERTIFICATE   // Death certificate (for orphan verification)
+  MARRIAGE_CERTIFICATE
+  DISABILITY_CARD
+  FIELD_PHOTO         // On-ground visit photo
+  DELIVERY_PROOF      // Proof of aid delivery (signature/photo)
+  MEDICAL_REPORT
+  OTHER
+}
+
+enum Currency {
+  USD
+  EUR
+  SAR // Saudi Riyal
+  TRY // Turkish Lira
+  IQD // Iraqi Dinar
+  SYP // Syrian Pound
+  YER // Yemeni Rial
+}
+
+enum PovertyLevel {
+  SEVERE
+  MEDIUM
+  LOW
+}
+
+enum OrphanType {
+  FATHER
+  MOTHER
+  BOTH
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// =============================================================================
+// MODULE 0: AUTHENTICATION
+// =============================================================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  role      Role     @default(DATA_ENTRY)
+  isActive  Boolean  @default(true)
+  avatarUrl String?
+
+  // Audit relations — track who created/updated critical records
+  familiesCreated       Family[]             @relation("FamilyCreatedBy")
+  familiesUpdated       Family[]             @relation("FamilyUpdatedBy")
+  projectsCreated       Project[]            @relation("ProjectCreatedBy")
+  deliveriesRecorded    ProjectBeneficiary[] @relation("DeliveryRecordedBy")
+  sponsorshipsCreated   Sponsorship[]        @relation("SponsorshipCreatedBy")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+// =============================================================================
+// MODULE 1: GEOGRAPHICAL NORMALIZATION
+// Normalized lookup tables to avoid string duplication and enable
+// complex geo-filtering queries efficiently.
+// =============================================================================
+
+model Governorate {
+  id        Int        @id @default(autoincrement())
+  nameAr    String     @unique // Arabic name
+  nameEn    String?    @unique // English name (optional)
+  districts District[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("governorates")
+}
+
+model District {
+  id           Int          @id @default(autoincrement())
+  nameAr       String
+  nameEn       String?
+  governorate  Governorate  @relation(fields: [governorateId], references: [id])
+  governorateId Int
+  subDistricts SubDistrict[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([nameAr, governorateId]) // Same district name can exist in different governorates
+  @@map("districts")
+}
+
+model SubDistrict {
+  id         Int      @id @default(autoincrement())
+  nameAr     String
+  nameEn     String?
+  district   District @relation(fields: [districtId], references: [id])
+  districtId Int
+  families   Family[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([nameAr, districtId])
+  @@map("sub_districts")
+}
+
+// =============================================================================
+// MODULE 2: BENEFICIARIES (THE CORE)
+// =============================================================================
+
+/// The root entity. Represents a household unit.
+model Family {
+  id String @id @default(cuid())
+
+  // --- Head of Household ---
+  headFullName    String
+  headNationalId  String  @unique // THE primary unique constraint — prevents duplicates
+  headGender      Gender  @default(MALE)
+  headPhoneNumber String?
+  headAltPhone    String?
+  headBirthdate   DateTime?
+
+  // --- Address ---
+  addressDetail  String?  // Street / neighborhood details
+  subDistrict    SubDistrict @relation(fields: [subDistrictId], references: [id])
+  subDistrictId  Int
+
+  // --- Assessment ---
+  vulnerabilityScore Int?    @default(0) // 0–100 score from field assessment
+  notes              String? // General notes from social worker
+  isActive           Boolean @default(true)
+
+  // --- Expanded Assessment & Guardian ---
+  guardianName       String?
+  guardianRelation   String?
+  guardianPhone      String?
+  familyMembersCount Int?
+  monthlyIncome      Float?
+  housingType        String?
+  housingCondition   String?
+  povertyLevel       PovertyLevel?
+
+  // --- Relations ---
+  members      Beneficiary[]
+  attachments  Attachment[]
+  sponsorships Sponsorship[] // A family can also have a direct family sponsorship
+  caseActivities CaseActivity[]
+
+  // --- Audit ---
+  createdBy   User   @relation("FamilyCreatedBy", fields: [createdById], references: [id])
+  createdById String
+  updatedBy   User?  @relation("FamilyUpdatedBy", fields: [updatedById], references: [id])
+  updatedById String?
+
+  deletedAt   DateTime? // For Soft Delete
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("families")
+}
+
+/// Represents individual beneficiaries (members) within a Family.
+model Beneficiary {
+  id String @id @default(cuid())
+
+  // --- Personal Info ---
+  fullName    String
+  gender      Gender
+  birthdate   DateTime
+  nationalId  String?  // May not have their own ID (children)
+
+  // --- Classification ---
+  category    BeneficiaryCategory
+
+  orphanCode          String?  @unique // رقم ملف اليتيم
+  kuraimiAccount      String?          // رقم حساب الكريمي
+
+  // --- Education (relevant for STUDENT category) ---
+  educationLevel   String? // e.g., "Primary Grade 3", "University Year 2"
+  schoolName       String?
+  educationalStage String?
+  averageGrade     Float?
+  educationalNeeds String?
+
+  // --- Health (relevant for PATIENT category) ---
+  healthStatus      String? // e.g., "Diabetic", "Cancer Stage 2"
+  disabilityType    String? // e.g., "Physical", "Visual"
+  disability        Boolean @default(false)
+  disabilityDetails String?
+
+  // --- Orphan-specific ---
+  orphanType        OrphanType?
+  fatherDeathDate   DateTime? // For orphan verification
+  fatherDeathCause  String?
+  motherDeathDate   DateTime?
+  motherName        String?          // اسم الأم بالكامل
+
+  // --- Verification ---
+  verificationStatus VerificationStatus @default(PENDING)
+  verifiedBy         String?
+
+  isActive Boolean @default(true)
+  notes    String?
+
+  // --- Relations ---
+  family   Family @relation(fields: [familyId], references: [id])
+  familyId String
+
+  projectLinks ProjectBeneficiary[] // All project deliveries for this individual
+  sponsorships Sponsorship[]        // Sponsorships targeting this individual
+  attachments  Attachment[]
+  caseActivities CaseActivity[]
+
+  deletedAt DateTime? // For Soft Delete
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Enforce uniqueness: same national ID should not appear twice
+  @@unique([nationalId, familyId])
+  @@map("beneficiaries")
+}
+
+// =============================================================================
+// MODULE 3: PROJECTS
+// =============================================================================
+
+model Project {
+  id String @id @default(cuid())
+
+  name        String
+  description String?
+  category    ProjectCategory
+  status      ProjectStatus   @default(DRAFT)
+
+  // --- Financials & Targets ---
+  budget       Decimal?  @db.Decimal(15, 2)
+  currency     Currency  @default(USD)
+  targetCount  Int?      // Expected number of beneficiaries
+
+  // --- Timeline ---
+  startDate    DateTime?
+  endDate      DateTime?
+
+  // --- Relations ---
+  beneficiaryLinks ProjectBeneficiary[]
+
+  // --- Audit ---
+  createdBy   User   @relation("ProjectCreatedBy", fields: [createdById], references: [id])
+  createdById String
+
+  deletedAt DateTime? // For Soft Delete
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("projects")
+}
+
+// =============================================================================
+// MODULE 4: DISTRIBUTIONS & DELIVERIES (INTERMEDIATE / JUNCTION)
+// This is the digital replacement for legacy Excel "batch" sheets.
+// Tracks the exact delivery of aid from a Project to a Beneficiary.
+// =============================================================================
+
+model ProjectBeneficiary {
+  id String @id @default(cuid())
+
+  // --- Core Relations ---
+  project        Project     @relation(fields: [projectId], references: [id])
+  projectId      String
+  beneficiary    Beneficiary @relation(fields: [beneficiaryId], references: [id])
+  beneficiaryId  String
+
+  // --- Delivery Details ---
+  batchNumber    Int           // e.g., Batch 1, Batch 2 of the same project
+  deliveredItem  String        // e.g., "$50 Cash", "Food Basket 10kg", "Winter Kit"
+  deliveryDate   DateTime?
+  quantity       Int           @default(1)
+  unitValue      Decimal?      @db.Decimal(10, 2) // Value per unit in project currency
+  currency       Currency      @default(USD)
+
+  // --- Verification ---
+  isDelivered    Boolean       @default(false)
+  deliveryNotes  String?
+  attachments    Attachment[]  // Proof documents (signature photo, receipt, etc.)
+
+  // --- Audit ---
+  recordedBy    User?   @relation("DeliveryRecordedBy", fields: [recordedById], references: [id])
+  recordedById  String?
+
+  deletedAt DateTime? // For Soft Delete
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // A beneficiary cannot receive the same batch of the same project twice
+  @@unique([projectId, beneficiaryId, batchNumber])
+  @@map("project_beneficiaries")
+}
+
+// =============================================================================
+// MODULE 5: SPONSORSHIPS & DONORS
+// =============================================================================
+
+model Sponsor {
+  id String @id @default(cuid())
+
+  // --- Identity ---
+  fullName     String
+  organization String?  // If sponsoring on behalf of a company/institution
+  nationalId   String?  @unique
+  email        String?  @unique
+  phone        String?
+  country      String?  // Sponsor's country of residence
+  notes        String?
+
+  // --- Relations ---
+  sponsorships Sponsorship[]
+
+  deletedAt DateTime? // For Soft Delete
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sponsors")
+}
+
+/// Links a Sponsor to either a Beneficiary (individual) OR a Family (household).
+/// Use beneficiaryId for orphan/individual sponsorships.
+/// Use familyId for household-level sponsorships.
+model Sponsorship {
+  id String @id @default(cuid())
+
+  // --- Core Relations ---
+  sponsor   Sponsor @relation(fields: [sponsorId], references: [id])
+  sponsorId String
+
+  // Optional polymorphic targets — at least one MUST be set (enforced via app logic / DB check)
+  beneficiary   Beneficiary? @relation(fields: [beneficiaryId], references: [id])
+  beneficiaryId String?
+
+  family   Family? @relation(fields: [familyId], references: [id])
+  familyId String?
+
+  // --- Sponsorship Terms ---
+  amount       Decimal      @db.Decimal(10, 2)
+  currency     Currency     @default(USD)
+  paymentCycle PaymentCycle
+  status       SponsorshipStatus @default(ACTIVE)
+
+  // --- Timeline ---
+  startDate    DateTime      @default(now())
+  endDate      DateTime?     // Null means open-ended
+
+  sponsorCountry   String?
+  sponsorshipNotes String?
+  notes            String?
+
+  // --- Audit ---
+  createdBy   User   @relation("SponsorshipCreatedBy", fields: [createdById], references: [id])
+  createdById String
+
+  deletedAt DateTime? // For Soft Delete
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  receipts  PaymentReceipt[]
+
+  @@map("sponsorships")
+}
+
+// =============================================================================
+// MODULE 6: POLYMORPHIC ATTACHMENTS
+// 
+// Pattern: Optional nullable foreign keys for each possible parent entity.
+// This is the most pragmatic approach in Prisma for true polymorphism.
+// Application-layer validation ensures EXACTLY ONE of the relation IDs is set.
+// A PostgreSQL CHECK constraint is added via @@ignore or a raw migration for enforcement.
+// =============================================================================
+
+model Attachment {
+  id String @id @default(cuid())
+
+  // --- File Info ---
+  fileName     String       // Original filename
+  fileUrl      String       // Supabase Storage public/signed URL
+  storagePath  String       // Internal storage path (bucket/folder/filename)
+  mimeType     String       // e.g., "image/jpeg", "application/pdf"
+  sizeBytes    Int?
+  documentType DocumentType @default(OTHER)
+  description  String?      // Optional human-readable description
+
+  // --- Polymorphic Parent Relations (ONLY ONE should be non-null per record) ---
+  family               Family?             @relation(fields: [familyId], references: [id])
+  familyId             String?
+
+  beneficiary          Beneficiary?        @relation(fields: [beneficiaryId], references: [id])
+  beneficiaryId        String?
+
+  projectDelivery      ProjectBeneficiary? @relation(fields: [projectDeliveryId], references: [id])
+  projectDeliveryId    String?
+
+  // --- Audit ---
+  uploadedById String? // User ID from auth system
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("attachments")
+}
+
+// =============================================================================
+// NEW GLOBAL ERP SYSTEM UPGRADE MODELS
+// =============================================================================
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  entityType  String   // e.g., "FAMILY", "BENEFICIARY", "SPONSOR", "SPONSORED_RECORD"
+  entityId    String   // ID of the modified entity
+  action      String   // "CREATE", "UPDATE", "DELETE", "RESTORE"
+  changes     String   // JSON string representing before/after diffs
+  userId      String?  // Actor (User ID or "system")
+  userEmail   String?  // Backup user email
+  userName    String?  // Backup user name
+  createdAt   DateTime @default(now())
+
+  @@map("audit_logs")
+}
+
+model CaseActivity {
+  id             String   @id @default(cuid())
+  type           String   // "VISIT", "CALL", "HEALTH_CHECK", "EDUCATION_CHECK", "FINANCIAL_ASSISTANCE", "OTHER"
+  title          String
+  description    String
+  recordedById   String?  // User ID who recorded it
+  recordedByName String?  // User name
+
+  // Relations
+  family         Family?  @relation(fields: [familyId], references: [id])
+  familyId       String?
+  beneficiary    Beneficiary? @relation(fields: [beneficiaryId], references: [id])
+  beneficiaryId  String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("case_activities")
+}
+
+model PaymentReceipt {
+  id             String   @id @default(cuid())
+  receiptNumber  String   @unique // e.g., REC-2026-0001
+  amount         Decimal  @db.Decimal(10, 2)
+  currency       Currency
+  paymentDate    DateTime
+  paymentMethod  String   // "KURAIMI", "CASH", "BANK_TRANSFER", "WESTERN_UNION", "OTHER"
+  notes          String?
+
+  sponsorship    Sponsorship @relation(fields: [sponsorshipId], references: [id])
+  sponsorshipId  String
+
+  recordedById   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("payment_receipts")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  type      String   @default("INFO") // "INFO", "WARNING", "ALERT", "SUCCESS"
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
+}

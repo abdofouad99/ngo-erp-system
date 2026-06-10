@@ -1,0 +1,310 @@
+"use client"
+
+import { useState } from "react"
+import {
+  Search,
+  Eye,
+  Edit,
+  ShieldCheck,
+  ShieldX,
+  MapPin,
+  Loader2,
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Card, CardContent } from "@/components/ui/card"
+import { FamilyDetailsSheet } from "@/components/families/family-details-sheet"
+import { FamilyFormSheet } from "@/components/families/family-form-sheet"
+import { toggleFamilyActive } from "@/app/actions/family-actions"
+
+interface FamiliesClientProps {
+  initialFamilies: any[]
+  geography: any[]
+}
+
+export function FamiliesClient({ initialFamilies, geography }: FamiliesClientProps) {
+  const [searchTerm, setSearchTerm] = useState("")
+  const [selectedGov, setSelectedGov] = useState<string>("ALL")
+  const [selectedPoverty, setSelectedPoverty] = useState<string>("ALL")
+  const [selectedStatus, setSelectedStatus] = useState<string>("ALL")
+
+  // Selected Family state for viewing details
+  const [selectedFamily, setSelectedFamily] = useState<any | null>(null)
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false)
+
+  // Loading state for toggling active status
+  const [togglingId, setTogglingId] = useState<string | null>(null)
+
+  // Filter logic
+  const filteredFamilies = initialFamilies.filter((family) => {
+    const matchesSearch =
+      family.headFullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      family.headNationalId.includes(searchTerm) ||
+      (family.headPhoneNumber && family.headPhoneNumber.includes(searchTerm))
+
+    // Match Governorate
+    const matchesGov =
+      selectedGov === "ALL" ||
+      family.subDistrict?.district?.governorate?.id?.toString() === selectedGov
+
+    // Match Poverty Level
+    const matchesPoverty =
+      selectedPoverty === "ALL" || family.povertyLevel === selectedPoverty
+
+    // Match Status
+    const matchesStatus =
+      selectedStatus === "ALL" ||
+      (selectedStatus === "ACTIVE" && family.isActive) ||
+      (selectedStatus === "INACTIVE" && !family.isActive)
+
+    return matchesSearch && matchesGov && matchesPoverty && matchesStatus
+  })
+
+  // Open details sheet helper
+  const handleOpenDetails = (family: any) => {
+    setSelectedFamily(family)
+    setIsDetailsOpen(true)
+  }
+
+  // Toggle active action handler
+  const handleToggleActive = async (id: string, currentStatus: boolean) => {
+    setTogglingId(id)
+    const result = await toggleFamilyActive(id, !currentStatus)
+    if (!result.success) {
+      alert(result.error || "فشل تغيير حالة نشاط الأسرة.")
+    }
+    setTogglingId(null)
+  }
+
+  // Poverty level translations and styles
+  const getPovertyBadge = (level: string | null) => {
+    switch (level) {
+      case "SEVERE":
+        return <Badge className="badge-premium-rose">شديد</Badge>
+      case "MEDIUM":
+        return <Badge className="badge-premium-orange">متوسط</Badge>
+      case "LOW":
+        return <Badge className="badge-premium-emerald">منخفض</Badge>
+      default:
+        return <span className="text-slate-400 text-xs italic">غير محدد</span>
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* ── Filter & Search Control Panel ───────────────────────── */}
+      <Card className="glass-card">
+        <CardContent className="p-5">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+            {/* Search Input */}
+            <div className="relative md:col-span-2">
+              <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Input
+                placeholder="البحث باسم رب الأسرة، أو الرقم الوطني، أو الهاتف..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pr-9 bg-slate-900/40 border-border/80 focus-visible:bg-slate-900/60 focus-visible:ring-emerald-500/50 focus-visible:border-emerald-500/50 text-white text-right placeholder-slate-400 text-sm"
+              />
+            </div>
+
+            {/* Governorate Filter */}
+            <select
+              value={selectedGov}
+              onChange={(e) => setSelectedGov(e.target.value)}
+              className="flex h-10 w-full rounded-xl border border-border bg-slate-900/40 text-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right font-medium"
+            >
+              <option value="ALL" className="bg-slate-950 text-white">كل المحافظات</option>
+              {geography.map((gov) => (
+                <option key={gov.id} value={gov.id.toString()} className="bg-slate-950 text-white">
+                  {gov.nameAr}
+                </option>
+              ))}
+            </select>
+
+            {/* Poverty Level Filter */}
+            <select
+              value={selectedPoverty}
+              onChange={(e) => setSelectedPoverty(e.target.value)}
+              className="flex h-10 w-full rounded-xl border border-border bg-slate-900/40 text-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right font-medium"
+            >
+              <option value="ALL" className="bg-slate-950 text-white">كل مستويات الفقر</option>
+              <option value="SEVERE" className="bg-slate-950 text-white">فقر شديد</option>
+              <option value="MEDIUM" className="bg-slate-950 text-white">فقر متوسط</option>
+              <option value="LOW" className="bg-slate-950 text-white">فقر منخفض</option>
+            </select>
+
+            {/* Status Filter */}
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="flex h-10 w-full rounded-xl border border-border bg-slate-900/40 text-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right font-medium"
+            >
+              <option value="ALL" className="bg-slate-950 text-white">كل الحالات (نشط/معطل)</option>
+              <option value="ACTIVE" className="bg-slate-950 text-white">النشطة فقط</option>
+              <option value="INACTIVE" className="bg-slate-950 text-white">المعطلة فقط</option>
+            </select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ── Table / Grid View ───────────────────────────────────── */}
+      <Card className="glass-card overflow-hidden">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table className="w-full text-right">
+              <TableHeader className="bg-slate-900/40 border-b border-border/80">
+                <TableRow className="hover:bg-transparent border-border/60">
+                  <TableHead className="text-right text-slate-200 font-bold py-3.5 pr-6">رب الأسرة</TableHead>
+                  <TableHead className="text-right text-slate-200 font-bold py-3.5">الرقم الوطني</TableHead>
+                  <TableHead className="text-right text-slate-200 font-bold py-3.5">رقم الهاتف</TableHead>
+                  <TableHead className="text-right text-slate-200 font-bold py-3.5">الموقع الجغرافي</TableHead>
+                  <TableHead className="text-right text-slate-200 font-bold py-3.5">نقاط الهشاشة</TableHead>
+                  <TableHead className="text-right text-slate-200 font-bold py-3.5">مستوى الفقر</TableHead>
+                  <TableHead className="text-right text-slate-200 font-bold py-3.5">الأفراد المسجلين</TableHead>
+                  <TableHead className="text-center text-slate-200 font-bold py-3.5">حالة الملف</TableHead>
+                  <TableHead className="text-center text-slate-200 font-bold py-3.5 pl-6">الإجراءات</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredFamilies.length > 0 ? (
+                  filteredFamilies.map((family) => {
+                    const addressStr = `${family.subDistrict?.district?.governorate?.nameAr} - ${family.subDistrict?.district?.nameAr}`
+                    return (
+                      <TableRow key={family.id} className="hover:bg-slate-800/30 border-border/40 transition-colors duration-150">
+                        {/* Name */}
+                        <TableCell className="py-3.5 pr-6 font-bold text-white text-sm">
+                          {family.headFullName}
+                        </TableCell>
+                        {/* National ID */}
+                        <TableCell className="py-3.5 font-mono text-sm text-slate-300">
+                          {family.headNationalId}
+                        </TableCell>
+                        {/* Phone */}
+                        <TableCell className="py-3.5 font-mono text-sm text-slate-300">
+                          {family.headPhoneNumber || "-"}
+                        </TableCell>
+                        {/* Address */}
+                        <TableCell className="py-3.5 text-xs font-semibold text-slate-400">
+                          <div className="flex items-center gap-1">
+                            <MapPin className="h-3.5 w-3.5 text-slate-500" />
+                            <span>{addressStr}</span>
+                          </div>
+                        </TableCell>
+                        {/* Vulnerability Score */}
+                        <TableCell className="py-3.5 font-bold text-sm text-white tabular-nums">
+                          {family.vulnerabilityScore !== null ? `${family.vulnerabilityScore}%` : "-"}
+                        </TableCell>
+                        {/* Poverty Badge */}
+                        <TableCell className="py-3.5">
+                          {getPovertyBadge(family.povertyLevel)}
+                        </TableCell>
+                        {/* Members count */}
+                        <TableCell className="py-3.5 font-bold text-slate-300 tabular-nums">
+                          {family.members?.length || 0}
+                        </TableCell>
+                        {/* Active Badge */}
+                        <TableCell className="py-3.5 text-center">
+                          {family.isActive ? (
+                            <Badge className="badge-premium-emerald font-bold">
+                              نشط
+                            </Badge>
+                          ) : (
+                            <Badge className="badge-premium-rose font-bold">
+                              معطل
+                            </Badge>
+                          )}
+                        </TableCell>
+                        {/* Actions */}
+                        <TableCell className="py-3.5 pl-6">
+                          <div className="flex items-center justify-center gap-2">
+                            {/* View details */}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleOpenDetails(family)}
+                              className="h-8 rounded-lg px-2.5 text-xs bg-blue-500/10 border-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all duration-300 hover:scale-[1.05] active:scale-[0.95] flex items-center gap-1 font-semibold"
+                            >
+                              <Eye className="h-3.5 w-3.5" />
+                              <span>التفاصيل</span>
+                            </Button>
+
+                            {/* Edit form */}
+                            <FamilyFormSheet
+                              family={family}
+                              geography={geography}
+                              trigger={
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 rounded-lg px-2.5 text-xs bg-amber-500/10 border-amber-500/20 text-amber-400 hover:bg-amber-50 hover:text-white hover:border-amber-500 transition-all duration-300 hover:scale-[1.05] active:scale-[0.95] flex items-center gap-1 font-semibold"
+                                >
+                                  <Edit className="h-3.5 w-3.5" />
+                                  <span>تعديل</span>
+                                </Button>
+                              }
+                            />
+
+                            {/* Toggle active status */}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={togglingId === family.id}
+                              onClick={() => handleToggleActive(family.id, family.isActive)}
+                              className={`h-8 rounded-lg px-2.5 text-xs transition-all duration-300 hover:scale-[1.05] active:scale-[0.95] flex items-center gap-1 font-semibold ${
+                                family.isActive
+                                  ? "bg-rose-500/10 border-rose-500/20 text-rose-400 hover:bg-rose-50 hover:text-white hover:border-rose-500"
+                                  : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-50 hover:text-white hover:border-emerald-500"
+                              }`}
+                            >
+                              {togglingId === family.id ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : family.isActive ? (
+                                <>
+                                  <ShieldX className="h-3.5 w-3.5" />
+                                  <span>تعطيل</span>
+                                </>
+                              ) : (
+                                <>
+                                  <ShieldCheck className="h-3.5 w-3.5" />
+                                  <span>تنشيط</span>
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={9} className="text-center py-12 text-sm text-slate-400 font-medium">
+                      لا توجد نتائج تطابق خيارات البحث والتصفية المحددة.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ── Detailed Family View Sheet ──────────────────────────── */}
+      {selectedFamily && (
+        <FamilyDetailsSheet
+          family={selectedFamily}
+          open={isDetailsOpen}
+          onOpenChange={setIsDetailsOpen}
+        />
+      )}
+    </div>
+  )
+}
