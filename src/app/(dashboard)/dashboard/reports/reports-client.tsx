@@ -26,9 +26,10 @@ import {
 interface ReportsClientProps {
   initialBeneficiaries: any[]
   geography: any[]
+  sponsors: any[]
 }
 
-export function ReportsClient({ initialBeneficiaries, geography }: ReportsClientProps) {
+export function ReportsClient({ initialBeneficiaries, geography, sponsors }: ReportsClientProps) {
   // Search & Filters
   const [searchTerm, setSearchTerm] = useState("")
   const [govId, setGovId] = useState<string>("ALL")
@@ -39,6 +40,8 @@ export function ReportsClient({ initialBeneficiaries, geography }: ReportsClient
   const [educationalStage, setEducationalStage] = useState<string>("ALL")
   const [gender, setGender] = useState<string>("ALL")
   const [disability, setDisability] = useState<string>("ALL")
+  const [sponsorId, setSponsorId] = useState<string>("ALL")
+  const [healthQuery, setHealthQuery] = useState<string>("")
 
   // Cascading districts list
   const activeGov = geography.find((g) => g.id.toString() === govId)
@@ -79,6 +82,11 @@ export function ReportsClient({ initialBeneficiaries, geography }: ReportsClient
       (sponsorshipStatus === "SPONSORED" && isSponsored) ||
       (sponsorshipStatus === "UNSPONSORED" && !isSponsored)
 
+    // Sponsor
+    const matchesSponsor =
+      sponsorId === "ALL" ||
+      (b.sponsorships && b.sponsorships.some((s: any) => s.sponsorId === sponsorId))
+
     // Education
     const matchesEducation =
       educationalStage === "ALL" ||
@@ -93,6 +101,13 @@ export function ReportsClient({ initialBeneficiaries, geography }: ReportsClient
       (disability === "YES" && b.disability) ||
       (disability === "NO" && !b.disability)
 
+    // Health / Disease Search
+    const matchesHealth =
+      !healthQuery.trim() ||
+      (b.healthStatus && b.healthStatus.toLowerCase().includes(healthQuery.toLowerCase())) ||
+      (b.disabilityType && b.disabilityType.toLowerCase().includes(healthQuery.toLowerCase())) ||
+      (b.disabilityDetails && b.disabilityDetails.toLowerCase().includes(healthQuery.toLowerCase()))
+
     return (
       matchesSearch &&
       matchesGov &&
@@ -100,9 +115,11 @@ export function ReportsClient({ initialBeneficiaries, geography }: ReportsClient
       matchesCategory &&
       matchesPoverty &&
       matchesSponsorship &&
+      matchesSponsor &&
       matchesEducation &&
       matchesGender &&
-      matchesDisability
+      matchesDisability &&
+      matchesHealth
     )
   })
 
@@ -258,6 +275,8 @@ export function ReportsClient({ initialBeneficiaries, geography }: ReportsClient
                 setEducationalStage("ALL")
                 setGender("ALL")
                 setDisability("ALL")
+                setSponsorId("ALL")
+                setHealthQuery("")
               }}
               className="text-xs text-slate-400 hover:text-white transition-colors gap-1.5 hover:bg-slate-800/40"
             >
@@ -371,12 +390,34 @@ export function ReportsClient({ initialBeneficiaries, geography }: ReportsClient
             <select
               value={disability}
               onChange={(e) => setDisability(e.target.value)}
-              className="flex h-10 w-full rounded-xl border border-slate-800/80 bg-slate-900/60 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right text-slate-200 font-medium col-span-2 transition-all hover:border-slate-700"
+              className="flex h-10 w-full rounded-xl border border-slate-800/80 bg-slate-900/60 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right text-slate-200 font-medium transition-all hover:border-slate-700"
             >
               <option className="bg-slate-950 text-white" value="ALL">ذوي الاحتياجات الخاصة (الكل)</option>
               <option className="bg-slate-950 text-white" value="YES">يعاني من إعاقة</option>
               <option className="bg-slate-950 text-white" value="NO">لا توجد إعاقات</option>
             </select>
+
+            {/* Sponsor Agency */}
+            <select
+              value={sponsorId}
+              onChange={(e) => setSponsorId(e.target.value)}
+              className="flex h-10 w-full rounded-xl border border-slate-800/80 bg-slate-900/60 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right text-slate-200 font-medium transition-all hover:border-slate-700"
+            >
+              <option className="bg-slate-950 text-white" value="ALL">جهة الكفالة (الكل)</option>
+              {sponsors.map((sp: any) => (
+                <option className="bg-slate-950 text-white" key={sp.id} value={sp.id}>
+                  {sp.name}
+                </option>
+              ))}
+            </select>
+
+            {/* Health / Disease Search */}
+            <Input
+              placeholder="البحث بنوع المرض أو الإعاقة..."
+              value={healthQuery}
+              onChange={(e) => setHealthQuery(e.target.value)}
+              className="bg-slate-900/60 border-slate-800/80 text-white placeholder-slate-500 text-sm focus-visible:ring-emerald-500 focus-visible:bg-slate-900/90 focus-visible:border-slate-700 transition-all rounded-xl"
+            />
           </div>
         </CardContent>
       </Card>

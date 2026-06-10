@@ -25,6 +25,9 @@ async function getBeneficiariesForReports() {
         where: {
           status: "ACTIVE",
         },
+        include: {
+          sponsor: true,
+        },
       },
     },
     orderBy: {
@@ -59,14 +62,28 @@ async function getGeographyForReports() {
   })
 }
 
+async function getSponsorsForReports() {
+  return await prisma.sponsor.findMany({
+    where: { deletedAt: null },
+    select: {
+      id: true,
+      fullName: true,
+    },
+    orderBy: {
+      fullName: "asc",
+    },
+  })
+}
+
 // =============================================================================
 // PAGE COMPONENT
 // =============================================================================
 
 export default async function ReportsPage() {
-  const [beneficiaries, geography] = await Promise.all([
+  const [beneficiaries, geography, sponsors] = await Promise.all([
     getBeneficiariesForReports(),
     getGeographyForReports(),
+    getSponsorsForReports(),
   ])
 
   return (
@@ -83,6 +100,7 @@ export default async function ReportsPage() {
       <ReportsClient
         initialBeneficiaries={beneficiaries}
         geography={geography}
+        sponsors={sponsors}
       />
     </div>
   )
