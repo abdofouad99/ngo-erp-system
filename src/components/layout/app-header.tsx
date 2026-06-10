@@ -47,7 +47,7 @@ export function AppHeader() {
 
   const title = getPageTitle(pathname)
   return (
-    <header className="flex h-16 flex-shrink-0 items-center gap-4 border-b border-border bg-card/60 backdrop-blur-md px-4 shadow-sm md:px-6">
+    <header className="relative z-50 flex h-16 flex-shrink-0 items-center gap-4 border-b border-border bg-card/60 backdrop-blur-md px-4 shadow-sm md:px-6">
 
       {/* ── Mobile: Hamburger Menu ──────────────────────────────── */}
       <Sheet>

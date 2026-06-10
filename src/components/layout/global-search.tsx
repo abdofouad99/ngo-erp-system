@@ -77,7 +77,7 @@ export function GlobalSearch() {
 
       {/* Floating Dropdown Results */}
       {showDropdown && (
-        <div className="absolute left-0 right-0 z-50 mt-1.5 max-h-80 overflow-y-auto rounded-xl border border-border bg-card/95 backdrop-blur-md p-2 shadow-2xl text-right glass-panel">
+        <div className="absolute left-0 right-0 z-[100] mt-1.5 max-h-80 overflow-y-auto rounded-xl border border-border bg-card/95 backdrop-blur-md p-2 shadow-2xl text-right glass-panel">
           {results.length === 0 ? (
             <div className="py-6 text-center text-xs text-muted-foreground font-medium">
               لا توجد أي نتائج مطابقة للبحث.
