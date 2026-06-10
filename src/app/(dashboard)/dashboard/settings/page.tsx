@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { getGeoStructure, createGovernorate, createDistrict, createSubDistrict, getSystemStats } from "@/app/actions/settings-actions"
+import { getAllTagsAdmin, createTag, toggleTag, deleteTag, seedInitialTags } from "@/app/actions/tag-actions"
+import { TagCategory } from "@prisma/client"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -22,7 +24,12 @@ import {
   Activity,
   CheckCircle,
   Database,
-  MapPin
+  MapPin,
+  Tag,
+  Trash2,
+  ToggleLeft,
+  ToggleRight,
+  Sparkles
 } from "lucide-react"
 
 export default function SettingsPage() {
@@ -30,6 +37,13 @@ export default function SettingsPage() {
   const [geoStructure, setGeoStructure] = useState<any[]>([])
   const [stats, setStats] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+
+  // Tags state
+  const [allTags, setAllTags] = useState<any[]>([])
+  const [newTagName, setNewTagName] = useState("")
+  const [newTagCategory, setNewTagCategory] = useState<TagCategory>("ORPHAN_OPERATIONAL_STATUS" as TagCategory)
+  const [newTagColor, setNewTagColor] = useState("#6366f1")
+  const [seedingTags, setSeedingTags] = useState(false)
 
   // Form states
   const [govName, setGovName] = useState("")
@@ -44,9 +58,14 @@ export default function SettingsPage() {
 
   const loadData = async () => {
     setLoading(true)
-    const [geoRes, statsRes] = await Promise.all([getGeoStructure(), getSystemStats()])
+    const [geoRes, statsRes, tagsRes] = await Promise.all([
+      getGeoStructure(),
+      getSystemStats(),
+      getAllTagsAdmin(),
+    ])
     if (geoRes.success) setGeoStructure(geoRes.governorates || [])
     if (statsRes.success) setStats(statsRes.stats || null)
+    if (tagsRes.success) setAllTags(tagsRes.tags || [])
     setLoading(false)
   }
 
@@ -136,6 +155,10 @@ export default function SettingsPage() {
           <TabsTrigger value="geo" className="rounded-lg text-xs font-bold gap-1.5 px-4 py-2 data-[state=active]:bg-slate-800 data-[state=active]:text-white">
             <Map className="h-4 w-4 text-slate-400" />
             إدارة المناطق الجغرافية
+          </TabsTrigger>
+          <TabsTrigger value="tags" className="rounded-lg text-xs font-bold gap-1.5 px-4 py-2 data-[state=active]:bg-slate-800 data-[state=active]:text-white">
+            <Tag className="h-4 w-4 text-indigo-400" />
+            إدارة التصنيفات
           </TabsTrigger>
           <TabsTrigger value="profile" className="rounded-lg text-xs font-bold gap-1.5 px-4 py-2 data-[state=active]:bg-slate-800 data-[state=active]:text-white">
             <User className="h-4 w-4 text-slate-400" />
@@ -504,6 +527,183 @@ export default function SettingsPage() {
 
           </div>
         </TabsContent>
+
+        {/* ── TAGS MANAGEMENT TAB ── */}
+        <TabsContent value="tags" className="space-y-6">
+          {/* Header + Seed Button */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-extrabold text-white">إدارة التصنيفات المرنة</h3>
+              <p className="text-xs text-white/50 mt-1">أضف وعدّل التصنيفات التي تظهر على الأيتام والأسر. التغييرات تنعكس فوراً.</p>
+            </div>
+            <Button
+              onClick={async () => {
+                setSeedingTags(true)
+                const res = await seedInitialTags()
+                setMessage({ text: res.message || res.error || "", type: res.success ? "success" : "error" })
+                await loadData()
+                setSeedingTags(false)
+              }}
+              disabled={seedingTags}
+              className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              {seedingTags ? "جاري الإضافة..." : "إضافة التصنيفات الافتراضية"}
+            </Button>
+          </div>
+
+          {/* Add New Tag Form */}
+          <Card className="bg-slate-900/40 border border-indigo-500/20 backdrop-blur-md rounded-2xl">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-extrabold text-white flex items-center gap-1.5">
+                <Plus className="h-4 w-4 text-indigo-400" />
+                إضافة تصنيف جديد
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault()
+                  if (!newTagName) return
+                  setSubmitting(true)
+                  const fd = new FormData()
+                  fd.set("nameAr", newTagName)
+                  fd.set("category", newTagCategory)
+                  fd.set("color", newTagColor)
+                  const res = await createTag(fd)
+                  if (res.success) {
+                    setNewTagName("")
+                    setMessage({ text: res.message || "تم إنشاء التصنيف", type: "success" })
+                    await loadData()
+                  } else {
+                    setMessage({ text: res.error || "فشل", type: "error" })
+                  }
+                  setSubmitting(false)
+                }}
+                className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end"
+              >
+                <div className="sm:col-span-2 space-y-1">
+                  <label className="text-xs font-bold text-white/60">اسم التصنيف</label>
+                  <Input
+                    value={newTagName}
+                    onChange={(e) => setNewTagName(e.target.value)}
+                    placeholder="مثال: تحت المتابعة"
+                    className="bg-slate-800 border-slate-700 text-white text-sm h-9"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-white/60">الفئة</label>
+                  <select
+                    value={newTagCategory}
+                    onChange={(e) => setNewTagCategory(e.target.value as TagCategory)}
+                    className="w-full h-9 rounded-md border border-slate-700 bg-slate-800 px-3 text-xs text-white"
+                  >
+                    <option value="ORPHAN_OPERATIONAL_STATUS">الحالة التشغيلية للأيتام</option>
+                    <option value="FUNDING_SOURCE">جهة التمويل</option>
+                    <option value="FAMILY_NEED">احتياجات الأسرة</option>
+                    <option value="MEDICAL_CONDITION">الحالة الطبية</option>
+                    <option value="CUSTOM">مخصص</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-white/60">اللون</label>
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="color"
+                      value={newTagColor}
+                      onChange={(e) => setNewTagColor(e.target.value)}
+                      className="h-9 w-12 rounded-md border border-slate-700 bg-slate-800 cursor-pointer"
+                    />
+                    <Button type="submit" disabled={submitting} className="flex-1 h-9 text-xs bg-indigo-600 hover:bg-indigo-700">
+                      <Plus className="h-3 w-3 ml-1" /> إضافة
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Tags List grouped by category */}
+          {([
+            { key: "ORPHAN_OPERATIONAL_STATUS", label: "الحالة التشغيلية للأيتام", color: "blue" },
+            { key: "FUNDING_SOURCE", label: "جهات التمويل والكفالة", color: "teal" },
+            { key: "FAMILY_NEED", label: "احتياجات الأسرة", color: "amber" },
+            { key: "MEDICAL_CONDITION", label: "الحالات الطبية", color: "rose" },
+            { key: "CUSTOM", label: "تصنيفات مخصصة", color: "purple" },
+          ] as const).map(({ key, label }) => {
+            const catTags = allTags.filter((t) => t.category === key)
+            if (catTags.length === 0) return null
+            return (
+              <Card key={key} className="bg-slate-900/40 border border-slate-800/80 backdrop-blur-md rounded-2xl">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-extrabold text-white flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <Tag className="h-4 w-4 text-indigo-400" />
+                      {label}
+                    </span>
+                    <span className="text-xs font-normal text-white/40">{catTags.length} تصنيف</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {catTags.map((tag) => (
+                      <div
+                        key={tag.id}
+                        className={`flex items-center justify-between rounded-xl px-3 py-2.5 border transition-all ${
+                          tag.isActive
+                            ? "bg-white/5 border-white/10"
+                            : "bg-white/[0.02] border-white/5 opacity-50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="h-3.5 w-3.5 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: tag.color }}
+                          />
+                          <span className="text-sm font-semibold text-white">{tag.nameAr}</span>
+                          {!tag.isActive && (
+                            <span className="text-[10px] bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded-full">معطّل</span>
+                          )}
+                          <span className="text-[10px] text-white/30">
+                            {tag._count.beneficiaryTags + tag._count.familyTags} استخدام
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={async () => {
+                              const res = await toggleTag(tag.id)
+                              setMessage({ text: res.message || res.error || "", type: res.success ? "success" : "error" })
+                              await loadData()
+                            }}
+                            className="text-white/40 hover:text-white transition-colors p-1 rounded"
+                            title={tag.isActive ? "تعطيل" : "تفعيل"}
+                          >
+                            {tag.isActive
+                              ? <ToggleRight className="h-5 w-5 text-emerald-400" />
+                              : <ToggleLeft className="h-5 w-5 text-slate-500" />}
+                          </button>
+                          <button
+                            onClick={async () => {
+                              if (!confirm(`هل أنت متأكد من حذف "${tag.nameAr}"؟`)) return
+                              const res = await deleteTag(tag.id)
+                              setMessage({ text: res.message || res.error || "", type: res.success ? "success" : "error" })
+                              await loadData()
+                            }}
+                            className="text-white/20 hover:text-red-400 transition-colors p-1 rounded"
+                            title="حذف"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })}
+        </TabsContent>
+
       </Tabs>
     </div>
   )

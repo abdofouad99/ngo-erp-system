@@ -5,6 +5,7 @@ import {
   Baby,
   Eye,
   Search,
+  Filter,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -19,6 +20,8 @@ import {
 } from "@/components/ui/table"
 import { Card, CardContent } from "@/components/ui/card"
 import { OrphanDetailsSheet } from "@/components/orphans/orphan-details-sheet"
+import { TagBadge, TagFilterPills, TagSelector } from "@/components/tags/tag-components"
+import type { TagData } from "@/components/tags/tag-components"
 
 // =============================================================================
 // TYPES
@@ -95,6 +98,7 @@ type Orphan = {
 
 interface OrphansClientProps {
   initialOrphans: any[]
+  allTags?: TagData[]
 }
 
 // =============================================================================
@@ -131,14 +135,20 @@ function formatCurrency(amount: number | null): string {
   }).format(amount)
 }
 
-export function OrphansClient({ initialOrphans }: OrphansClientProps) {
+export function OrphansClient({ initialOrphans, allTags = [] }: OrphansClientProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedGender, setSelectedGender] = useState("ALL")
-  const [selectedOrphan, setSelectedOrphan] = useState<Orphan | null>(null)
+  const [selectedTagId, setSelectedTagId] = useState<string | null>(null)
+  const [selectedFundingTagId, setSelectedFundingTagId] = useState<string | null>(null)
+  const [selectedOrphan, setSelectedOrphan] = useState<any | null>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
 
   // Cast initial orphans to local typed array
-  const orphans = initialOrphans as Orphan[]
+  const orphans = initialOrphans as any[]
+
+  // Tags filtered by category
+  const operationalTags = allTags.filter((t) => t.category === "ORPHAN_OPERATIONAL_STATUS")
+  const fundingTags = allTags.filter((t) => t.category === "FUNDING_SOURCE")
 
   const filteredOrphans = orphans.filter((orphan) => {
     const matchesSearch =
@@ -148,7 +158,11 @@ export function OrphansClient({ initialOrphans }: OrphansClientProps) {
 
     const matchesGender = selectedGender === "ALL" || orphan.gender === selectedGender
 
-    return matchesSearch && matchesGender
+    const orphanTagIds = (orphan.tags || []).map((bt: any) => bt.tagId)
+    const matchesStatusTag = !selectedTagId || orphanTagIds.includes(selectedTagId)
+    const matchesFundingTag = !selectedFundingTagId || orphanTagIds.includes(selectedFundingTagId)
+
+    return matchesSearch && matchesGender && matchesStatusTag && matchesFundingTag
   })
 
   const handleOpenDetails = (orphan: Orphan) => {
@@ -188,9 +202,9 @@ export function OrphansClient({ initialOrphans }: OrphansClientProps) {
 
   return (
     <div className="space-y-6">
-      {/* ── Filter & Search Bar ─────────────────────────────────── */}
+      {/* ── Filter & Search Bar ────────────────────────────────────── */}
       <Card className="glass-card">
-        <CardContent className="p-4">
+        <CardContent className="p-4 space-y-3">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             {/* Search Input */}
             <div className="relative flex-1">
@@ -236,6 +250,38 @@ export function OrphansClient({ initialOrphans }: OrphansClientProps) {
               </Button>
             </div>
           </div>
+
+          {/* Tag Filters Row */}
+          {(operationalTags.length > 0 || fundingTags.length > 0) && (
+            <div className="space-y-2 pt-1 border-t border-white/5">
+              {operationalTags.length > 0 && (
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] font-bold text-white/40 whitespace-nowrap flex-shrink-0 flex items-center gap-1">
+                    <Filter className="h-3 w-3" /> الحالة
+                  </span>
+                  <TagFilterPills
+                    tags={operationalTags}
+                    selectedId={selectedTagId}
+                    onSelect={setSelectedTagId}
+                    placeholder="جميع الحالات"
+                  />
+                </div>
+              )}
+              {fundingTags.length > 0 && (
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] font-bold text-white/40 whitespace-nowrap flex-shrink-0 flex items-center gap-1">
+                    <Filter className="h-3 w-3" /> جهة التمويل
+                  </span>
+                  <TagFilterPills
+                    tags={fundingTags}
+                    selectedId={selectedFundingTagId}
+                    onSelect={setSelectedFundingTagId}
+                    placeholder="جميع الجهات"
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -244,12 +290,13 @@ export function OrphansClient({ initialOrphans }: OrphansClientProps) {
         <div className="overflow-x-auto">
           <Table>
             <TableHeader className="bg-slate-900/40 border-b border-border/80">
-              <TableRow className="hover:bg-transparent border-border/60">
+            <TableRow className="hover:bg-transparent border-border/60">
                 <TableHead className="text-right font-bold text-slate-200 py-3.5 pr-6">كود اليتيم</TableHead>
                 <TableHead className="text-right font-bold text-slate-200 py-3.5">الاسم الكامل</TableHead>
                 <TableHead className="text-right font-bold text-slate-200 py-3.5">اسم رب الأسرة</TableHead>
                 <TableHead className="text-right font-bold text-slate-200 py-3.5">الجنس</TableHead>
                 <TableHead className="text-right font-bold text-slate-200 py-3.5">العمر</TableHead>
+                <TableHead className="text-right font-bold text-slate-200 py-3.5">التصنيفات</TableHead>
                 <TableHead className="text-right font-bold text-slate-200 py-3.5">الحالة</TableHead>
                 <TableHead className="text-center font-bold text-slate-200 py-3.5 pl-6">الإجراءات</TableHead>
               </TableRow>
@@ -285,6 +332,26 @@ export function OrphansClient({ initialOrphans }: OrphansClientProps) {
                     </TableCell>
                     <TableCell className="text-slate-300 tabular-nums font-semibold">
                       {calculateAge(orphan.birthdate).toLocaleString("ar-SA")} سنة
+                    </TableCell>
+                    {/* Tags Column */}
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1 max-w-[180px]">
+                        {(orphan.tags || []).slice(0, 3).map((bt: any) => (
+                          <TagBadge key={bt.tagId} tag={bt.tag} />
+                        ))}
+                        {(orphan.tags || []).length > 3 && (
+                          <span className="text-[10px] text-white/40">+{(orphan.tags || []).length - 3}</span>
+                        )}
+                        {(orphan.tags || []).length === 0 && allTags.length > 0 && (
+                          <TagSelector
+                            entityId={orphan.id}
+                            entityType="beneficiary"
+                            allTags={allTags}
+                            selectedTagIds={[]}
+                            label="+ تصنيف"
+                          />
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       {orphan.verificationStatus === "APPROVED" ? (

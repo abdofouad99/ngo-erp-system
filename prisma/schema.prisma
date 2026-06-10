@@ -105,6 +105,15 @@ enum VerificationStatus {
   REJECTED
 }
 
+// فئات التصنيفات المرنة
+enum TagCategory {
+  ORPHAN_OPERATIONAL_STATUS  // الحالة التشغيلية للأيتام
+  FUNDING_SOURCE             // جهة التمويل/الكفالة
+  FAMILY_NEED                // احتياجات الأسرة
+  MEDICAL_CONDITION          // الحالة الطبية
+  CUSTOM                     // تصنيف مخصص مستقبلي
+}
+
 // =============================================================================
 // MODULE 0: AUTHENTICATION
 // =============================================================================
@@ -219,6 +228,7 @@ model Family {
   attachments  Attachment[]
   sponsorships Sponsorship[] // A family can also have a direct family sponsorship
   caseActivities CaseActivity[]
+  tags         FamilyTag[]         // التصنيفات المرنة
 
   // --- Audit ---
   createdBy   User   @relation("FamilyCreatedBy", fields: [createdById], references: [id])
@@ -285,6 +295,7 @@ model Beneficiary {
   sponsorships Sponsorship[]        // Sponsorships targeting this individual
   attachments  Attachment[]
   caseActivities CaseActivity[]
+  tags         BeneficiaryTag[]    // التصنيفات المرنة
 
   deletedAt DateTime? // For Soft Delete
 
@@ -552,4 +563,60 @@ model Notification {
   createdAt DateTime @default(now())
 
   @@map("notifications")
+}
+
+// =============================================================================
+// MODULE 8: FLEXIBLE TAGGING SYSTEM (نظام التصنيفات المرن)
+// Allows dynamic classification of beneficiaries and families without
+// schema changes. Admins can add/edit/disable tags from the settings page.
+// =============================================================================
+
+/// بنك التصنيفات — يُدار من صفحة الإعدادات
+model Tag {
+  id          String      @id @default(cuid())
+  nameAr      String      // الاسم بالعربي
+  nameEn      String?     // الاسم بالإنجليزي (اختياري)
+  category    TagCategory // فئة التصنيف
+  color       String      @default("#6366f1") // لون الـ Badge (hex)
+  isActive    Boolean     @default(true)
+  description String?     // وصف اختياري للتصنيف
+  sortOrder   Int         @default(0) // ترتيب العرض
+
+  beneficiaryTags BeneficiaryTag[]
+  familyTags      FamilyTag[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tags")
+}
+
+/// ربط التصنيف بمستفيد (many-to-many)
+model BeneficiaryTag {
+  id            String      @id @default(cuid())
+  beneficiary   Beneficiary @relation(fields: [beneficiaryId], references: [id], onDelete: Cascade)
+  beneficiaryId String
+  tag           Tag         @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  tagId         String
+  notes         String?     // ملاحظة خاصة بهذا التصنيف لهذا المستفيد
+
+  createdAt DateTime @default(now())
+
+  @@unique([beneficiaryId, tagId])
+  @@map("beneficiary_tags")
+}
+
+/// ربط التصنيف بأسرة (many-to-many)
+model FamilyTag {
+  id       String  @id @default(cuid())
+  family   Family  @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  familyId String
+  tag      Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  tagId    String
+  notes    String? // ملاحظة خاصة بهذا التصنيف لهذه الأسرة
+
+  createdAt DateTime @default(now())
+
+  @@unique([familyId, tagId])
+  @@map("family_tags")
 }

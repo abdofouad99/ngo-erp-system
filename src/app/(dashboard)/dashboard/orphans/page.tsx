@@ -3,6 +3,7 @@ import { Baby, Heart } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { OrphansClient } from "./orphans-client"
 import { AddOrphanSheet } from "@/components/orphans/add-orphan-sheet"
+import { getAllTags } from "@/app/actions/tag-actions"
 
 // =============================================================================
 // DATA FETCHING
@@ -20,6 +21,9 @@ async function getOrphans() {
         include: {
           sponsor: true,
         },
+      },
+      tags: {
+        include: { tag: true },
       },
     },
     orderBy: {
@@ -49,10 +53,12 @@ async function getFamilies() {
 // =============================================================================
 
 export default async function OrphansPage() {
-  const [orphans, families] = await Promise.all([
+  const [orphans, families, tagsResult] = await Promise.all([
     getOrphans(),
     getFamilies(),
+    getAllTags(),
   ])
+  const allTags = tagsResult.success ? tagsResult.tags || [] : []
 
   return (
     <div className="space-y-6">
@@ -119,7 +125,7 @@ export default async function OrphansPage() {
       </div>
 
       {/* ── Interactive Orphans Client (Table, Filters, Detailed View Sheet) ── */}
-      <OrphansClient initialOrphans={orphans} />
+      <OrphansClient initialOrphans={orphans} allTags={allTags} />
     </div>
   )
 }
