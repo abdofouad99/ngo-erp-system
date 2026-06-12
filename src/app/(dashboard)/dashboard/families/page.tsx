@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { prisma } from "@/lib/prisma"
 import { Users, ShieldAlert, Award, Activity } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"

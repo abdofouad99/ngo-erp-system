@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { prisma } from "@/lib/prisma"
 import { HeartHandshake, Users, DollarSign, Wallet } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"

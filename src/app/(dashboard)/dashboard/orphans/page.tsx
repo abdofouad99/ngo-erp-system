@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { prisma } from "@/lib/prisma"
 import { Baby, Heart } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
@@ -24,6 +26,12 @@ async function getOrphans() {
       },
       tags: {
         include: { tag: true },
+      },
+      guardians: {
+        orderBy: { isPrimary: "desc" },
+      },
+      siblings: {
+        orderBy: { siblingOrder: "asc" },
       },
     },
     orderBy: {

@@ -250,35 +250,60 @@ model Beneficiary {
 
   // --- Personal Info ---
   fullName    String
+  shortName   String?  // الاسم المختصر للكشوفات
   gender      Gender
   birthdate   DateTime
   nationalId  String?  // May not have their own ID (children)
+  religion    String?  // الديانة
 
   // --- Classification ---
   category    BeneficiaryCategory
 
   orphanCode          String?  @unique // رقم ملف اليتيم
-  kuraimiAccount      String?          // رقم حساب الكريمي
+  kuraimiAccount      String?          // رقم حساب الكريمي الجديد
+  kuraimiAccountOld   String?          // رقم حساب الكريمي القديم
+  mumaiyo             String?          // رقم المميو كريمي
+  baitZakatNumber     String?          // رقم بيت الزكاة
 
-  // --- Education (relevant for STUDENT category) ---
-  educationLevel   String? // e.g., "Primary Grade 3", "University Year 2"
-  schoolName       String?
-  educationalStage String?
-  averageGrade     Float?
-  educationalNeeds String?
+  // --- Education ---
+  educationLevel    String?
+  schoolName        String?
+  educationalStage  String?
+  averageGrade      Float?
+  educationalNeeds  String?
+  quranMemorization String?  // مقدار الحفظ من القرآن
 
-  // --- Health (relevant for PATIENT category) ---
-  healthStatus      String? // e.g., "Diabetic", "Cancer Stage 2"
-  disabilityType    String? // e.g., "Physical", "Visual"
+  // --- Health ---
+  healthStatus      String?
+  disabilityType    String?
   disability        Boolean @default(false)
   disabilityDetails String?
 
+  // --- Living Conditions ---
+  nutritionStatus   String?  // التغذية: جيدة / عادية / سيئة
+  housingStatus     String?  // السكن: ملك / إيجار / مع الأهل
+
   // --- Orphan-specific ---
   orphanType        OrphanType?
-  fatherDeathDate   DateTime? // For orphan verification
+  fatherFullName    String?   // اسم الوالد رباعياً
+  fatherDeathDate   DateTime?
   fatherDeathCause  String?
   motherDeathDate   DateTime?
-  motherName        String?          // اسم الأم بالكامل
+  motherName        String?
+
+  // --- Place of Birth ---
+  birthGovernorate  String?  // محافظة الميلاد
+  birthDistrict     String?  // مديرية الميلاد
+  birthVillage      String?  // عزلة الميلاد
+  birthArea         String?  // منطقة الميلاد
+
+  // --- Referrer (المعرِّف) ---
+  referrerName      String?
+  referrerPhone1    String?
+  referrerPhone2    String?
+
+  // --- Marketing ---
+  marketedToOrg     String?  // الجهة المسوَّق لها
 
   // --- Verification ---
   verificationStatus VerificationStatus @default(PENDING)
@@ -291,20 +316,70 @@ model Beneficiary {
   family   Family @relation(fields: [familyId], references: [id])
   familyId String
 
-  projectLinks ProjectBeneficiary[] // All project deliveries for this individual
-  sponsorships Sponsorship[]        // Sponsorships targeting this individual
-  attachments  Attachment[]
+  guardians      Guardian[]           // بيانات المعيلين
+  siblings       Sibling[]            // بيانات الإخوة
+  projectLinks   ProjectBeneficiary[]
+  sponsorships   Sponsorship[]
+  attachments    Attachment[]
   caseActivities CaseActivity[]
-  tags         BeneficiaryTag[]    // التصنيفات المرنة
+  tags           BeneficiaryTag[]
 
-  deletedAt DateTime? // For Soft Delete
+  deletedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Enforce uniqueness: same national ID should not appear twice
   @@unique([nationalId, familyId])
   @@map("beneficiaries")
+}
+
+// =============================================================================
+// MODULE 2B: GUARDIANS (بيانات المعيل)
+// كل يتيم قد يكون له معيل أساسي وآخر ثانوي
+// =============================================================================
+
+model Guardian {
+  id            String      @id @default(cuid())
+  beneficiary   Beneficiary @relation(fields: [beneficiaryId], references: [id], onDelete: Cascade)
+  beneficiaryId String
+
+  fullName      String       // اسم المعيل
+  nationalId    String?      // رقم الهوية
+  relation      String?      // علاقته باليتيم
+  occupation    String?      // عمله
+  phone1        String?
+  phone2        String?
+  phone3        String?
+  phone4        String?
+  isPrimary     Boolean      @default(true) // المعيل الأساسي؟
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("guardians")
+}
+
+// =============================================================================
+// MODULE 2C: SIBLINGS (بيانات الإخوة)
+// حتى 7 إخوة لكل يتيم
+// =============================================================================
+
+model Sibling {
+  id            String      @id @default(cuid())
+  beneficiary   Beneficiary @relation(fields: [beneficiaryId], references: [id], onDelete: Cascade)
+  beneficiaryId String
+
+  fullName      String       // اسم الأخ/الأخت
+  qualification String?      // المؤهل
+  birthdate     DateTime?    // تاريخ الميلاد
+  socialStatus  String?      // الحالة الاجتماعية
+  gender        Gender?
+  siblingOrder  Int          // ترتيب الأخ (1 إلى 7)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("siblings")
 }
 
 // =============================================================================
