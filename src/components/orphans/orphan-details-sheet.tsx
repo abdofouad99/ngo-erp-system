@@ -215,7 +215,7 @@ export function OrphanDetailsSheet({ orphan, open, onOpenChange }: OrphanDetails
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="sm:max-w-2xl w-full p-0 flex flex-col h-full bg-white text-right border-r border-gray-100 shadow-2xl"
+        className="sm:max-w-2xl w-full p-0 flex flex-col h-full bg-slate-950 text-right border-l border-border shadow-2xl"
       >
         {/* Header Panel */}
         <div className="relative overflow-hidden bg-gradient-to-l from-emerald-500 to-teal-600 p-6 text-white flex-shrink-0">
@@ -245,7 +245,7 @@ export function OrphanDetailsSheet({ orphan, open, onOpenChange }: OrphanDetails
         {/* Tab Selection Area */}
         <div className="flex-1 overflow-y-auto px-6 py-4">
           <Tabs defaultValue="personal" className="w-full flex flex-col h-full">
-            <TabsList className="bg-gray-100/80 rounded-xl p-1 mb-4 flex-shrink-0 gap-1 flex-wrap h-auto">
+            <TabsList className="bg-slate-900/60 rounded-xl p-1 mb-4 flex-shrink-0 gap-1 flex-wrap h-auto">
               <TabsTrigger value="personal" className="text-xs py-1.5 flex-1">
                 <User className="h-3.5 w-3.5 ml-1.5" />
                 الشخصية والدراسية
@@ -276,64 +276,64 @@ export function OrphanDetailsSheet({ orphan, open, onOpenChange }: OrphanDetails
               {/* TAB 1: Personal & Educational */}
               <TabsContent value="personal" className="space-y-4 outline-none">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">الرقم الوطني / شهادة الميلاد</p>
                     <p className="text-sm font-mono tabular-nums">{renderValue(orphan.nationalId)}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">الجنس</p>
                     <p className="text-sm font-semibold">{orphan.gender === "MALE" ? "ذكر" : "أنثى"}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">تاريخ الميلاد</p>
                     <p className="text-sm tabular-nums">{formatDate(orphan.birthdate)}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">العمر الحالي</p>
                     <p className="text-sm font-semibold text-emerald-600">
                       {calculateAge(orphan.birthdate).toLocaleString("ar-SA")} سنة
                     </p>
                   </div>
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">الاسم المختصر للكشوفات</p>
                     <p className="text-sm">{renderValue(orphan.shortName)}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">الديانة</p>
                     <p className="text-sm">{renderValue(orphan.religion)}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">اسم الوالد رباعياً</p>
                     <p className="text-sm">{renderValue(orphan.fatherFullName)}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">اسم الأم</p>
                     <p className="text-sm">{renderValue(orphan.motherName)}</p>
                   </div>
                 </div>
 
-                <Separator className="my-2 bg-gray-100" />
-                <h4 className="text-sm font-bold text-gray-800 flex items-center gap-1.5 mb-3">
+                <Separator className="my-2 bg-slate-800" />
+                <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5 mb-3">
                   <MapPin className="h-4 w-4 text-blue-500" />
                   مكان الميلاد
                 </h4>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                   {[["المحافظة", orphan.birthGovernorate],["المديرية", orphan.birthDistrict],["العزلة", orphan.birthVillage],["المنطقة", orphan.birthArea]].map(([label, val]) => (
-                    <div key={label as string} className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                    <div key={label as string} className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                       <p className="text-xs text-gray-400 font-semibold mb-1">{label as string}</p>
                       <p className="text-sm">{renderValue(val)}</p>
                     </div>
                   ))}
                 </div>
 
-                <Separator className="my-2 bg-gray-100" />
-                <h4 className="text-sm font-bold text-gray-800 flex items-center gap-1.5 mb-3">
+                <Separator className="my-2 bg-slate-800" />
+                <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5 mb-3">
                   <CreditCard className="h-4 w-4 text-purple-500" />
                   أرقام الحسابات والتعريف
                 </h4>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {[["رقم ملف اليتيم", orphan.orphanCode],["رقم بيت الزكاة", orphan.baitZakatNumber],["رقم المميو كريمي", orphan.mumaiyo],["رقم الكريمي الجديد", orphan.kuraimiAccount],["رقم الكريمي القديم", orphan.kuraimiAccountOld]].map(([label, val]) => (
-                    <div key={label as string} className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                    <div key={label as string} className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                       <p className="text-xs text-gray-400 font-semibold mb-1">{label as string}</p>
                       <p className="text-sm font-mono">{renderValue(val)}</p>
                     </div>
@@ -342,50 +342,50 @@ export function OrphanDetailsSheet({ orphan, open, onOpenChange }: OrphanDetails
 
 
 
-                <Separator className="my-2 bg-gray-100" />
-                <h4 className="text-sm font-bold text-gray-800 flex items-center gap-1.5 mb-3">
+                <Separator className="my-2 bg-slate-800" />
+                <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5 mb-3">
                   <GraduationCap className="h-4 w-4 text-emerald-500" />
                   المسار التعليمي والتحصيل الدراسي
                 </h4>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">المرحلة الدراسية</p>
                     <p className="text-sm">{renderValue(orphan.educationalStage)}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">الصف الدراسي</p>
                     <p className="text-sm">{renderValue(orphan.educationLevel)}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">اسم المدرسة</p>
                     <p className="text-sm">{renderValue(orphan.schoolName)}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">مقدار الحفظ من القرآن</p>
                     <p className="text-sm">{renderValue(orphan.quranMemorization)}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">التغذية</p>
                     <p className="text-sm">{renderValue(orphan.nutritionStatus)}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">وضع السكن</p>
                     <p className="text-sm">{renderValue(orphan.housingStatus)}</p>
                   </div>
                 </div>
 
-                <Separator className="my-2 bg-gray-100" />
-                <h4 className="text-sm font-bold text-gray-800 flex items-center gap-1.5 mb-3">
+                <Separator className="my-2 bg-slate-800" />
+                <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5 mb-3">
                   <Activity className="h-4 w-4 text-rose-500" />
                   الحالة الصحية والاحتياجات الخاصة
                 </h4>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">الحالة الصحية العامة</p>
                     <p className="text-sm">{renderValue(orphan.healthStatus, "سليم / طبيعي")}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">هل يعاني من إعاقة؟</p>
                     <p className="text-sm font-semibold">
                       {orphan.disability ? (
@@ -396,9 +396,9 @@ export function OrphanDetailsSheet({ orphan, open, onOpenChange }: OrphanDetails
                     </p>
                   </div>
                   {orphan.disability && (
-                    <div className="col-span-2 rounded-xl border border-red-50 bg-red-50/10 p-3.5">
+                    <div className="col-span-2 rounded-xl border border-red-500/20 bg-red-950/20 p-3.5">
                       <p className="text-xs text-red-600 font-semibold mb-1">تفاصيل الإعاقة والاحتياج</p>
-                      <p className="text-sm text-red-950 font-semibold">{orphan.disabilityDetails}</p>
+                      <p className="text-sm text-red-200 font-semibold">{orphan.disabilityDetails}</p>
                     </div>
                   )}
                 </div>
@@ -406,13 +406,13 @@ export function OrphanDetailsSheet({ orphan, open, onOpenChange }: OrphanDetails
                 {/* المعيلون */}
                 {orphan.guardians && orphan.guardians.length > 0 && (
                   <>
-                    <Separator className="my-2 bg-gray-100" />
-                    <h4 className="text-sm font-bold text-gray-800 flex items-center gap-1.5 mb-3">
+                    <Separator className="my-2 bg-slate-800" />
+                    <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5 mb-3">
                       <User className="h-4 w-4 text-amber-500" />
                       بيانات المعيل
                     </h4>
                     {orphan.guardians.map((g, i) => (
-                      <div key={g.id} className="rounded-xl border border-amber-100 bg-amber-50/20 p-3.5 mb-2">
+                      <div key={g.id} className="rounded-xl border border-amber-500/20 bg-amber-950/20 p-3.5 mb-2">
                         <p className="text-xs font-bold text-amber-600 mb-2">{g.isPrimary ? "المعيل الأساسي" : `معيل ${i + 1}`}</p>
                         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                           {[["الاسم", g.fullName],["رقم الهوية", g.nationalId],["العلاقة", g.relation],["المهنة", g.occupation],["هاتف 1", g.phone1],["هاتف 2", g.phone2],["هاتف 3", g.phone3],["هاتف 4", g.phone4]].filter(([,v]) => v).map(([label, val]) => (
@@ -430,14 +430,14 @@ export function OrphanDetailsSheet({ orphan, open, onOpenChange }: OrphanDetails
                 {/* الإخوة */}
                 {orphan.siblings && orphan.siblings.length > 0 && (
                   <>
-                    <Separator className="my-2 bg-gray-100" />
-                    <h4 className="text-sm font-bold text-gray-800 flex items-center gap-1.5 mb-3">
+                    <Separator className="my-2 bg-slate-800" />
+                    <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5 mb-3">
                       <Users className="h-4 w-4 text-blue-500" />
                       بيانات الإخوة ({orphan.siblings.length})
                     </h4>
                     <div className="space-y-2">
                       {orphan.siblings.sort((a, b) => a.siblingOrder - b.siblingOrder).map((s) => (
-                        <div key={s.id} className="rounded-xl border border-blue-50 bg-blue-50/10 p-3 flex items-center gap-4">
+                        <div key={s.id} className="rounded-xl border border-blue-500/20 bg-blue-950/20 p-3 flex items-center gap-4">
                           <span className="text-xs font-bold text-blue-500 w-5">{s.siblingOrder}</span>
                           <div className="flex-1 grid grid-cols-2 gap-1 sm:grid-cols-4">
                             <div><p className="text-xs text-gray-400">الاسم</p><p className="text-xs font-semibold">{s.fullName}</p></div>
@@ -454,15 +454,15 @@ export function OrphanDetailsSheet({ orphan, open, onOpenChange }: OrphanDetails
                 {/* المعرِّف والتسويق */}
                 {(orphan.referrerName || orphan.marketedToOrg) && (
                   <>
-                    <Separator className="my-2 bg-gray-100" />
-                    <h4 className="text-sm font-bold text-gray-800 flex items-center gap-1.5 mb-3">
+                    <Separator className="my-2 bg-slate-800" />
+                    <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5 mb-3">
                       <Globe className="h-4 w-4 text-emerald-500" />
                       المعرِّف والتسويق
                     </h4>
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                      <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5"><p className="text-xs text-gray-400 font-semibold mb-1">اسم المعرِّف</p><p className="text-sm">{renderValue(orphan.referrerName)}</p></div>
-                      <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5"><p className="text-xs text-gray-400 font-semibold mb-1">هاتف المعرِّف 1</p><p className="text-sm font-mono">{renderValue(orphan.referrerPhone1)}</p></div>
-                      <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5"><p className="text-xs text-gray-400 font-semibold mb-1">الجهة المسوَّق لها</p><p className="text-sm">{renderValue(orphan.marketedToOrg)}</p></div>
+                      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5"><p className="text-xs text-gray-400 font-semibold mb-1">اسم المعرِّف</p><p className="text-sm">{renderValue(orphan.referrerName)}</p></div>
+                      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5"><p className="text-xs text-gray-400 font-semibold mb-1">هاتف المعرِّف 1</p><p className="text-sm font-mono">{renderValue(orphan.referrerPhone1)}</p></div>
+                      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5"><p className="text-xs text-gray-400 font-semibold mb-1">الجهة المسوَّق لها</p><p className="text-sm">{renderValue(orphan.marketedToOrg)}</p></div>
                     </div>
                   </>
                 )}
@@ -471,44 +471,44 @@ export function OrphanDetailsSheet({ orphan, open, onOpenChange }: OrphanDetails
 
               {/* TAB 2: Family & Guardian */}
               <TabsContent value="family" className="space-y-4 outline-none">
-                <h4 className="text-sm font-bold text-gray-800 flex items-center gap-1.5 mb-3">
+                <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5 mb-3">
                   <User className="h-4 w-4 text-emerald-500" />
                   بيانات الوصي والمسؤول القانوني
                 </h4>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">اسم الوصي</p>
                     <p className="text-sm font-bold">{renderValue(orphan.family.guardianName)}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">صلة القرابة</p>
                     <p className="text-sm">{renderValue(orphan.family.guardianRelation)}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">رقم هاتف الوصي</p>
                     <p className="text-sm font-mono tabular-nums">{renderValue(orphan.family.guardianPhone)}</p>
                   </div>
                 </div>
 
-                <Separator className="my-2 bg-gray-100" />
-                <h4 className="text-sm font-bold text-gray-800 flex items-center gap-1.5 mb-3">
+                <Separator className="my-2 bg-slate-800" />
+                <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5 mb-3">
                   <HomeIcon className="h-4 w-4 text-emerald-500" />
                   حالة الأسرة والظروف المعيشية
                 </h4>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">رب الأسرة</p>
                     <p className="text-sm">{renderValue(orphan.family.headFullName)}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">عدد أفراد الأسرة</p>
                     <p className="text-sm tabular-nums font-semibold">
                       {orphan.family.familyMembersCount !== null ? `${orphan.family.familyMembersCount.toLocaleString("ar-SA")} أفراد` : renderValue(null)}
                     </p>
                   </div>
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">مستوى فقر الأسرة</p>
                     <p className="text-sm font-semibold">
                       {orphan.family.povertyLevel ? (
@@ -524,21 +524,21 @@ export function OrphanDetailsSheet({ orphan, open, onOpenChange }: OrphanDetails
                       )}
                     </p>
                   </div>
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">الدخل الشهري للأسرة</p>
                     <p className="text-sm font-semibold text-emerald-600 tabular-nums">
                       {orphan.family.monthlyIncome !== null ? formatCurrency(orphan.family.monthlyIncome) : renderValue(null)}
                     </p>
                   </div>
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">نوع السكن</p>
                     <p className="text-sm">{renderValue(orphan.family.housingType)}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">حالة السكن الحالية</p>
                     <p className="text-sm">{renderValue(orphan.family.housingCondition)}</p>
                   </div>
-                  <div className="col-span-2 rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="col-span-2 rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">تفاصيل عنوان السكن والحي</p>
                     <p className="text-sm">{renderValue(orphan.family.addressDetail)}</p>
                   </div>
@@ -547,63 +547,63 @@ export function OrphanDetailsSheet({ orphan, open, onOpenChange }: OrphanDetails
 
               {/* TAB 3: Death details */}
               <TabsContent value="orphanhood" className="space-y-4 outline-none">
-                <h4 className="text-sm font-bold text-gray-800 flex items-center gap-1.5 mb-3">
+                <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5 mb-3">
                   <AlertCircle className="h-4 w-4 text-emerald-500" />
                   بيانات الوفاة وتصنيف اليتم
                 </h4>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">تصنيف اليتم</p>
                     <p className="text-sm font-bold text-emerald-700">
                       {translateOrphanType(orphan.orphanType)}
                     </p>
                   </div>
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">اسم الأم بالكامل</p>
                     <p className="text-sm font-bold">{renderValue(orphan.motherName)}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">تاريخ وفاة الأب</p>
                     <p className="text-sm tabular-nums">{orphan.fatherDeathDate ? formatDate(orphan.fatherDeathDate) : renderValue(null)}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">سبب وفاة الأب</p>
                     <p className="text-sm">{renderValue(orphan.fatherDeathCause)}</p>
                   </div>
                   {(orphan.orphanType === "MOTHER" || orphan.orphanType === "BOTH") && (
-                    <div className="col-span-2 rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                    <div className="col-span-2 rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                       <p className="text-xs text-gray-400 font-semibold mb-1">تاريخ وفاة الأم</p>
                       <p className="text-sm tabular-nums">{orphan.motherDeathDate ? formatDate(orphan.motherDeathDate) : renderValue(null)}</p>
                     </div>
                   )}
                 </div>
 
-                <Separator className="my-2 bg-gray-100" />
-                <h4 className="text-sm font-bold text-gray-800 flex items-center gap-1.5 mb-3">
+                <Separator className="my-2 bg-slate-800" />
+                <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5 mb-3">
                   <FileText className="h-4 w-4 text-emerald-500" />
                   ملاحظات وتفاصيل إضافية
                 </h4>
 
-                <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                   <p className="text-xs text-gray-400 font-semibold mb-1">ملاحظات البحث الاجتماعي الميداني</p>
-                  <p className="text-sm text-gray-700 leading-relaxed">{renderValue(orphan.notes, "لا توجد ملاحظات إضافية")}</p>
+                  <p className="text-sm text-slate-300 leading-relaxed">{renderValue(orphan.notes, "لا توجد ملاحظات إضافية")}</p>
                 </div>
               </TabsContent>
 
               {/* TAB 4: Financial & Verification */}
               <TabsContent value="financial" className="space-y-4 outline-none">
-                <h4 className="text-sm font-bold text-gray-800 flex items-center gap-1.5 mb-3">
+                <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5 mb-3">
                   <CreditCard className="h-4 w-4 text-emerald-500" />
                   الحساب المالي وحالة المراجعة
                 </h4>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="rounded-xl border border-emerald-50 bg-emerald-50/10 p-3.5">
+                  <div className="rounded-xl border border-emerald-500/20 bg-emerald-950/20 p-3.5">
                     <p className="text-xs text-emerald-600 font-semibold mb-1">حساب الكريمي (Kuraimi Account)</p>
-                    <p className="text-sm font-mono font-bold text-emerald-950 tabular-nums">{renderValue(orphan.kuraimiAccount)}</p>
+                    <p className="text-sm font-mono font-bold text-emerald-100 tabular-nums">{renderValue(orphan.kuraimiAccount)}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-50 bg-gray-50/30 p-3.5">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                     <p className="text-xs text-gray-400 font-semibold mb-1">حالة مراجعة الملف وتدقيقه</p>
                     <p className="text-sm">
                       {orphan.verificationStatus === "APPROVED" ? (
@@ -617,8 +617,8 @@ export function OrphanDetailsSheet({ orphan, open, onOpenChange }: OrphanDetails
                   </div>
                 </div>
 
-                <Separator className="my-2 bg-gray-100" />
-                <h4 className="text-sm font-bold text-gray-800 flex items-center gap-1.5 mb-3">
+                <Separator className="my-2 bg-slate-800" />
+                <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5 mb-3">
                   <Heart className="h-4 w-4 text-rose-500" fill="currentColor" />
                   بيانات الكفالة والمانحين
                 </h4>
@@ -630,11 +630,11 @@ export function OrphanDetailsSheet({ orphan, open, onOpenChange }: OrphanDetails
                   </div>
                 ) : (
                   orphan.sponsorships.map((spons) => (
-                    <div key={spons.id} className="rounded-xl border border-gray-100 bg-white shadow-sm p-4 space-y-3">
+                    <div key={spons.id} className="rounded-xl border border-slate-800 bg-slate-900/40 shadow-sm p-4 space-y-3">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-xs text-gray-400 font-semibold">اسم الكافل (المتبرع)</p>
-                          <p className="text-sm font-bold text-gray-900">{spons.sponsor.fullName}</p>
+                          <p className="text-sm font-bold text-slate-100">{spons.sponsor.fullName}</p>
                         </div>
                         <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50 border-0">نشطة</Badge>
                       </div>
@@ -670,7 +670,7 @@ export function OrphanDetailsSheet({ orphan, open, onOpenChange }: OrphanDetails
 
               {/* === TAB 6: AUDIT LOGS === */}
               <TabsContent value="audit" className="space-y-4 outline-none">
-                <h4 className="text-sm font-bold text-gray-800 flex items-center gap-1.5 mb-2">
+                <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5 mb-2">
                   <FileText className="h-4.5 w-4.5 text-emerald-600" />
                   سجل التغييرات وتدقيق البيانات التاريخي
                 </h4>
