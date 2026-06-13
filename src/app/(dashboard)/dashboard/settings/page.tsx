@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getGeoStructure, createGovernorate, createDistrict, createSubDistrict, getSystemStats } from "@/app/actions/settings-actions"
+import { getGeoStructure, createGovernorate, createDistrict, createSubDistrict, getSystemStats, getUsersList, createSystemUser, toggleUserStatus } from "@/app/actions/settings-actions"
 import { getAllTagsAdmin, createTag, toggleTag, deleteTag, seedInitialTags } from "@/app/actions/tag-actions"
-import { TagCategory } from "@prisma/client"
+import { TagCategory, Role } from "@prisma/client"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -45,6 +45,13 @@ export default function SettingsPage() {
   const [newTagColor, setNewTagColor] = useState("#6366f1")
   const [seedingTags, setSeedingTags] = useState(false)
 
+  // Users state
+  const [usersList, setUsersList] = useState<any[]>([])
+  const [newUserName, setNewUserName] = useState("")
+  const [newUserEmail, setNewUserEmail] = useState("")
+  const [newUserPassword, setNewUserPassword] = useState("")
+  const [newUserRole, setNewUserRole] = useState<Role>("MARKETER" as Role)
+
   // Form states
   const [govName, setGovName] = useState("")
   const [distName, setDistName] = useState("")
@@ -58,14 +65,16 @@ export default function SettingsPage() {
 
   const loadData = async () => {
     setLoading(true)
-    const [geoRes, statsRes, tagsRes] = await Promise.all([
+    const [geoRes, statsRes, tagsRes, usersRes] = await Promise.all([
       getGeoStructure(),
       getSystemStats(),
       getAllTagsAdmin(),
+      getUsersList(),
     ])
     if (geoRes.success) setGeoStructure(geoRes.governorates || [])
     if (statsRes.success) setStats(statsRes.stats || null)
     if (tagsRes.success) setAllTags(tagsRes.tags || [])
+    if (usersRes.success) setUsersList(usersRes.users || [])
     setLoading(false)
   }
 
@@ -159,6 +168,10 @@ export default function SettingsPage() {
           <TabsTrigger value="tags" className="rounded-lg text-xs font-bold gap-1.5 px-4 py-2 data-[state=active]:bg-slate-800 data-[state=active]:text-white">
             <Tag className="h-4 w-4 text-indigo-400" />
             إدارة التصنيفات
+          </TabsTrigger>
+          <TabsTrigger value="users" className="rounded-lg text-xs font-bold gap-1.5 px-4 py-2 data-[state=active]:bg-slate-800 data-[state=active]:text-white">
+            <Users className="h-4 w-4 text-emerald-400" />
+            إدارة المستخدمين والمسوقين
           </TabsTrigger>
           <TabsTrigger value="profile" className="rounded-lg text-xs font-bold gap-1.5 px-4 py-2 data-[state=active]:bg-slate-800 data-[state=active]:text-white">
             <User className="h-4 w-4 text-slate-400" />
@@ -702,6 +715,184 @@ export default function SettingsPage() {
               </Card>
             )
           })}
+        </TabsContent>
+
+        {/* ── TABS CONTENT: USERS MANAGEMENT ── */}
+        <TabsContent value="users" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* Create User Form */}
+            <Card className="bg-slate-900/40 border border-slate-800/80 backdrop-blur-md rounded-2xl shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-extrabold text-white flex items-center gap-1.5">
+                  <Plus className="h-4.5 w-4.5 text-emerald-500" />
+                  إضافة مستخدم / مسوق جديد
+                </CardTitle>
+                <CardDescription className="text-[11px] text-slate-400">إنشاء حساب جديد وتفويضه بصلاحيات محددة.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault()
+                    if (!newUserName || !newUserEmail || !newUserPassword) return
+                    setSubmitting(true)
+                    const res = await createSystemUser({
+                      name: newUserName,
+                      email: newUserEmail,
+                      password: newUserPassword,
+                      role: newUserRole
+                    })
+                    if (res.success) {
+                      setNewUserName("")
+                      setNewUserEmail("")
+                      setNewUserPassword("")
+                      setNewUserRole("MARKETER" as Role)
+                      setMessage({ text: "تم إنشاء حساب المستخدم بنجاح ومزامنته مع Supabase Auth!", type: "success" })
+                      loadData()
+                    } else {
+                      setMessage({ text: res.error || "فشل إنشاء حساب المستخدم", type: "error" })
+                    }
+                    setSubmitting(false)
+                  }}
+                  className="space-y-3"
+                >
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-350">الاسم الكامل</label>
+                    <Input
+                      placeholder="مثال: محمد أحمد علي"
+                      value={newUserName}
+                      onChange={(e) => setNewUserName(e.target.value)}
+                      className="h-9 text-xs rounded-lg bg-slate-900/60 border-slate-800/80 text-white placeholder-slate-500 focus-visible:ring-emerald-500 transition-all"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-350">البريد الإلكتروني</label>
+                    <Input
+                      type="email"
+                      placeholder="name@ngo.com"
+                      value={newUserEmail}
+                      onChange={(e) => setNewUserEmail(e.target.value)}
+                      className="h-9 text-xs rounded-lg bg-slate-900/60 border-slate-800/80 text-white placeholder-slate-500 focus-visible:ring-emerald-500 transition-all"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-350">كلمة المرور</label>
+                    <Input
+                      type="password"
+                      placeholder="••••••••"
+                      value={newUserPassword}
+                      onChange={(e) => setNewUserPassword(e.target.value)}
+                      className="h-9 text-xs rounded-lg bg-slate-900/60 border-slate-800/80 text-white placeholder-slate-500 focus-visible:ring-emerald-500 transition-all"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-350">الدور والصلاحية</label>
+                    <select
+                      value={newUserRole}
+                      onChange={(e) => setNewUserRole(e.target.value as Role)}
+                      className="flex h-9 w-full rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-1.5 text-xs font-semibold focus-visible:outline-none text-right text-slate-200 hover:border-slate-700 transition-all"
+                      required
+                    >
+                      <option className="bg-slate-950 text-white" value="MARKETER">مسوق ميداني (MARKETER)</option>
+                      <option className="bg-slate-950 text-white" value="DATA_ENTRY">مدخل بيانات (DATA_ENTRY)</option>
+                      <option className="bg-slate-950 text-white" value="MANAGER">مدير عمليات (MANAGER)</option>
+                      <option className="bg-slate-950 text-white" value="ADMIN">مشرف نظام كامل (ADMIN)</option>
+                    </select>
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={submitting || !newUserName || !newUserEmail || !newUserPassword}
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg h-9 font-bold text-xs shadow-md shadow-emerald-900/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
+                  >
+                    إنشاء حساب المستخدم
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+
+            {/* Users List Table */}
+            <Card className="bg-slate-900/40 border border-slate-800/80 backdrop-blur-md rounded-2xl shadow-sm lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="text-sm font-extrabold text-white flex items-center gap-1.5">
+                  <Users className="h-4.5 w-4.5 text-emerald-500" />
+                  المستخدمون والمسوقون النشطون بالنظام ({usersList.length} مستخدم)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-right text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-800 text-slate-400 font-bold">
+                        <th className="pb-2">الاسم</th>
+                        <th className="pb-2">البريد الإلكتروني</th>
+                        <th className="pb-2">الصلاحية</th>
+                        <th className="pb-2 text-center">الحالة</th>
+                        <th className="pb-2 text-left">الإجراء</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/50">
+                      {usersList.map((user) => (
+                        <tr key={user.id} className="text-slate-300 hover:bg-slate-850/20">
+                          <td className="py-3 font-semibold text-white">{user.name}</td>
+                          <td className="py-3 font-mono text-slate-400">{user.email}</td>
+                          <td className="py-3">
+                            {user.role === "ADMIN" && (
+                              <Badge className="bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/10 text-[10px]">مشرف نظام</Badge>
+                            )}
+                            {user.role === "MANAGER" && (
+                              <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/10 text-[10px]">مدير</Badge>
+                            )}
+                            {user.role === "DATA_ENTRY" && (
+                              <Badge className="bg-slate-800 text-slate-350 border-slate-700/30 hover:bg-slate-800 text-[10px]">مدخل بيانات</Badge>
+                            )}
+                            {user.role === "MARKETER" && (
+                              <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/10 text-[10px]">مسوق ميداني</Badge>
+                            )}
+                          </td>
+                          <td className="py-3 text-center">
+                            {user.isActive ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] text-emerald-450 font-bold bg-emerald-950/20 px-2 py-0.5 rounded-full border border-emerald-900/30">
+                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> نشط
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[10px] text-red-400 font-bold bg-red-950/20 px-2 py-0.5 rounded-full border border-red-900/30">
+                                <span className="h-1.5 w-1.5 rounded-full bg-red-500" /> مجمد
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3 text-left">
+                            {user.email !== "admin@ngo.com" && (
+                              <button
+                                onClick={async () => {
+                                  const res = await toggleUserStatus(user.id)
+                                  if (res.success) {
+                                    setMessage({ text: "تم تحديث حالة المستخدم بنجاح!", type: "success" })
+                                    loadData()
+                                  } else {
+                                    setMessage({ text: res.error || "فشل تعديل حالة المستخدم", type: "error" })
+                                  }
+                                }}
+                                className="text-slate-400 hover:text-white transition-colors"
+                              >
+                                {user.isActive ? (
+                                  <ToggleRight className="h-5 w-5 text-emerald-400" />
+                                ) : (
+                                  <ToggleLeft className="h-5 w-5 text-slate-500" />
+                                )}
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
       </Tabs>

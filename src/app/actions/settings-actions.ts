@@ -172,3 +172,94 @@ export async function getSystemStats() {
     return { success: false, error: error.message }
   }
 }
+
+export async function getUsersList() {
+  try {
+    const users = await prisma.user.findMany({
+      orderBy: { createdAt: "desc" }
+    })
+    return { success: true, users }
+  } catch (error: any) {
+    return { success: false, error: error.message, users: [] }
+  }
+}
+
+export async function createSystemUser(data: {
+  name: string
+  email: string
+  password: string
+  role: any // Role enum
+}) {
+  try {
+    const existing = await prisma.user.findUnique({
+      where: { email: data.email }
+    })
+    if (existing) return { success: false, error: "البريد الإلكتروني مسجل بالفعل" }
+
+    // 1. Create in Supabase Auth using Admin Client (auto-confirms email)
+    const { createSupabaseAdminClient } = require("@/lib/supabase")
+    const supabaseAdmin = createSupabaseAdminClient()
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      email: data.email,
+      password: data.password,
+      email_confirm: true,
+      user_metadata: { name: data.name, role: data.role }
+    })
+
+    if (authError) {
+      console.error("Supabase Auth admin createUser error:", authError)
+      return { success: false, error: authError.message }
+    }
+
+    // 2. Create in Prisma User table
+    const dbUser = await prisma.user.create({
+      data: {
+        id: authData.user.id,
+        email: data.email,
+        name: data.name,
+        role: data.role,
+        isActive: true
+      }
+    })
+
+    revalidatePath("/dashboard/settings")
+    return { success: true, user: dbUser }
+  } catch (error: any) {
+    console.error("Failed to create user:", error)
+    return { success: false, error: error.message || "فشلت عملية إنشاء المستخدم" }
+  }
+}
+
+export async function toggleUserStatus(id: string) {
+  try {
+    const user = await prisma.user.findUnique({ where: { id } })
+    if (!user) return { success: false, error: "المستخدم غير موجود" }
+
+    const updated = await prisma.user.update({
+      where: { id },
+      data: { isActive: !user.isActive }
+    })
+
+    // Sync status by updating user metadata in Supabase
+    const { createSupabaseAdminClient } = require("@/lib/supabase")
+    const supabaseAdmin = createSupabaseAdminClient()
+    
+    // We can ban or update user metadata
+    if (!user.isActive) {
+      // Unban / Activate
+      await supabaseAdmin.auth.admin.updateUserById(id, {
+        ban_duration: "none"
+      })
+    } else {
+      // Ban for 100 years
+      await supabaseAdmin.auth.admin.updateUserById(id, {
+        ban_duration: "876000h"
+      })
+    }
+
+    revalidatePath("/dashboard/settings")
+    return { success: true, user: updated }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}

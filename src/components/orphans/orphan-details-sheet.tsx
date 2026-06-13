@@ -1,5 +1,7 @@
 "use client"
 
+import { useState, useEffect } from "react"
+
 import {
   Baby,
   Heart,
@@ -27,6 +29,7 @@ import {
 } from "@/components/ui/sheet"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
+import { Button } from "@/components/ui/button"
 
 // =============================================================================
 // TYPES
@@ -121,6 +124,8 @@ type Orphan = {
   // تحقق
   verificationStatus: string
   verifiedBy: string | null
+  rejectionReason: string | null
+  createdById: string | null
   isActive: boolean
   notes: string | null
   // علاقات
@@ -134,6 +139,8 @@ interface OrphanDetailsSheetProps {
   orphan: Orphan | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  onApprove?: (id: string) => Promise<any>
+  onReject?: (id: string, reason: string) => Promise<any>
 }
 
 // =============================================================================
@@ -178,7 +185,23 @@ function renderValue(value: any, placeholder = "-") {
   return <span className="font-semibold text-white">{value}</span>
 }
 
-export function OrphanDetailsSheet({ orphan, open, onOpenChange }: OrphanDetailsSheetProps) {
+export function OrphanDetailsSheet({
+  orphan,
+  open,
+  onOpenChange,
+  onApprove,
+  onReject,
+}: OrphanDetailsSheetProps) {
+  const [rejectionReasonInput, setRejectionReasonInput] = useState("")
+  const [isRejecting, setIsRejecting] = useState(false)
+  const [isSubmittingAction, setIsSubmittingAction] = useState(false)
+
+  // Reset rejection state when orphan changes
+  useEffect(() => {
+    setIsRejecting(false)
+    setRejectionReasonInput("")
+  }, [orphan?.id])
+
   if (!orphan) return null
 
   // Helper translations
@@ -615,6 +638,12 @@ export function OrphanDetailsSheet({ orphan, open, onOpenChange }: OrphanDetails
                       )}
                     </p>
                   </div>
+                  {orphan.verificationStatus === "REJECTED" && orphan.rejectionReason && (
+                    <div className="rounded-xl border border-red-500/20 bg-red-950/20 p-3.5 col-span-1 sm:col-span-2">
+                      <p className="text-xs text-red-400 font-semibold mb-1">سبب الرفض والإرجاع</p>
+                      <p className="text-sm font-semibold text-red-200">{orphan.rejectionReason}</p>
+                    </div>
+                  )}
                 </div>
 
                 <Separator className="my-2 bg-slate-800" />
@@ -679,6 +708,86 @@ export function OrphanDetailsSheet({ orphan, open, onOpenChange }: OrphanDetails
             </div>
           </Tabs>
         </div>
+
+        {/* Review Action Panel for Admin */}
+        {orphan.verificationStatus === "PENDING" && onApprove && onReject && (
+          <div className="border-t border-slate-800 bg-slate-950/90 backdrop-blur-md p-4 flex-shrink-0 flex flex-col gap-3 text-right" dir="rtl">
+            {!isRejecting ? (
+              <div className="flex items-center gap-3">
+                <Button
+                  onClick={async () => {
+                    setIsSubmittingAction(true)
+                    try {
+                      const res = await onApprove(orphan.id)
+                      if (res?.success) {
+                        onOpenChange(false)
+                      }
+                    } catch (err) {
+                      console.error(err)
+                    } finally {
+                      setIsSubmittingAction(false)
+                    }
+                  }}
+                  disabled={isSubmittingAction}
+                  className="flex-1 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold transition-all duration-300 py-5 active:scale-[0.98]"
+                >
+                  {isSubmittingAction ? "جاري الاعتماد..." : "اعتماد وقبول الطلب"}
+                </Button>
+                <Button
+                  onClick={() => setIsRejecting(true)}
+                  disabled={isSubmittingAction}
+                  className="rounded-xl border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold transition-all duration-300 px-6 py-5 active:scale-[0.98]"
+                >
+                  رفض وإرجاع
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-xs font-bold text-red-400">الرجاء إدخال سبب الرفض/الإرجاع للمسوق:</p>
+                <textarea
+                  value={rejectionReasonInput}
+                  onChange={(e) => setRejectionReasonInput(e.target.value)}
+                  placeholder="مثال: يرجى رفع صورة واضحة لشهادة الميلاد..."
+                  className="w-full h-20 rounded-xl bg-slate-900/60 border border-red-500/20 focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 p-3 text-xs text-white text-right resize-none placeholder-slate-500"
+                />
+                <div className="flex items-center gap-3">
+                  <Button
+                    onClick={async () => {
+                      if (!rejectionReasonInput.trim()) return
+                      setIsSubmittingAction(true)
+                      try {
+                        const res = await onReject(orphan.id, rejectionReasonInput)
+                        if (res?.success) {
+                          onOpenChange(false)
+                          setIsRejecting(false)
+                          setRejectionReasonInput("")
+                        }
+                      } catch (err) {
+                        console.error(err)
+                      } finally {
+                        setIsSubmittingAction(false)
+                      }
+                    }}
+                    disabled={isSubmittingAction || !rejectionReasonInput.trim()}
+                    className="flex-1 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold transition-all duration-300 py-5 active:scale-[0.98]"
+                  >
+                    {isSubmittingAction ? "جاري الحفظ..." : "تأكيد الرفض والإرجاع"}
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setIsRejecting(false)
+                      setRejectionReasonInput("")
+                    }}
+                    disabled={isSubmittingAction}
+                    className="rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-350 px-6 py-5"
+                  >
+                    إلغاء
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </SheetContent>
     </Sheet>
   )

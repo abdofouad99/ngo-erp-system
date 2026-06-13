@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import {
   Baby,
   Eye,
@@ -23,6 +24,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { OrphanDetailsSheet } from "@/components/orphans/orphan-details-sheet"
 import { TagBadge, TagFilterPills, TagSelector } from "@/components/tags/tag-components"
 import type { TagData } from "@/components/tags/tag-components"
+import { approveOrphan, rejectOrphan } from "@/app/actions/orphan-actions"
 
 // =============================================================================
 // TYPES
@@ -301,7 +303,9 @@ export function OrphansClient({ initialOrphans, allTags = [] }: OrphansClientPro
     link.setAttribute("download", `تصدير_الأيتام_${new Date().toISOString().split("T")[0]}.csv`);
     link.click();
   };
+  const router = useRouter()
   const [selectedGender, setSelectedGender] = useState("ALL")
+  const [selectedStatus, setSelectedStatus] = useState("ALL")
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null)
   const [selectedFundingTagId, setSelectedFundingTagId] = useState<string | null>(null)
   const [selectedOrphan, setSelectedOrphan] = useState<any | null>(null)
@@ -325,13 +329,30 @@ export function OrphansClient({ initialOrphans, allTags = [] }: OrphansClientPro
       (orphan.sponsorships && orphan.sponsorships.some((s: any) => s.sponsor?.fullName?.toLowerCase().includes(searchTerm.toLowerCase())))
 
     const matchesGender = selectedGender === "ALL" || orphan.gender === selectedGender
+    const matchesStatus = selectedStatus === "ALL" || orphan.verificationStatus === selectedStatus
 
     const orphanTagIds = (orphan.tags || []).map((bt: any) => bt.tagId)
     const matchesStatusTag = !selectedTagId || orphanTagIds.includes(selectedTagId)
     const matchesFundingTag = !selectedFundingTagId || orphanTagIds.includes(selectedFundingTagId)
 
-    return matchesSearch && matchesGender && matchesStatusTag && matchesFundingTag
+    return matchesSearch && matchesGender && matchesStatus && matchesStatusTag && matchesFundingTag
   })
+
+  const handleApprove = async (id: string) => {
+    const res = await approveOrphan(id)
+    if (res.success) {
+      router.refresh()
+    }
+    return res
+  }
+
+  const handleReject = async (id: string, reason: string) => {
+    const res = await rejectOrphan(id, reason)
+    if (res.success) {
+      router.refresh()
+    }
+    return res
+  }
 
   const handleOpenDetails = (orphan: Orphan) => {
     setSelectedOrphan(orphan)
@@ -385,43 +406,98 @@ export function OrphansClient({ initialOrphans, allTags = [] }: OrphansClientPro
               />
             </div>
             {/* Filter Buttons */}
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                onClick={() => setSelectedGender("ALL")}
-                className={`rounded-xl px-4 text-xs font-bold transition-all duration-300 active:scale-[0.98] ${
-                  selectedGender === "ALL"
-                    ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/25 scale-[1.02]"
-                    : "bg-slate-900/30 border border-border/80 text-slate-300 hover:bg-slate-800/60 hover:text-white hover:border-slate-700"
-                }`}
-              >
-                الكل
-              </Button>
-              <Button
-                onClick={() => setSelectedGender("MALE")}
-                className={`rounded-xl px-4 text-xs font-bold transition-all duration-300 active:scale-[0.98] ${
-                  selectedGender === "MALE"
-                    ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/25 scale-[1.02]"
-                    : "bg-slate-900/30 border border-border/80 text-slate-300 hover:bg-slate-800/60 hover:text-white hover:border-slate-700"
-                }`}
-              >
-                ذكور
-              </Button>
-              <Button
-                onClick={() => setSelectedGender("FEMALE")}
-                className={`rounded-xl px-4 text-xs font-bold transition-all duration-300 active:scale-[0.98] ${
-                  selectedGender === "FEMALE"
-                    ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/25 scale-[1.02]"
-                    : "bg-slate-900/30 border border-border/80 text-slate-300 hover:bg-slate-800/60 hover:text-white hover:border-slate-700"
-                }`}
-              >
-                إناث
-              </Button>
+            {/* Filter Buttons */}
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Gender Filter Group */}
+              <div className="flex items-center gap-1 bg-slate-950/40 p-1 rounded-xl border border-border/60">
+                <Button
+                  onClick={() => setSelectedGender("ALL")}
+                  variant="ghost"
+                  className={`rounded-lg h-8 px-3.5 text-xs font-bold transition-all duration-300 ${
+                    selectedGender === "ALL"
+                      ? "bg-emerald-500 text-white shadow-sm"
+                      : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+                  }`}
+                >
+                  الكل (الجنس)
+                </Button>
+                <Button
+                  onClick={() => setSelectedGender("MALE")}
+                  variant="ghost"
+                  className={`rounded-lg h-8 px-3.5 text-xs font-bold transition-all duration-300 ${
+                    selectedGender === "MALE"
+                      ? "bg-emerald-500 text-white shadow-sm"
+                      : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+                  }`}
+                >
+                  ذكور
+                </Button>
+                <Button
+                  onClick={() => setSelectedGender("FEMALE")}
+                  variant="ghost"
+                  className={`rounded-lg h-8 px-3.5 text-xs font-bold transition-all duration-300 ${
+                    selectedGender === "FEMALE"
+                      ? "bg-emerald-500 text-white shadow-sm"
+                      : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+                  }`}
+                >
+                  إناث
+                </Button>
+              </div>
+
+              {/* Verification Status Filter Group */}
+              <div className="flex items-center gap-1 bg-slate-950/40 p-1 rounded-xl border border-border/60">
+                <Button
+                  onClick={() => setSelectedStatus("ALL")}
+                  variant="ghost"
+                  className={`rounded-lg h-8 px-3.5 text-xs font-bold transition-all duration-300 ${
+                    selectedStatus === "ALL"
+                      ? "bg-emerald-500 text-white shadow-sm"
+                      : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+                  }`}
+                >
+                  الكل (الاعتماد)
+                </Button>
+                <Button
+                  onClick={() => setSelectedStatus("APPROVED")}
+                  variant="ghost"
+                  className={`rounded-lg h-8 px-3.5 text-xs font-bold transition-all duration-300 ${
+                    selectedStatus === "APPROVED"
+                      ? "bg-emerald-500 text-white shadow-sm"
+                      : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+                  }`}
+                >
+                  معتمد ومقبول
+                </Button>
+                <Button
+                  onClick={() => setSelectedStatus("PENDING")}
+                  variant="ghost"
+                  className={`rounded-lg h-8 px-3.5 text-xs font-bold transition-all duration-300 ${
+                    selectedStatus === "PENDING"
+                      ? "bg-emerald-500 text-white shadow-sm"
+                      : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+                  }`}
+                >
+                  طلبات معلقة
+                </Button>
+                <Button
+                  onClick={() => setSelectedStatus("REJECTED")}
+                  variant="ghost"
+                  className={`rounded-lg h-8 px-3.5 text-xs font-bold transition-all duration-300 ${
+                    selectedStatus === "REJECTED"
+                      ? "bg-emerald-500 text-white shadow-sm"
+                      : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+                  }`}
+                >
+                  طلبات مرفوضة
+                </Button>
+              </div>
 
               {/* Export Button */}
               <Button
                 onClick={handleExportSelected}
                 disabled={filteredOrphans.length === 0}
-                className="rounded-xl px-4 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white gap-2 transition-all duration-300 active:scale-[0.98]"
+                className="rounded-xl px-4 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white gap-2 transition-all duration-300 h-9 active:scale-[0.98]"
               >
                 <Download className="h-4 w-4" />
                 <span>تصدير Excel ({selectedIds.length > 0 ? `${selectedIds.length} محدد` : "الكل"})</span>
@@ -548,13 +624,19 @@ export function OrphansClient({ initialOrphans, allTags = [] }: OrphansClientPro
                       </div>
                     </TableCell>
                     <TableCell>
-                      {orphan.verificationStatus === "APPROVED" ? (
+                      {orphan.verificationStatus === "APPROVED" && (
                         <Badge className="badge-premium-emerald">
                           معتمد
                         </Badge>
-                      ) : (
+                      )}
+                      {orphan.verificationStatus === "PENDING" && (
                         <Badge className="badge-premium-orange">
                           قيد المراجعة
+                        </Badge>
+                      )}
+                      {orphan.verificationStatus === "REJECTED" && (
+                        <Badge className="badge-premium-rose">
+                          مرفوض
                         </Badge>
                       )}
                     </TableCell>
@@ -584,6 +666,8 @@ export function OrphansClient({ initialOrphans, allTags = [] }: OrphansClientPro
         orphan={selectedOrphan}
         open={isSheetOpen}
         onOpenChange={setIsSheetOpen}
+        onApprove={handleApprove}
+        onReject={handleReject}
       />
     </div>
   )

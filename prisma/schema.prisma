@@ -21,6 +21,7 @@ enum Role {
   ADMIN      // Full system access
   MANAGER    // Read + approve operations
   DATA_ENTRY // Create & update records only
+  MARKETER   // Field marketer / referrer
 }
 
 enum Gender {
@@ -132,6 +133,7 @@ model User {
   projectsCreated       Project[]            @relation("ProjectCreatedBy")
   deliveriesRecorded    ProjectBeneficiary[] @relation("DeliveryRecordedBy")
   sponsorshipsCreated   Sponsorship[]        @relation("SponsorshipCreatedBy")
+  beneficiariesCreated  Beneficiary[]        @relation("BeneficiaryCreatedBy")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -308,6 +310,7 @@ model Beneficiary {
   // --- Verification ---
   verificationStatus VerificationStatus @default(PENDING)
   verifiedBy         String?
+  rejectionReason    String?  // سبب الرفض في حال إرجاع الطلب للمسوق
 
   isActive Boolean @default(true)
   notes    String?
@@ -315,6 +318,9 @@ model Beneficiary {
   // --- Relations ---
   family   Family @relation(fields: [familyId], references: [id])
   familyId String
+
+  createdBy          User?                @relation("BeneficiaryCreatedBy", fields: [createdById], references: [id])
+  createdById        String?
 
   guardians      Guardian[]           // بيانات المعيلين
   siblings       Sibling[]            // بيانات الإخوة

@@ -262,3 +262,51 @@ export async function deleteOrphan(id: string) {
     return { success: false, error: "حدث خطأ أثناء حذف المستفيد" }
   }
 }
+
+export async function approveOrphan(id: string, adminUserId?: string) {
+  try {
+    const updated = await prisma.beneficiary.update({
+      where: { id },
+      data: {
+        verificationStatus: "APPROVED",
+        rejectionReason: null,
+        verifiedBy: adminUserId || "مشرف النظام"
+      }
+    })
+
+    await createNotification({
+      title: "اعتماد طلب يتيم",
+      message: `تم اعتماد وقبول اليتيم: ${updated.fullName} في النظام بنجاح.`,
+      type: "SUCCESS"
+    })
+
+    revalidatePath("/dashboard/orphans")
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message || "فشلت عملية اعتماد اليتيم" }
+  }
+}
+
+export async function rejectOrphan(id: string, reason: string, adminUserId?: string) {
+  try {
+    const updated = await prisma.beneficiary.update({
+      where: { id },
+      data: {
+        verificationStatus: "REJECTED",
+        rejectionReason: reason,
+        verifiedBy: adminUserId || "مشرف النظام"
+      }
+    })
+
+    await createNotification({
+      title: "إرجاع طلب يتيم",
+      message: `تم إرجاع/رفض طلب اليتيم: ${updated.fullName} بسبب: ${reason}`,
+      type: "WARNING"
+    })
+
+    revalidatePath("/dashboard/orphans")
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message || "فشلت عملية رفض اليتيم" }
+  }
+}

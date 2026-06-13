@@ -18,6 +18,7 @@ import { createFullOrphan } from "@/app/actions/orphan-full-actions"
 
 interface AddOrphanSheetProps {
   families: { id: string; headFullName: string }[]
+  createdById?: string
 }
 
 // خطوات النموذج
@@ -53,7 +54,7 @@ const selectCls = "flex h-9 w-full rounded-lg border border-slate-700 bg-slate-9
 // COMPONENT
 // =============================================================================
 
-export function AddOrphanSheet({ families }: AddOrphanSheetProps) {
+export function AddOrphanSheet({ families, createdById }: AddOrphanSheetProps) {
   const [open, setOpen]       = useState(false)
   const [step, setStep]       = useState(1)
   const [loading, setLoading] = useState(false)
@@ -105,6 +106,7 @@ export function AddOrphanSheet({ families }: AddOrphanSheetProps) {
       gender:     form.gender as "MALE" | "FEMALE",
       orphanType: form.orphanType as "FATHER" | "MOTHER" | "BOTH",
       disability: form.disability,
+      createdById,
       guardians:  guardians.filter(g => g.fullName.trim()),
       siblings:   siblings.filter(s => s.fullName.trim()),
     })

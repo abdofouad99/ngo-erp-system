@@ -143,6 +143,7 @@ export async function createFullOrphan(data: {
   // تسويق
   marketedToOrg?:    string
   notes?:            string
+  createdById?:      string
   // علاقات
   guardians?:        any[]
   siblings?:         any[]
@@ -154,6 +155,7 @@ export async function createFullOrphan(data: {
       data: {
         familyId:          orphanData.familyId,
         category:          "ORPHAN",
+        createdById:       orphanData.createdById || null,
         fullName:          orphanData.fullName,
         shortName:         orphanData.shortName || null,
         gender:            orphanData.gender,
