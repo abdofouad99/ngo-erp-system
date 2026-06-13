@@ -50,6 +50,7 @@ export function UpdateRequestsClient({ requests, reviewerId }: Props) {
   const [loading, setLoading]         = useState<string | null>(null)
   const [localRequests, setLocal]     = useState(requests)
   const [filter, setFilter]           = useState<"ALL" | "PENDING" | "APPROVED" | "REJECTED">("PENDING")
+  const [targetPhones, setTargetPhones] = useState<Record<string, string>>({})
 
   const displayed = localRequests.filter(r => filter === "ALL" || r.status === filter)
 
@@ -65,11 +66,19 @@ export function UpdateRequestsClient({ requests, reviewerId }: Props) {
       const b = req.beneficiary
       const data = req.submittedData as any || {}
       const pGuardian = b.guardians?.[0] || {}
-      const guardianPhone = data.guardian?.phone1 || pGuardian.phone1 || ""
       
-      if (guardianPhone) {
+      const phones = [
+        data.guardian?.phone1 || pGuardian.phone1 || "",
+        data.guardian?.phone2 || pGuardian.phone2 || "",
+        data.guardian?.phone3 || pGuardian.phone3 || "",
+        data.guardian?.phone4 || pGuardian.phone4 || "",
+      ].map(p => p.trim()).filter(p => p !== "")
+
+      const chosenPhone = targetPhones[id] || phones[0] || ""
+      
+      if (chosenPhone) {
         const message = `السلام عليكم، تم بنجاح مراجعة وقبول طلب تحديث البيانات الخاص باليتيم ${b.fullName}. شكراً لتعاونكم.`
-        await sendWhatsAppLocal(guardianPhone, message)
+        await sendWhatsAppLocal(chosenPhone, message)
       }
     }
     setLoading(null)
@@ -87,11 +96,19 @@ export function UpdateRequestsClient({ requests, reviewerId }: Props) {
       const b = req.beneficiary
       const data = req.submittedData as any || {}
       const pGuardian = b.guardians?.[0] || {}
-      const guardianPhone = data.guardian?.phone1 || pGuardian.phone1 || ""
+
+      const phones = [
+        data.guardian?.phone1 || pGuardian.phone1 || "",
+        data.guardian?.phone2 || pGuardian.phone2 || "",
+        data.guardian?.phone3 || pGuardian.phone3 || "",
+        data.guardian?.phone4 || pGuardian.phone4 || "",
+      ].map(p => p.trim()).filter(p => p !== "")
+
+      const chosenPhone = targetPhones[id] || phones[0] || ""
       
-      if (guardianPhone) {
+      if (chosenPhone) {
         const message = `السلام عليكم، تم مراجعة طلب تحديث بيانات اليتيم ${b.fullName} وتم إرجاعه لتعديل الحقول التالية:\n\n*السبب:* ${rejectReason}\n\nيرجى الدخول للرابط التالي وتصحيح البيانات:\n${window.location.origin}/update/${req.token}`
-        await sendWhatsAppLocal(guardianPhone, message)
+        await sendWhatsAppLocal(chosenPhone, message)
       }
 
       setRejectId(null)
@@ -155,6 +172,15 @@ export function UpdateRequestsClient({ requests, reviewerId }: Props) {
         const data = req.submittedData as any || {}
         const pGuardian = b.guardians?.[0] || {}
         const isOpen = openId === req.id
+
+        const phones = Array.from(new Set([
+          data.guardian?.phone1 || pGuardian.phone1 || "",
+          data.guardian?.phone2 || pGuardian.phone2 || "",
+          data.guardian?.phone3 || pGuardian.phone3 || "",
+          data.guardian?.phone4 || pGuardian.phone4 || "",
+        ].map(p => (p || "").trim()).filter(p => p !== "")))
+
+        const chosenPhone = targetPhones[req.id] || phones[0] || ""
 
         return (
           <div key={req.id} className="rounded-2xl border border-white/10 bg-slate-900/50 overflow-hidden">
@@ -245,6 +271,51 @@ export function UpdateRequestsClient({ requests, reviewerId }: Props) {
                   </>
                 )}
 
+                {/* اختيار رقم الهاتف المستهدف */}
+                <div className="bg-slate-950/40 border border-white/5 rounded-xl p-3.5 space-y-2 mt-4">
+                  <p className="text-xs font-bold text-slate-400 flex items-center gap-1.5">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    رقم الهاتف المستهدف للإشعار:
+                  </p>
+                  {phones.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {phones.map((phone, idx) => {
+                        const isSelected = chosenPhone === phone
+                        let label = `رقم ${idx + 1}`
+                        if (phone === pGuardian.phone1 || phone === data.guardian?.phone1) label = "هاتف 1"
+                        else if (phone === pGuardian.phone2 || phone === data.guardian?.phone2) label = "هاتف 2"
+                        else if (phone === pGuardian.phone3 || phone === data.guardian?.phone3) label = "هاتف 3"
+                        else if (phone === pGuardian.phone4 || phone === data.guardian?.phone4) label = "هاتف 4"
+
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setTargetPhones(prev => ({ ...prev, [req.id]: phone }))}
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-medium transition-all ${
+                              isSelected
+                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/40 shadow-sm shadow-emerald-500/5"
+                                : "bg-white/5 text-slate-400 border-white/5 hover:bg-white/10 hover:text-slate-300"
+                            }`}
+                          >
+                            <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
+                              isSelected ? "border-emerald-400" : "border-slate-600"
+                            }`}>
+                              {isSelected && <span className="w-2 h-2 rounded-full bg-emerald-400" />}
+                            </span>
+                            <span>{phone}</span>
+                            <span className="text-[10px] opacity-60">({label})</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-amber-400/90 font-medium">
+                      ⚠️ لا توجد أرقام هواتف مسجلة للمعيل حالياً لإرسال الإشعارات.
+                    </p>
+                  )}
+                </div>
+
                 {/* أزرار الإجراء */}
                 {req.status === "PENDING" && (
                   <div className="flex gap-2 pt-3 border-t border-white/10">
@@ -300,11 +371,11 @@ export function UpdateRequestsClient({ requests, reviewerId }: Props) {
                     <a
                       href={
                         req.status === "APPROVED"
-                          ? `https://wa.me/${formatWhatsAppNumber(data.guardian?.phone1 || pGuardian.phone1 || "")}?text=${encodeURIComponent(
+                          ? `https://wa.me/${formatWhatsAppNumber(chosenPhone)}?text=${encodeURIComponent(
                               `السلام عليكم، تم بنجاح مراجعة وقبول طلب تحديث البيانات الخاص باليتيم ${b.fullName}. شكراً لتعاونكم.`
                             )}`
-                          : `https://wa.me/${formatWhatsAppNumber(data.guardian?.phone1 || pGuardian.phone1 || "")}?text=${encodeURIComponent(
-                              `السلام عليكم، تم مراجعة طلب تحديث بيانات اليتيم ${b.fullName} وتم إرجاعه لتعديل الحقول التالية:\n\n*السبب:* ${req.rejectionReason}\n\nيرجى الدخول للرابط التالي وتصحيح البيانات:\n${window.location.origin}/update/${req.token}`
+                          : `https://wa.me/${formatWhatsAppNumber(chosenPhone)}?text=${encodeURIComponent(
+                              `السلام عليكم، تم مراجعة طلب تحديث بيانات اليتيم ${b.fullName} وتم إرجاعه لتعديل الحقول التالية:\n\n*السبب:* ${req.rejectionReason || rejectReason}\n\nيرجى الدخول للرابط التالي وتصحيح البيانات:\n${window.location.origin}/update/${req.token}`
                             )}`
                       }
                       target="_blank"
@@ -312,7 +383,7 @@ export function UpdateRequestsClient({ requests, reviewerId }: Props) {
                       className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 py-2.5 text-emerald-400 font-bold text-xs transition-all"
                     >
                       <Share2 className="h-4 w-4" />
-                      <span>إرسال إشعار يدوي عبر واتساب</span>
+                      <span>إرسال إشعار يدوي عبر واتساب ({chosenPhone})</span>
                     </a>
                   </div>
                 )}

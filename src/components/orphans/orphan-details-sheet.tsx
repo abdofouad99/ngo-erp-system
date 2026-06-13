@@ -197,6 +197,35 @@ function renderValue(value: any, placeholder = "-") {
   return <span className="font-semibold text-white">{value}</span>
 }
 
+function formatWhatsAppNumber(phone: string) {
+  if (!phone) return ""
+  let cleaned = phone.replace(/\D/g, "")
+  if (cleaned.startsWith("00")) {
+    cleaned = cleaned.substring(2)
+  }
+  if (cleaned.startsWith("0")) {
+    cleaned = "967" + cleaned.substring(1)
+  } else if (cleaned.length === 9 && (cleaned.startsWith("7") || cleaned.startsWith("1"))) {
+    cleaned = "967" + cleaned
+  }
+  return cleaned
+}
+
+const sendWhatsAppLocal = async (phone: string, message: string) => {
+  try {
+    const res = await fetch("http://127.0.0.1:5005/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone, message }),
+      mode: "cors"
+    });
+    return res.ok;
+  } catch (error) {
+    console.warn("⚠️ Local WhatsApp API is not running or unreachable:", error);
+    return false;
+  }
+}
+
 export function OrphanDetailsSheet({
   orphan,
   open,
@@ -213,6 +242,10 @@ export function OrphanDetailsSheet({
   const [updateUrl, setUpdateUrl] = useState<string | null>(null)
   const [isGeneratingUrl, setIsGeneratingUrl] = useState(false)
   const [copySuccess, setCopySuccess] = useState(false)
+  
+  const [selectedPhone, setSelectedPhone] = useState<string>("")
+  const [isSendingWhatsApp, setIsSendingWhatsApp] = useState(false)
+  const [sendSuccess, setSendSuccess] = useState(false)
 
   // Reset rejection state when orphan changes
   useEffect(() => {
@@ -220,6 +253,9 @@ export function OrphanDetailsSheet({
     setRejectionReasonInput("")
     setUpdateUrl(null)
     setCopySuccess(false)
+    setSelectedPhone("")
+    setIsSendingWhatsApp(false)
+    setSendSuccess(false)
     // جلب المرفقات عند فتح الشيت
     if (orphan?.id) {
       getOrphanAttachments(orphan.id).then(res => {
@@ -258,6 +294,21 @@ export function OrphanDetailsSheet({
     if (cycle === "SEMI_ANNUAL") return "نصف سنوي"
     if (cycle === "ONE_TIME") return "مرة واحدة"
     return cycle
+  }
+
+  const handleAutoSend = async (phone: string, url: string) => {
+    if (!phone || !url) return
+    setIsSendingWhatsApp(true)
+    setSendSuccess(false)
+    const msg = `السلام عليكم، يرجى استخدام هذا الرابط لتحديث بيانات اليتيم ${orphan.fullName}:\n\n${url}`
+    const success = await sendWhatsAppLocal(phone, msg)
+    if (success) {
+      setSendSuccess(true)
+      setTimeout(() => setSendSuccess(false), 3000)
+    } else {
+      alert("تعذر الاتصال ببوت واتساب المحلي. يرجى التأكد من تشغيله، أو استخدام الإرسال اليدوي.")
+    }
+    setIsSendingWhatsApp(false)
   }
 
   return (
@@ -915,107 +966,201 @@ export function OrphanDetailsSheet({
         )}
 
         {/* Self-Update Link Generation Panel */}
-        {orphan.verificationStatus === "APPROVED" && (
-          <div className="border-t border-slate-800 bg-slate-950/90 backdrop-blur-md p-4 flex-shrink-0 flex flex-col gap-3 text-right" dir="rtl">
-            {!updateUrl ? (
-              <Button
-                onClick={async () => {
-                  setIsGeneratingUrl(true)
-                  try {
-                    const res = await generateOrphanUpdateToken(orphan.id)
-                    if (res.success && res.url) {
-                      setUpdateUrl(res.url)
-                    }
-                  } catch (err) {
-                    console.error(err)
-                  } finally {
-                    setIsGeneratingUrl(false)
-                  }
-                }}
-                disabled={isGeneratingUrl}
-                className="w-full rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-white font-bold transition-all duration-300 py-5 flex items-center justify-center gap-2 active:scale-[0.98]"
-              >
-                {isGeneratingUrl ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
-                    <span>جاري توليد الرابط...</span>
-                  </>
-                ) : (
-                  <>
-                    <LinkIcon className="h-4 w-4 text-emerald-400" />
-                    <span>توليد رابط تحديث البيانات للمعيل</span>
-                  </>
-                )}
-              </Button>
-            ) : (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-bold text-slate-400">رابط تحديث بيانات اليتيم:</p>
-                  <button
-                    onClick={() => {
-                      setUpdateUrl(null)
-                      setCopySuccess(false)
-                    }}
-                    className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
-                  >
-                    إغلاق
-                  </button>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    readOnly
-                    value={updateUrl}
-                    className="flex-1 rounded-xl bg-slate-900/60 border border-slate-800 focus:outline-none p-3 text-xs text-slate-350 text-left font-mono"
-                    onClick={(e) => (e.target as HTMLInputElement).select()}
-                  />
-                  <Button
-                    onClick={async () => {
-                      try {
-                        await navigator.clipboard.writeText(updateUrl)
-                        setCopySuccess(true)
-                        setTimeout(() => setCopySuccess(false), 2000)
-                      } catch (err) {
-                        console.error(err)
+        {orphan.verificationStatus === "APPROVED" && (() => {
+          const primaryGuardian = orphan.guardians?.find(g => g.isPrimary) || orphan.guardians?.[0]
+          const phones = Array.from(new Set([
+            primaryGuardian?.phone1 || "",
+            primaryGuardian?.phone2 || "",
+            primaryGuardian?.phone3 || "",
+            primaryGuardian?.phone4 || "",
+          ].map(p => (p || "").trim()).filter(p => p !== "")))
+
+          const chosenPhone = selectedPhone || phones[0] || ""
+
+          return (
+            <div className="border-t border-slate-800 bg-slate-950/90 backdrop-blur-md p-4 flex-shrink-0 flex flex-col gap-3 text-right" dir="rtl">
+              {!updateUrl ? (
+                <Button
+                  onClick={async () => {
+                    setIsGeneratingUrl(true)
+                    try {
+                      const res = await generateOrphanUpdateToken(orphan.id)
+                      if (res.success && res.url) {
+                        setUpdateUrl(res.url)
                       }
-                    }}
-                    className={`rounded-xl px-4 py-5 font-bold transition-all duration-300 active:scale-[0.98] ${
-                      copySuccess ? "bg-emerald-500 hover:bg-emerald-600 text-white" : "bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200"
-                    }`}
-                  >
-                    {copySuccess ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  </Button>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    asChild
-                    className="flex-1 rounded-xl bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 text-emerald-400 font-bold transition-all duration-300 py-4 active:scale-[0.98]"
-                  >
-                    <a
-                      href={`https://wa.me/?text=${encodeURIComponent(
-                        `السلام عليكم، يرجى استخدام هذا الرابط لتحديث بيانات اليتيم ${orphan.fullName}:\n\n${updateUrl}`
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2"
+                    } catch (err) {
+                      console.error(err)
+                    } finally {
+                      setIsGeneratingUrl(false)
+                    }
+                  }}
+                  disabled={isGeneratingUrl}
+                  className="w-full rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-white font-bold transition-all duration-300 py-5 flex items-center justify-center gap-2 active:scale-[0.98]"
+                >
+                  {isGeneratingUrl ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+                      <span>جاري توليد الرابط...</span>
+                    </>
+                  ) : (
+                    <>
+                      <LinkIcon className="h-4 w-4 text-emerald-400" />
+                      <span>توليد رابط تحديث البيانات للمعيل</span>
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold text-slate-400">رابط تحديث بيانات اليتيم:</p>
+                    <button
+                      onClick={() => {
+                        setUpdateUrl(null)
+                        setCopySuccess(false)
+                        setSelectedPhone("")
+                        setSendSuccess(false)
+                      }}
+                      className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
                     >
-                      <Share2 className="h-4 w-4" />
-                      <span>مشاركة عبر واتساب</span>
-                    </a>
-                  </Button>
-                  <Button
-                    asChild
-                    className="rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-350 px-4 py-4"
-                  >
-                    <a href={updateUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center">
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
-                  </Button>
+                      إغلاق
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      readOnly
+                      value={updateUrl}
+                      className="flex-1 rounded-xl bg-slate-900/60 border border-slate-800 focus:outline-none p-3 text-xs text-slate-350 text-left font-mono"
+                      onClick={(e) => (e.target as HTMLInputElement).select()}
+                    />
+                    <Button
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(updateUrl)
+                          setCopySuccess(true)
+                          setTimeout(() => setCopySuccess(false), 2000)
+                        } catch (err) {
+                          console.error(err)
+                        }
+                      }}
+                      className={`rounded-xl px-4 py-5 font-bold transition-all duration-300 active:scale-[0.98] ${
+                        copySuccess ? "bg-emerald-500 hover:bg-emerald-600 text-white" : "bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200"
+                      }`}
+                    >
+                      {copySuccess ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    </Button>
+                  </div>
+
+                  {/* اختيار رقم الهاتف */}
+                  <div className="bg-slate-900/40 border border-slate-850 rounded-xl p-3 space-y-2 text-right">
+                    <p className="text-xs font-bold text-slate-400 flex items-center gap-1.5 justify-start animate-fade-in" dir="rtl">
+                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                      رقم الهاتف المستهدف للإرسال:
+                    </p>
+                    {phones.length > 0 ? (
+                      <div className="flex flex-wrap gap-2 justify-start animate-fade-in" dir="rtl">
+                        {phones.map((phone, idx) => {
+                          const isSelected = chosenPhone === phone
+                          let label = `رقم ${idx + 1}`
+                          if (primaryGuardian) {
+                            if (phone === primaryGuardian.phone1) label = "هاتف 1"
+                            else if (phone === primaryGuardian.phone2) label = "هاتف 2"
+                            else if (phone === primaryGuardian.phone3) label = "هاتف 3"
+                            else if (phone === primaryGuardian.phone4) label = "هاتف 4"
+                          }
+                          return (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => setSelectedPhone(phone)}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[11px] font-medium transition-all ${
+                                isSelected
+                                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/40 shadow-sm shadow-emerald-500/5"
+                                  : "bg-white/5 text-slate-400 border-white/5 hover:bg-white/10 hover:text-slate-300"
+                              }`}
+                            >
+                              <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
+                                isSelected ? "border-emerald-400" : "border-slate-600"
+                              }`}>
+                                {isSelected && <span className="w-2 h-2 rounded-full bg-emerald-400" />}
+                              </span>
+                              <span>{phone}</span>
+                              <span className="text-[9px] opacity-60">({label})</span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-[11px] text-amber-400/90 font-medium animate-fade-in">
+                        ⚠️ لا توجد أرقام هواتف مسجلة للمعيل.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* أزرار الإرسال والمشاركة */}
+                  <div className="flex flex-col gap-2">
+                    {/* زر الإرسال التلقائي عبر البوت */}
+                    {phones.length > 0 && (
+                      <Button
+                        onClick={() => handleAutoSend(chosenPhone, updateUrl)}
+                        disabled={isSendingWhatsApp || !chosenPhone}
+                        className={`w-full rounded-xl font-bold py-5 flex items-center justify-center gap-2 transition-all duration-300 active:scale-[0.98] ${
+                          sendSuccess
+                            ? "bg-emerald-600 hover:bg-emerald-750 text-white"
+                            : "bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 text-emerald-400"
+                        }`}
+                      >
+                        {isSendingWhatsApp ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin text-emerald-400" />
+                            <span>جاري الإرسال عبر البوت...</span>
+                          </>
+                        ) : sendSuccess ? (
+                          <>
+                            <Check className="h-4 w-4 text-white" />
+                            <span>تم الإرسال التلقائي بنجاح! ✅</span>
+                          </>
+                        ) : (
+                          <>
+                            <Share2 className="h-4 w-4 text-emerald-400" />
+                            <span>إرسال تلقائي عبر الواتساب ({chosenPhone})</span>
+                          </>
+                        )}
+                      </Button>
+                    )}
+
+                    <div className="flex gap-2">
+                      <Button
+                        asChild
+                        className="flex-1 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 font-bold transition-all duration-300 py-4 active:scale-[0.98]"
+                      >
+                        <a
+                          href={`https://wa.me/${formatWhatsAppNumber(chosenPhone)}?text=${encodeURIComponent(
+                            `السلام عليكم، يرجى استخدام هذا الرابط لتحديث بيانات اليتيم ${orphan.fullName}:\n\n${updateUrl}`
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-2"
+                        >
+                          <Share2 className="h-4 w-4 text-slate-350" />
+                          <span>إرسال يدوي عبر الويب</span>
+                        </a>
+                      </Button>
+                      <Button
+                        asChild
+                        className="rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-350 px-4 py-4"
+                      >
+                        <a href={updateUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center">
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )
+        })()}
       </SheetContent>
     </Sheet>
   )
