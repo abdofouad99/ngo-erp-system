@@ -2,7 +2,35 @@
 
 import { useState } from "react"
 import { approveUpdateRequest, rejectUpdateRequest } from "@/app/actions/update-request-actions"
-import { CheckCircle, XCircle, Eye, Clock, ChevronDown, ChevronUp, Loader2 } from "lucide-react"
+import { CheckCircle, XCircle, Eye, Clock, ChevronDown, ChevronUp, Loader2, Share2 } from "lucide-react"
+
+function formatWhatsAppNumber(phone: string) {
+  if (!phone) return ""
+  let cleaned = phone.replace(/\D/g, "")
+  if (cleaned.startsWith("00")) {
+    cleaned = cleaned.substring(2)
+  }
+  if (cleaned.startsWith("0")) {
+    cleaned = "967" + cleaned.substring(1)
+  } else if (cleaned.length === 9 && (cleaned.startsWith("7") || cleaned.startsWith("1"))) {
+    cleaned = "967" + cleaned
+  }
+  return cleaned
+}
+
+const sendWhatsAppLocal = async (phone: string, message: string) => {
+  try {
+    await fetch("http://127.0.0.1:5005/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone, message }),
+      mode: "cors"
+    });
+    console.log("✅ Sent automatic WhatsApp message to local API");
+  } catch (error) {
+    console.warn("⚠️ Local WhatsApp API is not running or unreachable:", error);
+  }
+}
 
 interface Props {
   requests: any[]
@@ -26,18 +54,46 @@ export function UpdateRequestsClient({ requests, reviewerId }: Props) {
   const displayed = localRequests.filter(r => filter === "ALL" || r.status === filter)
 
   const handleApprove = async (id: string) => {
+    const req = localRequests.find(r => r.id === id)
+    if (!req) return
+
     setLoading(id + "_approve")
     const res = await approveUpdateRequest(id, reviewerId)
-    if (res.success) setLocal(prev => prev.map(r => r.id === id ? { ...r, status: "APPROVED" } : r))
+    if (res.success) {
+      setLocal(prev => prev.map(r => r.id === id ? { ...r, status: "APPROVED" } : r))
+      
+      const b = req.beneficiary
+      const data = req.submittedData as any || {}
+      const pGuardian = b.guardians?.[0] || {}
+      const guardianPhone = data.guardian?.phone1 || pGuardian.phone1 || ""
+      
+      if (guardianPhone) {
+        const message = `السلام عليكم، تم بنجاح مراجعة وقبول طلب تحديث البيانات الخاص باليتيم ${b.fullName}. شكراً لتعاونكم.`
+        await sendWhatsAppLocal(guardianPhone, message)
+      }
+    }
     setLoading(null)
   }
 
   const handleReject = async (id: string) => {
-    if (!rejectReason.trim()) return
+    const req = localRequests.find(r => r.id === id)
+    if (!req || !rejectReason.trim()) return
+
     setLoading(id + "_reject")
     const res = await rejectUpdateRequest(id, rejectReason, reviewerId)
     if (res.success) {
       setLocal(prev => prev.map(r => r.id === id ? { ...r, status: "REJECTED", rejectionReason: rejectReason } : r))
+      
+      const b = req.beneficiary
+      const data = req.submittedData as any || {}
+      const pGuardian = b.guardians?.[0] || {}
+      const guardianPhone = data.guardian?.phone1 || pGuardian.phone1 || ""
+      
+      if (guardianPhone) {
+        const message = `السلام عليكم، تم مراجعة طلب تحديث بيانات اليتيم ${b.fullName} وتم إرجاعه لتعديل الحقول التالية:\n\n*السبب:* ${rejectReason}\n\nيرجى الدخول للرابط التالي وتصحيح البيانات:\n${window.location.origin}/update/${req.token}`
+        await sendWhatsAppLocal(guardianPhone, message)
+      }
+
       setRejectId(null)
       setRejectReason("")
     }
@@ -235,6 +291,29 @@ export function UpdateRequestsClient({ requests, reviewerId }: Props) {
                         إلغاء
                       </button>
                     </div>
+                  </div>
+                )}
+
+                {/* إشعار يدوي بالرفض أو القبول كاحتياط */}
+                {(req.status === "APPROVED" || req.status === "REJECTED") && (
+                  <div className="flex gap-2 pt-3 border-t border-white/10">
+                    <a
+                      href={
+                        req.status === "APPROVED"
+                          ? `https://wa.me/${formatWhatsAppNumber(data.guardian?.phone1 || pGuardian.phone1 || "")}?text=${encodeURIComponent(
+                              `السلام عليكم، تم بنجاح مراجعة وقبول طلب تحديث البيانات الخاص باليتيم ${b.fullName}. شكراً لتعاونكم.`
+                            )}`
+                          : `https://wa.me/${formatWhatsAppNumber(data.guardian?.phone1 || pGuardian.phone1 || "")}?text=${encodeURIComponent(
+                              `السلام عليكم، تم مراجعة طلب تحديث بيانات اليتيم ${b.fullName} وتم إرجاعه لتعديل الحقول التالية:\n\n*السبب:* ${req.rejectionReason}\n\nيرجى الدخول للرابط التالي وتصحيح البيانات:\n${window.location.origin}/update/${req.token}`
+                            )}`
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 py-2.5 text-emerald-400 font-bold text-xs transition-all"
+                    >
+                      <Share2 className="h-4 w-4" />
+                      <span>إرسال إشعار يدوي عبر واتساب</span>
+                    </a>
                   </div>
                 )}
               </div>
