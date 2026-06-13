@@ -174,7 +174,7 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan,
     setNewFileType("NATIONAL_ID")
     setNewFileDesc("")
     if (!isEditMode) {
-      setForm({ familyId: "", orphanCode: "", kuraimiAccount: "", kuraimiAccountOld: "", mumaiyo: "", baitZakatNumber: "", fullName: "", shortName: "", gender: "MALE", birthdate: "", nationalId: "", religion: "", fatherFullName: "", motherName: "", educationLevel: "", schoolName: "", educationalStage: "", quranMemorization: "", healthStatus: "", disability: false, disabilityType: "", disabilityDetails: "", nutritionStatus: "", housingStatus: "", orphanType: "FATHER", fatherDeathDate: "", fatherDeathCause: "", motherDeathDate: "", birthGovernorate: "", birthDistrict: "", birthVillage: "", birthArea: "", referrerName: "", referrerPhone1: "", referrerPhone2: "", marketedToOrg: "", notes: "" })
+      setForm({ familyId: "", orphanCode: "", kuraimiAccount: "", kuraimiAccountOld: "", kuraimiAccountHolder: "", mumaiyo: "", baitZakatNumber: "", fullName: "", shortName: "", gender: "MALE", birthdate: "", nationalId: "", religion: "", fatherFullName: "", motherName: "", educationLevel: "", schoolName: "", educationalStage: "", quranMemorization: "", healthStatus: "", disability: false, disabilityType: "", disabilityDetails: "", nutritionStatus: "", housingStatus: "", orphanType: "FATHER", fatherDeathDate: "", fatherDeathCause: "", motherDeathDate: "", birthGovernorate: "", birthDistrict: "", birthVillage: "", birthArea: "", referrerName: "", referrerPhone1: "", referrerPhone2: "", marketedToOrg: "", notes: "" })
       setGuardians([{ fullName: "", nationalId: "", relation: "", occupation: "", phone1: "", phone2: "", phone3: "", phone4: "" }])
       setSiblings([])
     }
