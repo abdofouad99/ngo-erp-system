@@ -1,25 +1,49 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import {
   Plus, User, GraduationCap, Activity, CreditCard,
-  AlertCircle, Loader2, Users, MapPin, Heart, ChevronLeft, ChevronRight, Check
+  AlertCircle, Loader2, Users, MapPin, Heart, ChevronLeft, ChevronRight, Check,
+  Paperclip, Upload, Trash2, FileText, Image as ImageIcon, Eye
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription,
 } from "@/components/ui/sheet"
-import { createFullOrphan } from "@/app/actions/orphan-full-actions"
+import { createFullOrphan, updateFullOrphan } from "@/app/actions/orphan-full-actions"
+import { uploadOrphanAttachment } from "@/app/actions/attachment-actions"
+import { translateDocumentType } from "@/lib/attachment-utils"
 
 // =============================================================================
 // TYPES
 // =============================================================================
 
 interface AddOrphanSheetProps {
-  families: { id: string; headFullName: string }[]
+  families?:    { id: string; headFullName: string }[]
   createdById?: string
+  isMarketer?:  boolean
+  orphan?:      any          // بيانات اليتيم عند وضع التعديل
+  trigger?:     React.ReactNode  // زر تشغيل مخصص
 }
+
+interface PendingFile {
+  file:         File
+  documentType: string
+  description:  string
+  preview:      string | null
+}
+
+// أنواع المستندات
+const DOCUMENT_TYPES = [
+  { value: "NATIONAL_ID",        label: "صورة الهوية الوطنية" },
+  { value: "BIRTH_CERTIFICATE",  label: "شهادة الميلاد" },
+  { value: "DEATH_CERTIFICATE",  label: "شهادة الوفاة" },
+  { value: "DISABILITY_CARD",    label: "بطاقة الإعاقة" },
+  { value: "FIELD_PHOTO",        label: "صورة ميدانية" },
+  { value: "MEDICAL_REPORT",     label: "تقرير طبي" },
+  { value: "OTHER",              label: "مستند آخر" },
+]
 
 // خطوات النموذج
 const STEPS = [
@@ -30,6 +54,7 @@ const STEPS = [
   { id: 5, label: "المعيل",            icon: Users },
   { id: 6, label: "الإخوة",            icon: Users },
   { id: 7, label: "المعرِّف والتسويق", icon: MapPin },
+  { id: 8, label: "المستندات والمرفقات", icon: Paperclip },
 ]
 
 // =============================================================================
@@ -50,72 +75,188 @@ function FieldRow({ label, required, children }: { label: string; required?: boo
 const inputCls = "bg-slate-900/40 border-slate-700 text-white text-sm h-9 rounded-lg focus-visible:ring-emerald-500 focus-visible:border-emerald-500"
 const selectCls = "flex h-9 w-full rounded-lg border border-slate-700 bg-slate-900/40 text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-right"
 
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return <h4 className="text-xs font-extrabold text-emerald-400 border-b border-emerald-500/20 pb-1">{children}</h4>
+}
+
 // =============================================================================
 // COMPONENT
 // =============================================================================
 
-export function AddOrphanSheet({ families, createdById }: AddOrphanSheetProps) {
+export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan, trigger }: AddOrphanSheetProps) {
+  const isEditMode = !!orphan
+
   const [open, setOpen]       = useState(false)
   const [step, setStep]       = useState(1)
   const [loading, setLoading] = useState(false)
-  const [errorMsg, setErrorMsg]   = useState<string | null>(null)
+  const [errorMsg, setErrorMsg]     = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // ── Form State ──────────────────────────────────────────────────────────────
+  // ── Form State (مع تهيئة من بيانات اليتيم في وضع التعديل) ────────────────
   const [form, setForm] = useState({
-    familyId: "", orphanCode: "", kuraimiAccount: "", kuraimiAccountOld: "",
-    mumaiyo: "", baitZakatNumber: "",
-    fullName: "", shortName: "", gender: "MALE", birthdate: "", nationalId: "", religion: "",
-    fatherFullName: "", motherName: "",
-    educationLevel: "", schoolName: "", educationalStage: "", quranMemorization: "",
-    healthStatus: "", disability: false, disabilityType: "", disabilityDetails: "",
-    nutritionStatus: "", housingStatus: "",
-    orphanType: "FATHER", fatherDeathDate: "", fatherDeathCause: "", motherDeathDate: "",
-    birthGovernorate: "", birthDistrict: "", birthVillage: "", birthArea: "",
-    referrerName: "", referrerPhone1: "", referrerPhone2: "",
-    marketedToOrg: "", notes: "",
+    familyId:          orphan?.familyId || "",
+    orphanCode:        orphan?.orphanCode || "",
+    kuraimiAccount:    orphan?.kuraimiAccount || "",
+    kuraimiAccountOld: orphan?.kuraimiAccountOld || "",
+    mumaiyo:           orphan?.mumaiyo || "",
+    baitZakatNumber:   orphan?.baitZakatNumber || "",
+    fullName:          orphan?.fullName || "",
+    shortName:         orphan?.shortName || "",
+    gender:            orphan?.gender || "MALE",
+    birthdate:         orphan?.birthdate ? new Date(orphan.birthdate).toISOString().split("T")[0] : "",
+    nationalId:        orphan?.nationalId || "",
+    religion:          orphan?.religion || "",
+    fatherFullName:    orphan?.fatherFullName || "",
+    motherName:        orphan?.motherName || "",
+    educationLevel:    orphan?.educationLevel || "",
+    schoolName:        orphan?.schoolName || "",
+    educationalStage:  orphan?.educationalStage || "",
+    quranMemorization: orphan?.quranMemorization || "",
+    healthStatus:      orphan?.healthStatus || "",
+    disability:        orphan?.disability || false,
+    disabilityType:    orphan?.disabilityType || "",
+    disabilityDetails: orphan?.disabilityDetails || "",
+    nutritionStatus:   orphan?.nutritionStatus || "",
+    housingStatus:     orphan?.housingStatus || "",
+    orphanType:        orphan?.orphanType || "FATHER",
+    fatherDeathDate:   orphan?.fatherDeathDate ? new Date(orphan.fatherDeathDate).toISOString().split("T")[0] : "",
+    fatherDeathCause:  orphan?.fatherDeathCause || "",
+    motherDeathDate:   orphan?.motherDeathDate ? new Date(orphan.motherDeathDate).toISOString().split("T")[0] : "",
+    birthGovernorate:  orphan?.birthGovernorate || "",
+    birthDistrict:     orphan?.birthDistrict || "",
+    birthVillage:      orphan?.birthVillage || "",
+    birthArea:         orphan?.birthArea || "",
+    referrerName:      orphan?.referrerName || "",
+    referrerPhone1:    orphan?.referrerPhone1 || "",
+    referrerPhone2:    orphan?.referrerPhone2 || "",
+    marketedToOrg:     orphan?.marketedToOrg || "",
+    notes:             orphan?.notes || "",
   })
 
-  // ── Guardians ───────────────────────────────────────────────────────────────
-  const [guardians, setGuardians] = useState([
-    { fullName: "", nationalId: "", relation: "", occupation: "", phone1: "", phone2: "", phone3: "", phone4: "" }
-  ])
+  // ── Guardians (مع تهيئة في وضع التعديل) ────────────────────────────────
+  const [guardians, setGuardians] = useState(
+    orphan?.guardians?.length
+      ? orphan.guardians.map((g: any) => ({
+          fullName: g.fullName || "", nationalId: g.nationalId || "",
+          relation: g.relation || "", occupation: g.occupation || "",
+          phone1: g.phone1 || "", phone2: g.phone2 || "",
+          phone3: g.phone3 || "", phone4: g.phone4 || "",
+        }))
+      : [{ fullName: "", nationalId: "", relation: "", occupation: "", phone1: "", phone2: "", phone3: "", phone4: "" }]
+  )
 
-  // ── Siblings ────────────────────────────────────────────────────────────────
-  const [siblings, setSiblings] = useState<{ fullName: string; qualification: string; birthdate: string; socialStatus: string; gender: string }[]>([])
+  // ── Siblings (مع تهيئة في وضع التعديل) ─────────────────────────────────
+  const [siblings, setSiblings] = useState<{ fullName: string; qualification: string; birthdate: string; socialStatus: string; gender: string }[]>(
+    orphan?.siblings?.length
+      ? orphan.siblings.map((s: any) => ({
+          fullName: s.fullName || "", qualification: s.qualification || "",
+          birthdate: s.birthdate ? new Date(s.birthdate).toISOString().split("T")[0] : "",
+          socialStatus: s.socialStatus || "", gender: s.gender || "MALE",
+        }))
+      : []
+  )
+
+  // ── Pending Files (ملفات مراد رفعها) ─────────────────────────────────────
+  const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([])
+  const [newFileType, setNewFileType] = useState("NATIONAL_ID")
+  const [newFileDesc, setNewFileDesc] = useState("")
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
 
   const setF = (key: string, val: any) => setForm(p => ({ ...p, [key]: val }))
 
-  const handleClose = () => {
-    setOpen(false)
+  const resetForm = () => {
     setStep(1)
     setErrorMsg(null)
     setSuccessMsg(null)
+    setPendingFiles([])
+    setNewFileType("NATIONAL_ID")
+    setNewFileDesc("")
+    if (!isEditMode) {
+      setForm({ familyId: "", orphanCode: "", kuraimiAccount: "", kuraimiAccountOld: "", mumaiyo: "", baitZakatNumber: "", fullName: "", shortName: "", gender: "MALE", birthdate: "", nationalId: "", religion: "", fatherFullName: "", motherName: "", educationLevel: "", schoolName: "", educationalStage: "", quranMemorization: "", healthStatus: "", disability: false, disabilityType: "", disabilityDetails: "", nutritionStatus: "", housingStatus: "", orphanType: "FATHER", fatherDeathDate: "", fatherDeathCause: "", motherDeathDate: "", birthGovernorate: "", birthDistrict: "", birthVillage: "", birthArea: "", referrerName: "", referrerPhone1: "", referrerPhone2: "", marketedToOrg: "", notes: "" })
+      setGuardians([{ fullName: "", nationalId: "", relation: "", occupation: "", phone1: "", phone2: "", phone3: "", phone4: "" }])
+      setSiblings([])
+    }
+  }
+
+  const handleClose = () => {
+    setOpen(false)
+    resetForm()
+  }
+
+  // إضافة ملف جديد للقائمة المؤقتة
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMsg("حجم الملف يتجاوز 5 ميغابايت")
+      return
+    }
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp", "application/pdf"]
+    if (!allowedTypes.includes(file.type)) {
+      setErrorMsg("نوع الملف غير مدعوم. يُسمح بـ JPG, PNG, WEBP, PDF فقط")
+      return
+    }
+    setErrorMsg(null)
+    let preview: string | null = null
+    if (file.type.startsWith("image/")) {
+      preview = URL.createObjectURL(file)
+    }
+    setPendingFiles(prev => [...prev, { file, documentType: newFileType, description: newFileDesc, preview }])
+    setNewFileDesc("")
+    if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
   const handleSubmit = async () => {
-    if (!form.familyId) { setErrorMsg("يرجى اختيار الأسرة"); return }
     if (!form.fullName)  { setErrorMsg("اسم اليتيم مطلوب"); return }
     if (!form.birthdate) { setErrorMsg("تاريخ الميلاد مطلوب"); return }
+    if (!isMarketer && !form.familyId) { setErrorMsg("يرجى اختيار الأسرة"); return }
 
     setLoading(true)
     setErrorMsg(null)
 
-    const result = await createFullOrphan({
+    let result: any
+
+    const payload = {
       ...form,
       gender:     form.gender as "MALE" | "FEMALE",
       orphanType: form.orphanType as "FATHER" | "MOTHER" | "BOTH",
       disability: form.disability,
       createdById,
-      guardians:  guardians.filter(g => g.fullName.trim()),
-      siblings:   siblings.filter(s => s.fullName.trim()),
-    })
+      guardians:  guardians.filter((g: { fullName: string }) => g.fullName.trim()),
+      siblings:   siblings.filter((s: { fullName: string }) => s.fullName.trim()),
+    }
+
+    if (isEditMode) {
+      // وضع التعديل — إعادة الحالة لـ PENDING
+      result = await updateFullOrphan(orphan.id, payload, true)
+    } else {
+      result = await createFullOrphan(payload)
+    }
+
+    // رفع المرفقات بعد إنشاء/تحديث اليتيم
+    if (result.success && pendingFiles.length > 0) {
+      const orphanId = isEditMode ? orphan.id : result.orphan?.id
+      if (orphanId) {
+        for (const pf of pendingFiles) {
+          const fd = new FormData()
+          fd.append("orphanId",     orphanId)
+          fd.append("file",         pf.file)
+          fd.append("documentType", pf.documentType)
+          fd.append("description",  pf.description)
+          await uploadOrphanAttachment(fd)
+        }
+      }
+    }
 
     setLoading(false)
 
     if (result.success) {
-      setSuccessMsg(`✅ تم إضافة اليتيم "${form.fullName}" بنجاح!`)
-      setTimeout(() => { handleClose() }, 1800)
+      const name = form.fullName
+      setSuccessMsg(isEditMode
+        ? `✅ تم تحديث بيانات "${name}" وإعادة إرسال الطلب للمراجعة!`
+        : `✅ تم إضافة اليتيم "${name}" بنجاح!`)
+      setTimeout(() => { handleClose() }, 2000)
     } else {
       setErrorMsg(result.error || "فشل الحفظ")
     }
@@ -128,28 +269,42 @@ export function AddOrphanSheet({ families, createdById }: AddOrphanSheetProps) {
   const renderStep = () => {
     switch (step) {
 
-      // ── STEP 1: أرقام التعريف والحسابات ───────────────────────────────────
+      // ── STEP 1: أرقام التعريف والحسابات ─────────────────────────────────────
       case 1: return (
         <div className="space-y-4">
-          <SectionTitle>ربط الأسرة</SectionTitle>
-          <FieldRow label="الأسرة التابع لها اليتيم" required>
-            <select value={form.familyId} onChange={e => setF("familyId", e.target.value)} className={selectCls}>
-              <option value="">-- اختر الأسرة --</option>
-              {families.map(f => <option key={f.id} value={f.id}>{f.headFullName}</option>)}
-            </select>
-          </FieldRow>
+          {/* ربط الأسرة — مخفي للمسوق */}
+          {!isMarketer && (
+            <>
+              <SectionTitle>ربط الأسرة</SectionTitle>
+              <FieldRow label="الأسرة التابع لها اليتيم" required>
+                <select value={form.familyId} onChange={e => setF("familyId", e.target.value)} className={selectCls}>
+                  <option value="">-- اختر الأسرة --</option>
+                  {families.map(f => <option key={f.id} value={f.id}>{f.headFullName}</option>)}
+                </select>
+              </FieldRow>
+            </>
+          )}
 
-          <SectionTitle>أرقام التعريف</SectionTitle>
+          {/* أرقام التعريف — مخفية للمسوق */}
+          {!isMarketer && (
+            <>
+              <SectionTitle>أرقام التعريف (للمشرف فقط)</SectionTitle>
+              <div className="grid grid-cols-2 gap-3">
+                <FieldRow label="رقم ملف اليتيم (كود)">
+                  <Input className={inputCls} placeholder="ORF-2026-001" value={form.orphanCode} onChange={e => setF("orphanCode", e.target.value)} />
+                </FieldRow>
+                <FieldRow label="رقم بيت الزكاة">
+                  <Input className={inputCls} placeholder="رقم الملف في بيت الزكاة" value={form.baitZakatNumber} onChange={e => setF("baitZakatNumber", e.target.value)} />
+                </FieldRow>
+                <FieldRow label="رقم المميو كريمي">
+                  <Input className={inputCls} placeholder="رقم المميو" value={form.mumaiyo} onChange={e => setF("mumaiyo", e.target.value)} />
+                </FieldRow>
+              </div>
+            </>
+          )}
+
+          <SectionTitle>أرقام الحسابات</SectionTitle>
           <div className="grid grid-cols-2 gap-3">
-            <FieldRow label="رقم ملف اليتيم (كود)">
-              <Input className={inputCls} placeholder="ORF-2026-001" value={form.orphanCode} onChange={e => setF("orphanCode", e.target.value)} />
-            </FieldRow>
-            <FieldRow label="رقم بيت الزكاة">
-              <Input className={inputCls} placeholder="رقم الملف في بيت الزكاة" value={form.baitZakatNumber} onChange={e => setF("baitZakatNumber", e.target.value)} />
-            </FieldRow>
-            <FieldRow label="رقم المميو كريمي">
-              <Input className={inputCls} placeholder="رقم المميو" value={form.mumaiyo} onChange={e => setF("mumaiyo", e.target.value)} />
-            </FieldRow>
             <FieldRow label="رقم الكريمي الجديد">
               <Input className={inputCls} placeholder="رقم حساب الكريمي" value={form.kuraimiAccount} onChange={e => setF("kuraimiAccount", e.target.value)} />
             </FieldRow>
@@ -157,10 +312,16 @@ export function AddOrphanSheet({ families, createdById }: AddOrphanSheetProps) {
               <Input className={inputCls} placeholder="الرقم القديم إن وجد" value={form.kuraimiAccountOld} onChange={e => setF("kuraimiAccountOld", e.target.value)} />
             </FieldRow>
           </div>
+
+          {isMarketer && (
+            <div className="rounded-xl border border-blue-500/20 bg-blue-950/20 p-3 text-xs text-blue-300">
+              سيتم إنشاء ملف الأسرة تلقائياً بناءً على بيانات المعيل الذي ستدخله في الخطوة 5.
+            </div>
+          )}
         </div>
       )
 
-      // ── STEP 2: البيانات الشخصية ───────────────────────────────────────────
+      // ── STEP 2: البيانات الشخصية ─────────────────────────────────────────────
       case 2: return (
         <div className="space-y-4">
           <SectionTitle>البيانات الشخصية</SectionTitle>
@@ -212,7 +373,7 @@ export function AddOrphanSheet({ families, createdById }: AddOrphanSheetProps) {
         </div>
       )
 
-      // ── STEP 3: التعليم والصحة والمعيشة ───────────────────────────────────
+      // ── STEP 3: التعليم والصحة والمعيشة ─────────────────────────────────────
       case 3: return (
         <div className="space-y-4">
           <SectionTitle>بيانات التعليم</SectionTitle>
@@ -274,7 +435,7 @@ export function AddOrphanSheet({ families, createdById }: AddOrphanSheetProps) {
         </div>
       )
 
-      // ── STEP 4: بيانات التيتم ──────────────────────────────────────────────
+      // ── STEP 4: بيانات التيتم ────────────────────────────────────────────────
       case 4: return (
         <div className="space-y-4">
           <SectionTitle>تصنيف التيتم</SectionTitle>
@@ -316,56 +477,53 @@ export function AddOrphanSheet({ families, createdById }: AddOrphanSheetProps) {
         </div>
       )
 
-      // ── STEP 5: بيانات المعيل ──────────────────────────────────────────────
+      // ── STEP 5: بيانات المعيل ────────────────────────────────────────────────
       case 5: return (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <SectionTitle>بيانات المعيلين</SectionTitle>
             {guardians.length < 2 && (
-              <Button size="sm" variant="outline" onClick={() => setGuardians(p => [...p, { fullName: "", nationalId: "", relation: "", occupation: "", phone1: "", phone2: "", phone3: "", phone4: "" }])} className="text-xs h-7 border-slate-700 bg-slate-900/40 hover:bg-slate-800">
+              <Button size="sm" variant="outline" onClick={() => setGuardians((p: typeof guardians) => [...p, { fullName: "", nationalId: "", relation: "", occupation: "", phone1: "", phone2: "", phone3: "", phone4: "" }])} className="text-xs h-7 border-slate-700 bg-slate-900/40 hover:bg-slate-800">
                 <Plus className="h-3 w-3 ml-1" /> إضافة معيل ثانٍ
               </Button>
             )}
           </div>
-
-          {guardians.map((g, i) => (
+          {isMarketer && (
+            <div className="rounded-xl border border-amber-500/20 bg-amber-950/20 p-3 text-xs text-amber-300">
+              بيانات المعيل الأول ستُستخدم تلقائياً لإنشاء ملف الأسرة إذا لم يكن مسجلاً مسبقاً.
+            </div>
+          )}
+          {guardians.map((g: typeof guardians[0], i: number) => (
             <div key={i} className="border border-slate-700/60 rounded-xl p-3 space-y-3 bg-slate-900/20">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-emerald-400">{i === 0 ? "المعيل الأساسي" : "المعيل الثاني"}</span>
-                {i > 0 && <button onClick={() => setGuardians(p => p.filter((_, j) => j !== i))} className="text-red-400 text-xs hover:text-red-300">حذف</button>}
+              {i > 0 && <button onClick={() => setGuardians((p: typeof guardians) => p.filter((_: typeof guardians[0], j: number) => j !== i))} className="text-red-400 text-xs hover:text-red-300">حذف</button>}
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <FieldRow label="الاسم الكامل">
-                  <Input className={inputCls} placeholder="اسم المعيل" value={g.fullName} onChange={e => setGuardians(p => p.map((x, j) => j === i ? { ...x, fullName: e.target.value } : x))} />
+                  <Input className={inputCls} placeholder="اسم المعيل" value={g.fullName} onChange={e => setGuardians((p: typeof guardians) => p.map((x: typeof guardians[0], j: number) => j === i ? { ...x, fullName: e.target.value } : x))} />
                 </FieldRow>
                 <FieldRow label="رقم الهوية">
-                  <Input className={inputCls} placeholder="رقم هوية المعيل" value={g.nationalId} onChange={e => setGuardians(p => p.map((x, j) => j === i ? { ...x, nationalId: e.target.value } : x))} />
+                  <Input className={inputCls} placeholder="رقم هوية المعيل" value={g.nationalId} onChange={e => setGuardians((p: typeof guardians) => p.map((x: typeof guardians[0], j: number) => j === i ? { ...x, nationalId: e.target.value } : x))} />
                 </FieldRow>
                 <FieldRow label="علاقته باليتيم">
-                  <Input className={inputCls} placeholder="أخ / عم / خال..." value={g.relation} onChange={e => setGuardians(p => p.map((x, j) => j === i ? { ...x, relation: e.target.value } : x))} />
+                  <Input className={inputCls} placeholder="أخ / عم / خال..." value={g.relation} onChange={e => setGuardians((p: typeof guardians) => p.map((x: typeof guardians[0], j: number) => j === i ? { ...x, relation: e.target.value } : x))} />
                 </FieldRow>
                 <FieldRow label="عمله">
-                  <Input className={inputCls} placeholder="المهنة" value={g.occupation} onChange={e => setGuardians(p => p.map((x, j) => j === i ? { ...x, occupation: e.target.value } : x))} />
+                  <Input className={inputCls} placeholder="المهنة" value={g.occupation} onChange={e => setGuardians((p: typeof guardians) => p.map((x: typeof guardians[0], j: number) => j === i ? { ...x, occupation: e.target.value } : x))} />
                 </FieldRow>
-                <FieldRow label="هاتف 1">
-                  <Input className={inputCls} placeholder="رقم الهاتف الأول" value={g.phone1} onChange={e => setGuardians(p => p.map((x, j) => j === i ? { ...x, phone1: e.target.value } : x))} />
-                </FieldRow>
-                <FieldRow label="هاتف 2">
-                  <Input className={inputCls} placeholder="رقم الهاتف الثاني" value={g.phone2} onChange={e => setGuardians(p => p.map((x, j) => j === i ? { ...x, phone2: e.target.value } : x))} />
-                </FieldRow>
-                <FieldRow label="هاتف 3">
-                  <Input className={inputCls} placeholder="رقم الهاتف الثالث" value={g.phone3} onChange={e => setGuardians(p => p.map((x, j) => j === i ? { ...x, phone3: e.target.value } : x))} />
-                </FieldRow>
-                <FieldRow label="هاتف 4">
-                  <Input className={inputCls} placeholder="رقم الهاتف الرابع" value={g.phone4} onChange={e => setGuardians(p => p.map((x, j) => j === i ? { ...x, phone4: e.target.value } : x))} />
-                </FieldRow>
+                {["phone1", "phone2", "phone3", "phone4"].map((ph, pi) => (
+                  <FieldRow key={ph} label={`هاتف ${pi + 1}`}>
+                    <Input className={inputCls} placeholder={`رقم الهاتف ${pi + 1}`} value={(g as any)[ph]} onChange={e => setGuardians((p: typeof guardians) => p.map((x: typeof guardians[0], j: number) => j === i ? { ...x, [ph]: e.target.value } : x))} />
+                  </FieldRow>
+                ))}
               </div>
             </div>
           ))}
         </div>
       )
 
-      // ── STEP 6: بيانات الإخوة ─────────────────────────────────────────────
+      // ── STEP 6: بيانات الإخوة ────────────────────────────────────────────────
       case 6: return (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -376,13 +534,11 @@ export function AddOrphanSheet({ families, createdById }: AddOrphanSheetProps) {
               </Button>
             )}
           </div>
-
           {siblings.length === 0 && (
             <div className="text-center py-8 text-slate-500 text-sm border border-dashed border-slate-700 rounded-xl">
               لا يوجد إخوة مسجلون — اضغط "إضافة أخ" لإضافة بيانات الإخوة
             </div>
           )}
-
           {siblings.map((s, i) => (
             <div key={i} className="border border-slate-700/60 rounded-xl p-3 space-y-3 bg-slate-900/20">
               <div className="flex items-center justify-between">
@@ -414,7 +570,7 @@ export function AddOrphanSheet({ families, createdById }: AddOrphanSheetProps) {
         </div>
       )
 
-      // ── STEP 7: المعرِّف والتسويق ──────────────────────────────────────────
+      // ── STEP 7: المعرِّف والتسويق ─────────────────────────────────────────────
       case 7: return (
         <div className="space-y-4">
           <SectionTitle>بيانات المعرِّف</SectionTitle>
@@ -439,6 +595,97 @@ export function AddOrphanSheet({ families, createdById }: AddOrphanSheetProps) {
         </div>
       )
 
+      // ── STEP 8: المستندات والمرفقات ──────────────────────────────────────────
+      case 8: return (
+        <div className="space-y-5">
+          <SectionTitle>رفع المستندات والوثائق الرسمية</SectionTitle>
+
+          {/* نموذج إضافة ملف */}
+          <div className="rounded-xl border border-slate-700/60 bg-slate-900/30 p-4 space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <FieldRow label="نوع الوثيقة">
+                <select className={selectCls} value={newFileType} onChange={e => setNewFileType(e.target.value)}>
+                  {DOCUMENT_TYPES.map(dt => <option key={dt.value} value={dt.value}>{dt.label}</option>)}
+                </select>
+              </FieldRow>
+              <FieldRow label="وصف الملف (اختياري)">
+                <Input className={inputCls} placeholder="مثال: هوية والد اليتيم" value={newFileDesc} onChange={e => setNewFileDesc(e.target.value)} />
+              </FieldRow>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-600 bg-slate-900/40 py-6 text-slate-400 hover:border-emerald-500 hover:text-emerald-400 transition-all duration-200 cursor-pointer"
+            >
+              <Upload className="h-7 w-7" />
+              <span className="text-xs font-bold">اضغط لاختيار ملف</span>
+              <span className="text-[10px] text-slate-500">JPG, PNG, WEBP, PDF — الحد الأقصى 5 ميغابايت</span>
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/jpg,image/png,image/webp,application/pdf"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+          </div>
+
+          {/* قائمة الملفات المضافة */}
+          {pendingFiles.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-bold text-slate-400">الملفات المضافة ({pendingFiles.length})</p>
+              {pendingFiles.map((pf, idx) => (
+                <div key={idx} className="flex items-center gap-3 rounded-xl border border-slate-700/50 bg-slate-900/40 p-3">
+                  {pf.preview ? (
+                    <button onClick={() => setLightboxSrc(pf.preview)} className="flex-shrink-0">
+                      <img src={pf.preview} alt="" className="h-12 w-12 rounded-lg object-cover border border-slate-700 hover:border-emerald-500 transition-colors" />
+                    </button>
+                  ) : (
+                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-slate-800 border border-slate-700">
+                      <FileText className="h-5 w-5 text-slate-400" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-white truncate">{pf.file.name}</p>
+                    <p className="text-[10px] text-emerald-400">{translateDocumentType(pf.documentType)}</p>
+                    {pf.description && <p className="text-[10px] text-slate-500 truncate">{pf.description}</p>}
+                    <p className="text-[10px] text-slate-600">{(pf.file.size / 1024).toFixed(1)} KB</p>
+                  </div>
+                  <button
+                    onClick={() => setPendingFiles(p => {
+                      const removed = p[idx]
+                      if (removed.preview) URL.revokeObjectURL(removed.preview)
+                      return p.filter((_, i) => i !== idx)
+                    })}
+                    className="flex-shrink-0 rounded-lg p-1.5 text-slate-500 hover:bg-red-950/40 hover:text-red-400 transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {pendingFiles.length === 0 && (
+            <div className="text-center py-6 text-slate-500 text-xs border border-dashed border-slate-700 rounded-xl">
+              لم تتم إضافة أي مستندات بعد. يمكنك تخطي هذه الخطوة وإضافة المستندات لاحقاً.
+            </div>
+          )}
+
+          {/* Lightbox للصور */}
+          {lightboxSrc && (
+            <div
+              className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+              onClick={() => setLightboxSrc(null)}
+            >
+              <img src={lightboxSrc} alt="" className="max-h-[85vh] max-w-[90vw] rounded-2xl shadow-2xl" />
+              <button className="absolute top-4 left-4 text-white text-2xl font-bold bg-black/40 rounded-full h-10 w-10 flex items-center justify-center hover:bg-black/60">✕</button>
+            </div>
+          )}
+        </div>
+      )
+
       default: return null
     }
   }
@@ -446,17 +693,21 @@ export function AddOrphanSheet({ families, createdById }: AddOrphanSheetProps) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button className="w-full sm:w-auto btn-premium gap-2">
-          <Plus className="h-4 w-4" />
-          <span>إضافة يتيم جديد</span>
-        </Button>
+        {trigger || (
+          <Button className="w-full sm:w-auto btn-premium gap-2">
+            <Plus className="h-4 w-4" />
+            <span>{isEditMode ? "تعديل الطلب" : "إضافة يتيم جديد"}</span>
+          </Button>
+        )}
       </SheetTrigger>
 
       <SheetContent side="right" className="sm:max-w-2xl w-full p-0 flex flex-col h-full bg-slate-950 text-right border-l border-border shadow-2xl">
         {/* Header */}
         <div className="relative overflow-hidden bg-gradient-to-l from-emerald-600 to-teal-700 p-5 text-white flex-shrink-0">
           <div className="absolute -left-10 -top-10 h-32 w-32 rounded-full bg-white/5" />
-          <SheetTitle className="text-white text-base font-bold">تسجيل يتيم جديد — الخطوة {step} من {STEPS.length}</SheetTitle>
+          <SheetTitle className="text-white text-base font-bold">
+            {isEditMode ? "تعديل وإعادة إرسال الطلب" : "تسجيل يتيم جديد"} — الخطوة {step} من {STEPS.length}
+          </SheetTitle>
           <SheetDescription className="text-emerald-100 text-xs mt-1">{STEPS[step - 1].label}</SheetDescription>
 
           {/* Progress bar */}
@@ -464,8 +715,8 @@ export function AddOrphanSheet({ families, createdById }: AddOrphanSheetProps) {
             <div className="h-full bg-white rounded-full transition-all duration-500" style={{ width: `${(step / STEPS.length) * 100}%` }} />
           </div>
           {/* Step pills */}
-          <div className="mt-3 flex gap-1 overflow-x-auto">
-            {STEPS.map((s, i) => (
+          <div className="mt-3 flex gap-1 overflow-x-auto pb-1">
+            {STEPS.map((s) => (
               <button key={s.id} onClick={() => setStep(s.id)} className={`flex-shrink-0 px-2 py-1 rounded-full text-[10px] font-bold transition-all ${step === s.id ? "bg-white text-emerald-700" : step > s.id ? "bg-white/30 text-white" : "bg-white/10 text-white/60"}`}>
                 {step > s.id ? <Check className="h-3 w-3 inline" /> : s.id} {s.label}
               </button>
@@ -498,18 +749,11 @@ export function AddOrphanSheet({ families, createdById }: AddOrphanSheetProps) {
             </Button>
           ) : (
             <Button type="button" onClick={handleSubmit} disabled={loading} className="gap-1 btn-premium px-6">
-              {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> جاري الحفظ...</> : <><Check className="h-4 w-4" /> حفظ البيانات</>}
+              {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> جاري الحفظ...</> : <><Check className="h-4 w-4" /> {isEditMode ? "إعادة إرسال الطلب" : "حفظ البيانات"}</>}
             </Button>
           )}
         </div>
       </SheetContent>
     </Sheet>
   )
-}
-
-// =============================================================================
-// SECTION TITLE HELPER
-// =============================================================================
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <h4 className="text-xs font-extrabold text-emerald-400 border-b border-emerald-500/20 pb-1">{children}</h4>
 }

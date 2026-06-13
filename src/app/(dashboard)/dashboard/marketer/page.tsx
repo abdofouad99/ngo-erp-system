@@ -14,7 +14,8 @@ import {
   Clock,
   LogOut,
   Eye,
-  Settings
+  Settings,
+  Pencil
 } from "lucide-react"
 import Link from "next/link"
 import { logoutAction } from "@/app/actions/auth-actions"
@@ -76,7 +77,7 @@ export default async function MarketerDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <AddOrphanSheet families={families} createdById={user.id} />
+          <AddOrphanSheet families={families} createdById={user.id} isMarketer />
           
           <form action={async () => {
             "use server"
@@ -165,6 +166,7 @@ export default async function MarketerDashboard() {
                 <th className="py-3 px-4">الجنس</th>
                 <th className="py-3 px-4">الحالة</th>
                 <th className="py-3 px-4">ملاحظة التدقيق والرفض</th>
+                <th className="py-3 px-4">الإجراءات</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/50">
@@ -208,6 +210,26 @@ export default async function MarketerDashboard() {
                         </span>
                       ) : (
                         <span className="text-slate-500">—</span>
+                      )}
+                    </td>
+                    {/* عمود الإجراءات */}
+                    <td className="py-3 px-4">
+                      {orphan.verificationStatus === "REJECTED" && (
+                        <AddOrphanSheet
+                          isMarketer
+                          orphan={orphan}
+                          createdById={user.id}
+                          families={families}
+                          trigger={
+                            <button className="flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-[11px] font-bold text-amber-400 hover:bg-amber-500/20 hover:border-amber-500 transition-all duration-200 active:scale-[0.97]">
+                              <Pencil className="h-3 w-3" />
+                              تعديل وإعادة إرسال
+                            </button>
+                          }
+                        />
+                      )}
+                      {orphan.verificationStatus !== "REJECTED" && (
+                        <span className="text-slate-600">—</span>
                       )}
                     </td>
                   </tr>

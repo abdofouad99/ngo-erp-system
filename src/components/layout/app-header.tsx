@@ -17,7 +17,11 @@ import { AppSidebar } from "./app-sidebar"
 import { GlobalSearch } from "./global-search"
 import { NotificationBell } from "./notification-bell"
 
-export function AppHeader() {
+interface AppHeaderProps {
+  isMarketer?: boolean
+}
+
+export function AppHeader({ isMarketer }: AppHeaderProps) {
   const pathname = usePathname()
 
   const getPageTitle = (path: string) => {
@@ -49,23 +53,25 @@ export function AppHeader() {
   return (
     <header className="relative z-50 flex h-16 flex-shrink-0 items-center gap-4 border-b border-border bg-card/60 backdrop-blur-md px-4 shadow-sm md:px-6">
 
-      {/* ── Mobile: Hamburger Menu ──────────────────────────────── */}
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="flex-shrink-0 text-muted-foreground md:hidden"
-          >
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">فتح القائمة الجانبية</span>
-          </Button>
-        </SheetTrigger>
-        {/* side="right" is correct for RTL — sidebar slides from the right */}
-        <SheetContent side="right" className="w-64 p-0">
-          <AppSidebar className="h-full" />
-        </SheetContent>
-      </Sheet>
+      {/* ── Mobile: Hamburger Menu (hidden for marketers) ──────── */}
+      {!isMarketer && (
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="flex-shrink-0 text-muted-foreground md:hidden"
+            >
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">فتح القائمة الجانبية</span>
+            </Button>
+          </SheetTrigger>
+          {/* side="right" is correct for RTL — sidebar slides from the right */}
+          <SheetContent side="right" className="w-64 p-0">
+            <AppSidebar className="h-full" />
+          </SheetContent>
+        </Sheet>
+      )}
 
       {/* ── Page Title ─────────────────────────────────────────── */}
       <div className="hidden sm:block flex-shrink-0">
@@ -74,10 +80,14 @@ export function AppHeader() {
         </h1>
       </div>
 
-      {/* ── Global Search Bar (Middle) ─────────────────────────── */}
-      <div className="flex-1 flex justify-center px-4">
-        <GlobalSearch />
-      </div>
+      {/* ── Global Search Bar (Middle — hidden for marketers) ───── */}
+      {!isMarketer ? (
+        <div className="flex-1 flex justify-center px-4">
+          <GlobalSearch />
+        </div>
+      ) : (
+        <div className="flex-1" />
+      )}
 
       {/* ── Right Actions ──────────────────────────────────────── */}
       <div className="flex items-center gap-1 md:gap-2">

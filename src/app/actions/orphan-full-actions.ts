@@ -5,6 +5,32 @@ import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 
 // =============================================================================
+// HELPER: Get or create a default SubDistrict for auto-created families
+// =============================================================================
+async function getDefaultSubDistrictId(): Promise<number> {
+  // البحث عن أي منطقة فرعية موجودة للاستخدام كقيمة افتراضية
+  const sub = await prisma.subDistrict.findFirst()
+  if (sub) return sub.id
+  // إنشاء تسلسل جغرافي افتراضي إذا لم يوجد أي شيء
+  const gov = await prisma.governorate.upsert({
+    where: { nameAr: "غير محدد" },
+    update: {},
+    create: { nameAr: "غير محدد", nameEn: "Unknown" },
+  })
+  const dist = await prisma.district.upsert({
+    where: { nameAr_governorateId: { nameAr: "غير محدد", governorateId: gov.id } },
+    update: {},
+    create: { nameAr: "غير محدد", governorateId: gov.id },
+  })
+  const subNew = await prisma.subDistrict.upsert({
+    where: { nameAr_districtId: { nameAr: "غير محدد", districtId: dist.id } },
+    update: {},
+    create: { nameAr: "غير محدد", districtId: dist.id },
+  })
+  return subNew.id
+}
+
+// =============================================================================
 // SCHEMAS
 // =============================================================================
 
@@ -98,7 +124,7 @@ export async function upsertSiblings(beneficiaryId: string, siblings: any[]) {
 // =============================================================================
 
 export async function createFullOrphan(data: {
-  familyId:          string
+  familyId?:         string   // اختياري للمسوقين — يُنشأ تلقائياً
   // شخصية
   fullName:          string
   shortName?:        string
@@ -151,9 +177,53 @@ export async function createFullOrphan(data: {
   try {
     const { guardians = [], siblings = [], ...orphanData } = data
 
+    // ── تحديد أو إنشاء الأسرة تلقائياً ─────────────────────────────────────
+    let resolvedFamilyId = orphanData.familyId
+
+    if (!resolvedFamilyId) {
+      // استخدام بيانات المعيل الأساسي لإنشاء الأسرة
+      const primaryGuardian = guardians[0]
+      const guardianName = primaryGuardian?.fullName || orphanData.fullName
+      const guardianNationalId = primaryGuardian?.nationalId
+
+      // البحث عن أسرة موجودة بنفس رقم هوية المعيل لتفادي التكرار
+      if (guardianNationalId) {
+        const existingFamily = await prisma.family.findFirst({
+          where: { headNationalId: guardianNationalId, deletedAt: null },
+        })
+        if (existingFamily) {
+          resolvedFamilyId = existingFamily.id
+        }
+      }
+
+      // إنشاء أسرة جديدة إذا لم توجد
+      if (!resolvedFamilyId) {
+        const adminUser = await prisma.user.findFirst({ where: { role: "ADMIN" } })
+        const subDistrictId = await getDefaultSubDistrictId()
+        // توليد رقم هوية مؤقت فريد إذا لم يُدخَل
+        const tempNationalId = guardianNationalId || `AUTO-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+
+        // التحقق من عدم تكرار headNationalId المولّد
+        const conflictCheck = await prisma.family.findFirst({ where: { headNationalId: tempNationalId } })
+        const finalNationalId = conflictCheck ? `AUTO-${Date.now()}-${Math.random().toString(36).slice(2, 8)}` : tempNationalId
+
+        const newFamily = await prisma.family.create({
+          data: {
+            headFullName:   guardianName,
+            headNationalId: finalNationalId,
+            subDistrictId,
+            isActive:       true,
+            createdById:    adminUser?.id || (await prisma.user.findFirst())!.id,
+          },
+        })
+        resolvedFamilyId = newFamily.id
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     const orphan = await prisma.beneficiary.create({
       data: {
-        familyId:          orphanData.familyId,
+        familyId:          resolvedFamilyId!,
         category:          "ORPHAN",
         createdById:       orphanData.createdById || null,
         fullName:          orphanData.fullName,
@@ -220,50 +290,62 @@ export async function createFullOrphan(data: {
 // UPDATE FULL ORPHAN
 // =============================================================================
 
-export async function updateFullOrphan(id: string, data: Parameters<typeof createFullOrphan>[0]) {
+export async function updateFullOrphan(
+  id: string,
+  data: Parameters<typeof createFullOrphan>[0],
+  resetStatus = false   // عند التعديل من المسوق، يُعاد الوضع لـ PENDING
+) {
   try {
     const { guardians = [], siblings = [], familyId, ...orphanData } = data
 
+    const updateData: any = {
+      fullName:          orphanData.fullName,
+      shortName:         orphanData.shortName || null,
+      gender:            orphanData.gender,
+      birthdate:         new Date(orphanData.birthdate),
+      nationalId:        orphanData.nationalId || null,
+      religion:          orphanData.religion || null,
+      orphanCode:        orphanData.orphanCode || null,
+      kuraimiAccount:    orphanData.kuraimiAccount || null,
+      kuraimiAccountOld: orphanData.kuraimiAccountOld || null,
+      mumaiyo:           orphanData.mumaiyo || null,
+      baitZakatNumber:   orphanData.baitZakatNumber || null,
+      educationLevel:    orphanData.educationLevel || null,
+      schoolName:        orphanData.schoolName || null,
+      educationalStage:  orphanData.educationalStage || null,
+      quranMemorization: orphanData.quranMemorization || null,
+      healthStatus:      orphanData.healthStatus || null,
+      disabilityType:    orphanData.disabilityType || null,
+      disability:        orphanData.disability || false,
+      disabilityDetails: orphanData.disabilityDetails || null,
+      nutritionStatus:   orphanData.nutritionStatus || null,
+      housingStatus:     orphanData.housingStatus || null,
+      orphanType:        orphanData.orphanType || null,
+      fatherFullName:    orphanData.fatherFullName || null,
+      fatherDeathDate:   orphanData.fatherDeathDate ? new Date(orphanData.fatherDeathDate) : null,
+      fatherDeathCause:  orphanData.fatherDeathCause || null,
+      motherDeathDate:   orphanData.motherDeathDate ? new Date(orphanData.motherDeathDate) : null,
+      motherName:        orphanData.motherName || null,
+      birthGovernorate:  orphanData.birthGovernorate || null,
+      birthDistrict:     orphanData.birthDistrict || null,
+      birthVillage:      orphanData.birthVillage || null,
+      birthArea:         orphanData.birthArea || null,
+      referrerName:      orphanData.referrerName || null,
+      referrerPhone1:    orphanData.referrerPhone1 || null,
+      referrerPhone2:    orphanData.referrerPhone2 || null,
+      marketedToOrg:     orphanData.marketedToOrg || null,
+      notes:             orphanData.notes || null,
+    }
+
+    // إعادة الحالة لـ PENDING عند تعديل الطلب المرفوض من المسوق
+    if (resetStatus) {
+      updateData.verificationStatus = "PENDING"
+      updateData.rejectionReason    = null
+    }
+
     const orphan = await prisma.beneficiary.update({
       where: { id },
-      data: {
-        fullName:          orphanData.fullName,
-        shortName:         orphanData.shortName || null,
-        gender:            orphanData.gender,
-        birthdate:         new Date(orphanData.birthdate),
-        nationalId:        orphanData.nationalId || null,
-        religion:          orphanData.religion || null,
-        orphanCode:        orphanData.orphanCode || null,
-        kuraimiAccount:    orphanData.kuraimiAccount || null,
-        kuraimiAccountOld: orphanData.kuraimiAccountOld || null,
-        mumaiyo:           orphanData.mumaiyo || null,
-        baitZakatNumber:   orphanData.baitZakatNumber || null,
-        educationLevel:    orphanData.educationLevel || null,
-        schoolName:        orphanData.schoolName || null,
-        educationalStage:  orphanData.educationalStage || null,
-        quranMemorization: orphanData.quranMemorization || null,
-        healthStatus:      orphanData.healthStatus || null,
-        disabilityType:    orphanData.disabilityType || null,
-        disability:        orphanData.disability || false,
-        disabilityDetails: orphanData.disabilityDetails || null,
-        nutritionStatus:   orphanData.nutritionStatus || null,
-        housingStatus:     orphanData.housingStatus || null,
-        orphanType:        orphanData.orphanType || null,
-        fatherFullName:    orphanData.fatherFullName || null,
-        fatherDeathDate:   orphanData.fatherDeathDate ? new Date(orphanData.fatherDeathDate) : null,
-        fatherDeathCause:  orphanData.fatherDeathCause || null,
-        motherDeathDate:   orphanData.motherDeathDate ? new Date(orphanData.motherDeathDate) : null,
-        motherName:        orphanData.motherName || null,
-        birthGovernorate:  orphanData.birthGovernorate || null,
-        birthDistrict:     orphanData.birthDistrict || null,
-        birthVillage:      orphanData.birthVillage || null,
-        birthArea:         orphanData.birthArea || null,
-        referrerName:      orphanData.referrerName || null,
-        referrerPhone1:    orphanData.referrerPhone1 || null,
-        referrerPhone2:    orphanData.referrerPhone2 || null,
-        marketedToOrg:     orphanData.marketedToOrg || null,
-        notes:             orphanData.notes || null,
-      },
+      data: updateData,
     })
 
     await upsertGuardians(id, guardians)

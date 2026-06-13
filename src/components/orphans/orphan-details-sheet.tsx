@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { getOrphanAttachments, getSignedDownloadUrl } from "@/app/actions/attachment-actions"
+import { translateDocumentType } from "@/lib/attachment-utils"
 
 import {
   Baby,
@@ -17,6 +19,9 @@ import {
   Globe,
   Calendar,
   MapPin,
+  Paperclip,
+  Download,
+  Eye,
 } from "lucide-react"
 import { AuditTimeline } from "@/components/dashboard/audit-timeline"
 import { CaseActivityTab } from "@/components/shared/case-activity-tab"
@@ -195,11 +200,19 @@ export function OrphanDetailsSheet({
   const [rejectionReasonInput, setRejectionReasonInput] = useState("")
   const [isRejecting, setIsRejecting] = useState(false)
   const [isSubmittingAction, setIsSubmittingAction] = useState(false)
+  const [attachments, setAttachments] = useState<any[]>([])
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
 
   // Reset rejection state when orphan changes
   useEffect(() => {
     setIsRejecting(false)
     setRejectionReasonInput("")
+    // جلب المرفقات عند فتح الشيت
+    if (orphan?.id) {
+      getOrphanAttachments(orphan.id).then(res => {
+        if (res.success) setAttachments(res.attachments)
+      })
+    }
   }, [orphan?.id])
 
   if (!orphan) return null
@@ -288,6 +301,10 @@ export function OrphanDetailsSheet({
               <TabsTrigger value="activities" className="text-xs py-1.5 flex-1">
                 <Calendar className="h-3.5 w-3.5 ml-1.5" />
                 الزيارات والمتابعة
+              </TabsTrigger>
+              <TabsTrigger value="attachments" className="text-xs py-1.5 flex-1">
+                <Paperclip className="h-3.5 w-3.5 ml-1.5" />
+                المستندات ({attachments.length})
               </TabsTrigger>
               <TabsTrigger value="audit" className="text-xs py-1.5 flex-1">
                 <FileText className="h-3.5 w-3.5 ml-1.5" />
@@ -697,7 +714,102 @@ export function OrphanDetailsSheet({
                 <CaseActivityTab beneficiaryId={orphan.id} />
               </TabsContent>
 
-              {/* === TAB 6: AUDIT LOGS === */}
+              {/* === TAB 6: ATTACHMENTS === */}
+              <TabsContent value="attachments" className="space-y-4 outline-none">
+                <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5 mb-3">
+                  <Paperclip className="h-4 w-4 text-emerald-500" />
+                  المستندات والمرفقات الرسمية
+                </h4>
+
+                {attachments.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center gap-3 py-12 text-slate-500 border border-dashed border-slate-700 rounded-xl">
+                    <Paperclip className="h-8 w-8 opacity-30" />
+                    <p className="text-sm">لا توجد مرفقات مرفوعة بعد</p>
+                    <p className="text-xs text-slate-600">يمكن للمسوق رفع الوثائق عند تسجيل اليتيم</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {attachments.map((att) => {
+                      const isImage = att.mimeType?.startsWith("image/")
+                      return (
+                        <div key={att.id} className="rounded-xl border border-slate-700/60 bg-slate-900/40 p-3 flex items-start gap-3">
+                          {/* Preview */}
+                          {isImage ? (
+                            <button
+                              onClick={() => setLightboxSrc(att.fileUrl)}
+                              className="flex-shrink-0"
+                            >
+                              <img
+                                src={att.fileUrl}
+                                alt={att.fileName}
+                                className="h-16 w-16 rounded-lg object-cover border border-slate-700 hover:border-emerald-500 transition-colors"
+                              />
+                            </button>
+                          ) : (
+                            <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-lg bg-slate-800 border border-slate-700">
+                              <FileText className="h-7 w-7 text-slate-400" />
+                            </div>
+                          )}
+
+                          {/* Info */}
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <span className="inline-block text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                              {translateDocumentType(att.documentType)}
+                            </span>
+                            <p className="text-xs font-semibold text-white truncate">{att.fileName}</p>
+                            {att.description && <p className="text-[10px] text-slate-400 truncate">{att.description}</p>}
+                            <p className="text-[10px] text-slate-600">
+                              {att.createdAt ? new Date(att.createdAt).toLocaleDateString("ar-YE") : ""}
+                              {att.sizeBytes ? ` · ${(att.sizeBytes / 1024).toFixed(0)} KB` : ""}
+                            </p>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex flex-col gap-1.5">
+                            <button
+                              title="عرض"
+                              onClick={() => window.open(att.fileUrl, "_blank")}
+                              className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-800 border border-slate-700 hover:border-emerald-500 hover:text-emerald-400 text-slate-400 transition-colors"
+                            >
+                              <Eye className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              title="تحميل"
+                              onClick={async () => {
+                                const res = await getSignedDownloadUrl(att.storagePath)
+                                if (res.success && res.url) {
+                                  const a = document.createElement("a")
+                                  a.href = res.url
+                                  a.download = att.fileName
+                                  a.click()
+                                }
+                              }}
+                              className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-800 border border-slate-700 hover:border-blue-500 hover:text-blue-400 text-slate-400 transition-colors"
+                            >
+                              <Download className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {/* Lightbox */}
+                {lightboxSrc && (
+                  <div
+                    className="fixed inset-0 z-[200] flex items-center justify-center bg-black/85 backdrop-blur-sm"
+                    onClick={() => setLightboxSrc(null)}
+                  >
+                    <img src={lightboxSrc} alt="" className="max-h-[85vh] max-w-[90vw] rounded-2xl shadow-2xl" />
+                    <button className="absolute top-4 left-4 text-white text-2xl font-bold bg-black/40 rounded-full h-10 w-10 flex items-center justify-center hover:bg-black/60">
+                      ✕
+                    </button>
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* === TAB 7: AUDIT LOGS === */}
               <TabsContent value="audit" className="space-y-4 outline-none">
                 <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5 mb-2">
                   <FileText className="h-4.5 w-4.5 text-emerald-600" />

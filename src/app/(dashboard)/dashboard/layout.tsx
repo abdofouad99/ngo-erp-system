@@ -1,24 +1,29 @@
 import { AppHeader } from "@/components/layout/app-header"
 import { AppSidebar } from "@/components/layout/app-sidebar"
+import { getCurrentUser } from "@/app/actions/auth-actions"
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const user = await getCurrentUser()
+  const isMarketer = user?.role === "MARKETER"
+
   return (
     // RTL flex row: sidebar appears on the RIGHT naturally (correct for Arabic UI)
     <div className="flex h-screen overflow-hidden bg-background text-foreground">
 
-      {/* ── Desktop Sidebar ─────────────────────────────────────── */}
-      {/* Hidden on mobile (shown via Sheet in AppHeader) */}
-      <div className="hidden flex-shrink-0 md:flex">
-        <AppSidebar />
-      </div>
+      {/* ── Desktop Sidebar (hidden for MARKETER role) ───────────── */}
+      {!isMarketer && (
+        <div className="hidden flex-shrink-0 md:flex">
+          <AppSidebar />
+        </div>
+      )}
 
       {/* ── Main Area ───────────────────────────────────────────── */}
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <AppHeader />
+        <AppHeader isMarketer={isMarketer} />
 
         {/* Scrollable content */}
         <main className="flex-1 overflow-y-auto">
