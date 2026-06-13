@@ -19,7 +19,6 @@ export default function UpdatePage({ params }: PageProps) {
   const [error, setError]           = useState<string | null>(null)
   const [success, setSuccess]       = useState(false)
   const [submitterName, setSubmitterName] = useState("")
-  const [openSection, setOpenSection] = useState<string>("education")
 
   // حالة النموذج — الحقول المسموح بها فقط
   const [form, setForm] = useState<UpdateData & { guardian: any; siblings: any[] }>({
@@ -97,46 +96,7 @@ export default function UpdatePage({ params }: PageProps) {
     siblings: p.siblings.map((s: any, i: number) => i === idx ? { ...s, [key]: val } : s)
   }))
 
-  const Section = ({ id, title, icon, children }: any) => (
-    <div className="rounded-2xl border border-white/10 overflow-hidden">
-      <button
-        onClick={() => setOpenSection(openSection === id ? "" : id)}
-        className="w-full flex items-center justify-between px-5 py-4 bg-white/5 hover:bg-white/10 transition-colors"
-      >
-        <span className="flex items-center gap-2 font-bold text-white text-sm">
-          <span>{icon}</span> {title}
-        </span>
-        {openSection === id ? <ChevronUp className="h-4 w-4 text-emerald-400" /> : <ChevronDown className="h-4 w-4 text-slate-400" />}
-      </button>
-      {openSection === id && <div className="px-5 py-4 space-y-3">{children}</div>}
-    </div>
-  )
-
-  const Field = ({ label, value, onChange, placeholder, type = "text" }: any) => (
-    <div className="space-y-1">
-      <label className="text-xs font-bold text-slate-400">{label}</label>
-      <input
-        type={type}
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-right"
-      />
-    </div>
-  )
-
-  const Select = ({ label, value, onChange, options }: any) => (
-    <div className="space-y-1">
-      <label className="text-xs font-bold text-slate-400">{label}</label>
-      <select
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        className="w-full rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 text-right"
-      >
-        {options.map((o: any) => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
-    </div>
-  )
+  // Components have been moved outside the main UpdatePage function to prevent input unmounting/focus loss issues
 
   // ── Loading ───────────────────────────────────────────────────────────────
   if (loading) return (
@@ -352,6 +312,58 @@ export default function UpdatePage({ params }: PageProps) {
           جميع البيانات المُدخلة ستُراجع من قِبل فريق المنظمة قبل تطبيقها
         </p>
       </div>
+    </div>
+  )
+}
+
+// =============================================================================
+// HELPER EXTERNAL COMPONENTS — to prevent unmounting and focus loss on typing
+// =============================================================================
+
+function Section({ id, title, icon, children }: any) {
+  const [isOpen, setIsOpen] = useState(id === "education")
+  return (
+    <div className="rounded-2xl border border-white/10 overflow-hidden">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between px-5 py-4 bg-white/5 hover:bg-white/10 transition-colors"
+      >
+        <span className="flex items-center gap-2 font-bold text-white text-sm">
+          <span>{icon}</span> {title}
+        </span>
+        {isOpen ? <ChevronUp className="h-4 w-4 text-emerald-400" /> : <ChevronDown className="h-4 w-4 text-slate-400" />}
+      </button>
+      {isOpen && <div className="px-5 py-4 space-y-3">{children}</div>}
+    </div>
+  )
+}
+
+function Field({ label, value, onChange, placeholder, type = "text" }: any) {
+  return (
+    <div className="space-y-1">
+      <label className="text-xs font-bold text-slate-400">{label}</label>
+      <input
+        type={type}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-right"
+      />
+    </div>
+  )
+}
+
+function Select({ label, value, onChange, options }: any) {
+  return (
+    <div className="space-y-1">
+      <label className="text-xs font-bold text-slate-400">{label}</label>
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className="w-full rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 text-right"
+      >
+        {options.map((o: any) => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
     </div>
   )
 }
