@@ -6,6 +6,7 @@ import {
   Eye,
   Search,
   Filter,
+  Download,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -137,6 +138,169 @@ function formatCurrency(amount: number | null): string {
 
 export function OrphansClient({ initialOrphans, allTags = [] }: OrphansClientProps) {
   const [searchTerm, setSearchTerm] = useState("")
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+
+  const handleSelectRow = (id: string) => {
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    )
+  }
+
+  const handleSelectAllToggle = () => {
+    const allVisibleSelected = filteredOrphans.length > 0 && filteredOrphans.every(o => selectedIds.includes(o.id));
+    if (allVisibleSelected) {
+      const visibleIds = filteredOrphans.map(o => o.id);
+      setSelectedIds(prev => prev.filter(id => !visibleIds.includes(id)));
+    } else {
+      const visibleIds = filteredOrphans.map(o => o.id);
+      setSelectedIds(prev => {
+        const next = [...prev];
+        visibleIds.forEach(id => {
+          if (!next.includes(id)) {
+            next.push(id);
+          }
+        });
+        return next;
+      });
+    }
+  }
+
+  const handleExportSelected = () => {
+    const targets = selectedIds.length > 0
+      ? orphans.filter(o => selectedIds.includes(o.id))
+      : filteredOrphans;
+
+    const headers = [
+      "كود اليتيم",
+      "الاسم الكامل",
+      "الاسم المختصر للكشوفات",
+      "الجنس",
+      "تاريخ الميلاد",
+      "الرقم الوطني / شهادة الميلاد",
+      "الديانة",
+      "اسم الوالد رباعياً",
+      "اسم الأم",
+      "رقم المميو كريمي",
+      "رقم حساب الكريمي الجديد",
+      "رقم حساب الكريمي القديم",
+      "رقم بيت الزكاة",
+      "المرحلة الدراسية",
+      "الصف الدراسي",
+      "اسم المدرسة",
+      "مقدار الحفظ من القرآن",
+      "وضع السكن",
+      "التغذية",
+      "الحالة الصحية",
+      "يعاني من إعاقة؟",
+      "نوع الإعاقة",
+      "تفاصيل الإعاقة",
+      "نوع اليتيم",
+      "تاريخ وفاة الأب",
+      "سبب وفاة الأب",
+      "تاريخ وفاة الأم",
+      "محافظة الميلاد",
+      "مديرية الميلاد",
+      "عزلة الميلاد",
+      "منطقة الميلاد",
+      "اسم المعرِّف",
+      "هاتف المعرِّف 1",
+      "هاتف المعرِّف 2",
+      "الجهة المسوَّق لها",
+      "الملاحظات",
+      "اسم المعيل الأساسي",
+      "رقم هوية المعيل الأساسي",
+      "صلة قرابة المعيل الأساسي",
+      "عمل المعيل الأساسي",
+      "هاتف المعيل الأساسي 1",
+      "هاتف المعيل الأساسي 2",
+      "هاتف المعيل الأساسي 3",
+      "هاتف المعيل الأساسي 4",
+      "اسم الأخ 1", "جنس الأخ 1", "مؤهل الأخ 1", "تاريخ ميلاد الأخ 1", "الحالة الاجتماعية للأخ 1",
+      "اسم الأخ 2", "جنس الأخ 2", "مؤهل الأخ 2", "تاريخ ميلاد الأخ 2", "الحالة الاجتماعية للأخ 2",
+      "اسم الأخ 3", "جنس الأخ 3", "مؤهل الأخ 3", "تاريخ ميلاد الأخ 3", "الحالة الاجتماعية للأخ 3",
+      "اسم الأخ 4", "جنس الأخ 4", "مؤهل الأخ 4", "تاريخ ميلاد الأخ 4", "الحالة الاجتماعية للأخ 4",
+      "اسم الأخ 5", "جنس الأخ 5", "مؤهل الأخ 5", "تاريخ ميلاد الأخ 5", "الحالة الاجتماعية للأخ 5",
+      "اسم الأخ 6", "جنس الأخ 6", "مؤهل الأخ 6", "تاريخ ميلاد الأخ 6", "الحالة الاجتماعية للأخ 6",
+      "اسم الأخ 7", "جنس الأخ 7", "مؤهل الأخ 7", "تاريخ ميلاد الأخ 7", "الحالة الاجتماعية للأخ 7"
+    ];
+
+    const rows = targets.map((o) => {
+      const primaryGuardian = o.guardians?.find((g: any) => g.isPrimary) || o.guardians?.[0] || {};
+      
+      const sibRows: string[] = [];
+      for (let i = 0; i < 7; i++) {
+        const sib = o.siblings?.[i] || {};
+        sibRows.push(
+          sib.fullName || "",
+          sib.gender === "MALE" ? "ذكر" : sib.gender === "FEMALE" ? "أنثى" : "",
+          sib.qualification || "",
+          sib.birthdate ? new Date(sib.birthdate).toLocaleDateString("ar-YE") : "",
+          sib.socialStatus || ""
+        );
+      }
+
+      return [
+        o.orphanCode || "",
+        o.fullName || "",
+        o.shortName || "",
+        o.gender === "MALE" ? "ذكر" : "أنثى",
+        o.birthdate ? new Date(o.birthdate).toLocaleDateString("ar-YE") : "",
+        o.nationalId || "",
+        o.religion || "",
+        o.fatherFullName || "",
+        o.motherName || "",
+        o.mumaiyo || "",
+        o.kuraimiAccount || "",
+        o.kuraimiAccountOld || "",
+        o.baitZakatNumber || "",
+        o.educationalStage || "",
+        o.educationLevel || "",
+        o.schoolName || "",
+        o.quranMemorization || "",
+        o.housingStatus || "",
+        o.nutritionStatus || "",
+        o.healthStatus || "",
+        o.disability ? "نعم" : "لا",
+        o.disabilityType || "",
+        o.disabilityDetails || "",
+        o.orphanType === "FATHER" ? "يتيم الأب" : o.orphanType === "MOTHER" ? "يتيم الأم" : o.orphanType === "BOTH" ? "يتيم الأبوين" : "",
+        o.fatherDeathDate ? new Date(o.fatherDeathDate).toLocaleDateString("ar-YE") : "",
+        o.fatherDeathCause || "",
+        o.motherDeathDate ? new Date(o.motherDeathDate).toLocaleDateString("ar-YE") : "",
+        o.birthGovernorate || "",
+        o.birthDistrict || "",
+        o.birthVillage || "",
+        o.birthArea || "",
+        o.referrerName || "",
+        o.referrerPhone1 || "",
+        o.referrerPhone2 || "",
+        o.marketedToOrg || "",
+        o.notes || "",
+        // Guardian
+        primaryGuardian.fullName || "",
+        primaryGuardian.nationalId || "",
+        primaryGuardian.relation || "",
+        primaryGuardian.occupation || "",
+        primaryGuardian.phone1 || "",
+        primaryGuardian.phone2 || "",
+        primaryGuardian.phone3 || "",
+        primaryGuardian.phone4 || "",
+        // Siblings
+        ...sibRows
+      ];
+    });
+
+    const csvContent =
+      "\uFEFF" +
+      [headers.join(","), ...rows.map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(","))].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `تصدير_الأيتام_${new Date().toISOString().split("T")[0]}.csv`);
+    link.click();
+  };
   const [selectedGender, setSelectedGender] = useState("ALL")
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null)
   const [selectedFundingTagId, setSelectedFundingTagId] = useState<string | null>(null)
@@ -153,8 +317,12 @@ export function OrphansClient({ initialOrphans, allTags = [] }: OrphansClientPro
   const filteredOrphans = orphans.filter((orphan) => {
     const matchesSearch =
       orphan.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (orphan.family?.headFullName && orphan.family.headFullName.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (orphan.nationalId && orphan.nationalId.includes(searchTerm)) ||
-      (orphan.orphanCode && orphan.orphanCode.toLowerCase().includes(searchTerm.toLowerCase()))
+      (orphan.orphanCode && orphan.orphanCode.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (orphan.marketedToOrg && orphan.marketedToOrg.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (orphan.tags && orphan.tags.some((bt: any) => bt.tag?.nameAr?.toLowerCase().includes(searchTerm.toLowerCase()))) ||
+      (orphan.sponsorships && orphan.sponsorships.some((s: any) => s.sponsor?.fullName?.toLowerCase().includes(searchTerm.toLowerCase())))
 
     const matchesGender = selectedGender === "ALL" || orphan.gender === selectedGender
 
@@ -248,6 +416,16 @@ export function OrphansClient({ initialOrphans, allTags = [] }: OrphansClientPro
               >
                 إناث
               </Button>
+
+              {/* Export Button */}
+              <Button
+                onClick={handleExportSelected}
+                disabled={filteredOrphans.length === 0}
+                className="rounded-xl px-4 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white gap-2 transition-all duration-300 active:scale-[0.98]"
+              >
+                <Download className="h-4 w-4" />
+                <span>تصدير Excel ({selectedIds.length > 0 ? `${selectedIds.length} محدد` : "الكل"})</span>
+              </Button>
             </div>
           </div>
 
@@ -291,7 +469,15 @@ export function OrphansClient({ initialOrphans, allTags = [] }: OrphansClientPro
           <Table>
             <TableHeader className="bg-slate-900/40 border-b border-border/80">
             <TableRow className="hover:bg-transparent border-border/60">
-                <TableHead className="text-right font-bold text-slate-200 py-3.5 pr-6">كود اليتيم</TableHead>
+                <TableHead className="w-12 text-center py-3.5 pr-4">
+                  <input
+                    type="checkbox"
+                    checked={filteredOrphans.length > 0 && filteredOrphans.every(o => selectedIds.includes(o.id))}
+                    onChange={handleSelectAllToggle}
+                    className="h-4 w-4 rounded border-slate-700 bg-slate-900/40 text-emerald-500 focus:ring-emerald-500 cursor-pointer"
+                  />
+                </TableHead>
+                <TableHead className="text-right font-bold text-slate-200 py-3.5 pr-2">كود اليتيم</TableHead>
                 <TableHead className="text-right font-bold text-slate-200 py-3.5">الاسم الكامل</TableHead>
                 <TableHead className="text-right font-bold text-slate-200 py-3.5">اسم رب الأسرة</TableHead>
                 <TableHead className="text-right font-bold text-slate-200 py-3.5">الجنس</TableHead>
@@ -304,7 +490,7 @@ export function OrphansClient({ initialOrphans, allTags = [] }: OrphansClientPro
             <TableBody>
               {filteredOrphans.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-32 text-center text-slate-400">
+                  <TableCell colSpan={8} className="h-32 text-center text-slate-400">
                     لا توجد نتائج تطابق خيارات البحث والتصفية.
                   </TableCell>
                 </TableRow>
@@ -314,7 +500,15 @@ export function OrphansClient({ initialOrphans, allTags = [] }: OrphansClientPro
                     key={orphan.id}
                     className="hover:bg-slate-800/30 border-border/40 transition-colors duration-150"
                   >
-                    <TableCell className="font-mono text-xs font-semibold text-emerald-400 tabular-nums pr-6">
+                    <TableCell className="text-center py-3.5 pr-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(orphan.id)}
+                        onChange={() => handleSelectRow(orphan.id)}
+                        className="h-4 w-4 rounded border-slate-700 bg-slate-900/40 text-emerald-500 focus:ring-emerald-500 cursor-pointer"
+                      />
+                    </TableCell>
+                    <TableCell className="font-mono text-xs font-semibold text-emerald-400 tabular-nums pr-2">
                       {orphan.orphanCode || "—"}
                     </TableCell>
                     <TableCell className="font-bold text-white">{orphan.fullName}</TableCell>
