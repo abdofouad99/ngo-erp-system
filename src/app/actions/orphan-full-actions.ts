@@ -133,11 +133,12 @@ export async function createFullOrphan(data: {
   nationalId?:       string
   religion?:         string
   // حسابات
-  orphanCode?:       string
-  kuraimiAccount?:   string
-  kuraimiAccountOld?: string
-  mumaiyo?:          string
-  baitZakatNumber?:  string
+  orphanCode?:           string
+  kuraimiAccount?:       string
+  kuraimiAccountOld?:    string
+  kuraimiAccountHolder?: string
+  mumaiyo?:              string
+  baitZakatNumber?:      string
   // تعليم
   educationLevel?:   string
   schoolName?:       string
@@ -234,7 +235,8 @@ export async function createFullOrphan(data: {
         religion:          orphanData.religion || null,
         orphanCode:        orphanData.orphanCode || null,
         kuraimiAccount:    orphanData.kuraimiAccount || null,
-        kuraimiAccountOld: orphanData.kuraimiAccountOld || null,
+        kuraimiAccountOld:    orphanData.kuraimiAccountOld    || null,
+        kuraimiAccountHolder:  orphanData.kuraimiAccountHolder || null,
         mumaiyo:           orphanData.mumaiyo || null,
         baitZakatNumber:   orphanData.baitZakatNumber || null,
         educationLevel:    orphanData.educationLevel || null,
@@ -307,7 +309,8 @@ export async function updateFullOrphan(
       religion:          orphanData.religion || null,
       orphanCode:        orphanData.orphanCode || null,
       kuraimiAccount:    orphanData.kuraimiAccount || null,
-      kuraimiAccountOld: orphanData.kuraimiAccountOld || null,
+      kuraimiAccountOld:    orphanData.kuraimiAccountOld    || null,
+      kuraimiAccountHolder:  orphanData.kuraimiAccountHolder || null,
       mumaiyo:           orphanData.mumaiyo || null,
       baitZakatNumber:   orphanData.baitZakatNumber || null,
       educationLevel:    orphanData.educationLevel || null,

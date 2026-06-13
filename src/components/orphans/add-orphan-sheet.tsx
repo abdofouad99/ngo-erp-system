@@ -99,6 +99,7 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan,
     orphanCode:        orphan?.orphanCode || "",
     kuraimiAccount:    orphan?.kuraimiAccount || "",
     kuraimiAccountOld: orphan?.kuraimiAccountOld || "",
+    kuraimiAccountHolder: orphan?.kuraimiAccountHolder || "",
     mumaiyo:           orphan?.mumaiyo || "",
     baitZakatNumber:   orphan?.baitZakatNumber || "",
     fullName:          orphan?.fullName || "",
@@ -310,6 +311,12 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan,
             </FieldRow>
             <FieldRow label="رقم الكريمي القديم">
               <Input className={inputCls} placeholder="الرقم القديم إن وجد" value={form.kuraimiAccountOld} onChange={e => setF("kuraimiAccountOld", e.target.value)} />
+            </FieldRow>
+            <FieldRow label="اسم صاحب الحساب" required>
+              <Input className={inputCls} placeholder="الاسم المسجّل في بنك الكريمي" value={form.kuraimiAccountHolder} onChange={e => setF("kuraimiAccountHolder", e.target.value)} />
+            </FieldRow>
+            <FieldRow label="رقم الميّز">
+              <Input className={inputCls} placeholder="رقم المميو كريمي" value={form.mumaiyo} onChange={e => setF("mumaiyo", e.target.value)} />
             </FieldRow>
           </div>
 
