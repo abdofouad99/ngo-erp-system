@@ -15,6 +15,7 @@ import {
   Trash2,
   ArrowLeftRight,
   FileSpreadsheet,
+  RefreshCw,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -39,6 +40,12 @@ const mainNavItems = [
     href: "/dashboard/orphans",
     label: "إدارة الأيتام",
     icon: Baby,
+    exact: false,
+  },
+  {
+    href: "/dashboard/update-requests",
+    label: "طلبات التحديث الذاتي",
+    icon: RefreshCw,
     exact: false,
   },
   {

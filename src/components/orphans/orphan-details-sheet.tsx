@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { getOrphanAttachments, getSignedDownloadUrl } from "@/app/actions/attachment-actions"
 import { translateDocumentType } from "@/lib/attachment-utils"
+import { generateOrphanUpdateToken } from "@/app/actions/update-request-actions"
 
 import {
   Baby,
@@ -22,6 +23,12 @@ import {
   Paperclip,
   Download,
   Eye,
+  Link as LinkIcon,
+  Copy,
+  ExternalLink,
+  Check,
+  Share2,
+  Loader2,
 } from "lucide-react"
 import { AuditTimeline } from "@/components/dashboard/audit-timeline"
 import { CaseActivityTab } from "@/components/shared/case-activity-tab"
@@ -203,10 +210,16 @@ export function OrphanDetailsSheet({
   const [attachments, setAttachments] = useState<any[]>([])
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
 
+  const [updateUrl, setUpdateUrl] = useState<string | null>(null)
+  const [isGeneratingUrl, setIsGeneratingUrl] = useState(false)
+  const [copySuccess, setCopySuccess] = useState(false)
+
   // Reset rejection state when orphan changes
   useEffect(() => {
     setIsRejecting(false)
     setRejectionReasonInput("")
+    setUpdateUrl(null)
+    setCopySuccess(false)
     // جلب المرفقات عند فتح الشيت
     if (orphan?.id) {
       getOrphanAttachments(orphan.id).then(res => {
@@ -870,9 +883,9 @@ export function OrphanDetailsSheet({
                       try {
                         const res = await onReject(orphan.id, rejectionReasonInput)
                         if (res?.success) {
-                          onOpenChange(false)
-                          setIsRejecting(false)
-                          setRejectionReasonInput("")
+                           onOpenChange(false)
+                           setIsRejecting(false)
+                           setRejectionReasonInput("")
                         }
                       } catch (err) {
                         console.error(err)
@@ -894,6 +907,109 @@ export function OrphanDetailsSheet({
                     className="rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-350 px-6 py-5"
                   >
                     إلغاء
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Self-Update Link Generation Panel */}
+        {orphan.verificationStatus === "APPROVED" && (
+          <div className="border-t border-slate-800 bg-slate-950/90 backdrop-blur-md p-4 flex-shrink-0 flex flex-col gap-3 text-right" dir="rtl">
+            {!updateUrl ? (
+              <Button
+                onClick={async () => {
+                  setIsGeneratingUrl(true)
+                  try {
+                    const res = await generateOrphanUpdateToken(orphan.id)
+                    if (res.success && res.url) {
+                      setUpdateUrl(res.url)
+                    }
+                  } catch (err) {
+                    console.error(err)
+                  } finally {
+                    setIsGeneratingUrl(false)
+                  }
+                }}
+                disabled={isGeneratingUrl}
+                className="w-full rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-white font-bold transition-all duration-300 py-5 flex items-center justify-center gap-2 active:scale-[0.98]"
+              >
+                {isGeneratingUrl ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+                    <span>جاري توليد الرابط...</span>
+                  </>
+                ) : (
+                  <>
+                    <LinkIcon className="h-4 w-4 text-emerald-400" />
+                    <span>توليد رابط تحديث البيانات للمعيل</span>
+                  </>
+                )}
+              </Button>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-bold text-slate-400">رابط تحديث بيانات اليتيم:</p>
+                  <button
+                    onClick={() => {
+                      setUpdateUrl(null)
+                      setCopySuccess(false)
+                    }}
+                    className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
+                  >
+                    إغلاق
+                  </button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={updateUrl}
+                    className="flex-1 rounded-xl bg-slate-900/60 border border-slate-800 focus:outline-none p-3 text-xs text-slate-350 text-left font-mono"
+                    onClick={(e) => (e.target as HTMLInputElement).select()}
+                  />
+                  <Button
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(updateUrl)
+                        setCopySuccess(true)
+                        setTimeout(() => setCopySuccess(false), 2000)
+                      } catch (err) {
+                        console.error(err)
+                      }
+                    }}
+                    className={`rounded-xl px-4 py-5 font-bold transition-all duration-300 active:scale-[0.98] ${
+                      copySuccess ? "bg-emerald-500 hover:bg-emerald-600 text-white" : "bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200"
+                    }`}
+                  >
+                    {copySuccess ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    asChild
+                    className="flex-1 rounded-xl bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 text-emerald-400 font-bold transition-all duration-300 py-4 active:scale-[0.98]"
+                  >
+                    <a
+                      href={`https://wa.me/?text=${encodeURIComponent(
+                        `السلام عليكم، يرجى استخدام هذا الرابط لتحديث بيانات اليتيم ${orphan.fullName}:\n\n${updateUrl}`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2"
+                    >
+                      <Share2 className="h-4 w-4" />
+                      <span>مشاركة عبر واتساب</span>
+                    </a>
+                  </Button>
+                  <Button
+                    asChild
+                    className="rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-350 px-4 py-4"
+                  >
+                    <a href={updateUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center">
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
                   </Button>
                 </div>
               </div>

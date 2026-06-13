@@ -106,6 +106,12 @@ enum VerificationStatus {
   REJECTED
 }
 
+enum UpdateRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 // فئات التصنيفات المرنة
 enum TagCategory {
   ORPHAN_OPERATIONAL_STATUS  // الحالة التشغيلية للأيتام
@@ -330,6 +336,7 @@ model Beneficiary {
   attachments    Attachment[]
   caseActivities CaseActivity[]
   tags           BeneficiaryTag[]
+  updateRequests OrphanUpdateRequest[]
 
   deletedAt DateTime?
 
@@ -701,4 +708,30 @@ model FamilyTag {
 
   @@unique([familyId, tagId])
   @@map("family_tags")
+}
+
+// =============================================================================
+// MODULE: ORPHAN SELF-UPDATE REQUESTS
+// =============================================================================
+
+model OrphanUpdateRequest {
+  id              String              @id @default(cuid())
+  token           String              @unique @default(uuid())
+
+  beneficiary     Beneficiary         @relation(fields: [beneficiaryId], references: [id], onDelete: Cascade)
+  beneficiaryId   String
+
+  submitterName   String?             // اسم من أرسل التحديث
+  status          UpdateRequestStatus @default(PENDING)
+  rejectionReason String?
+
+  // البيانات المُرسَلة من المعيل (JSON)
+  submittedData   Json?
+
+  reviewedById    String?             // المشرف الذي راجع الطلب
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("orphan_update_requests")
 }
