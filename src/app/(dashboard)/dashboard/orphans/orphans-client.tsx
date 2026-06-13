@@ -8,6 +8,9 @@ import {
   Search,
   Filter,
   Download,
+  Edit,
+  Trash2,
+  Loader2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,9 +25,10 @@ import {
 } from "@/components/ui/table"
 import { Card, CardContent } from "@/components/ui/card"
 import { OrphanDetailsSheet } from "@/components/orphans/orphan-details-sheet"
+import { AddOrphanSheet } from "@/components/orphans/add-orphan-sheet"
 import { TagBadge, TagFilterPills, TagSelector } from "@/components/tags/tag-components"
 import type { TagData } from "@/components/tags/tag-components"
-import { approveOrphan, rejectOrphan } from "@/app/actions/orphan-actions"
+import { approveOrphan, rejectOrphan, deleteOrphan } from "@/app/actions/orphan-actions"
 
 // =============================================================================
 // TYPES
@@ -102,6 +106,7 @@ type Orphan = {
 interface OrphansClientProps {
   initialOrphans: any[]
   allTags?: TagData[]
+  families?: { id: string; headFullName: string }[]
 }
 
 // =============================================================================
@@ -138,7 +143,7 @@ function formatCurrency(amount: number | null): string {
   }).format(amount)
 }
 
-export function OrphansClient({ initialOrphans, allTags = [] }: OrphansClientProps) {
+export function OrphansClient({ initialOrphans, allTags = [], families = [] }: OrphansClientProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedIds, setSelectedIds] = useState<string[]>([])
 
@@ -310,6 +315,25 @@ export function OrphansClient({ initialOrphans, allTags = [] }: OrphansClientPro
   const [selectedFundingTagId, setSelectedFundingTagId] = useState<string | null>(null)
   const [selectedOrphan, setSelectedOrphan] = useState<any | null>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  const handleDeleteOrphan = async (id: string, name: string) => {
+    if (!confirm(`هل أنت متأكد من حذف اليتيم (${name}) ونقل ملفه إلى سلة المهملات؟`)) return
+    setDeletingId(id)
+    try {
+      const res = await deleteOrphan(id)
+      if (res.success) {
+        router.refresh()
+      } else {
+        alert(res.error || "فشل حذف اليتيم.")
+      }
+    } catch (err) {
+      console.error(err)
+      alert("حدث خطأ غير متوقع.")
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   // Cast initial orphans to local typed array
   const orphans = initialOrphans as any[]
@@ -641,15 +665,50 @@ export function OrphansClient({ initialOrphans, allTags = [] }: OrphansClientPro
                       )}
                     </TableCell>
                     <TableCell className="pl-6">
-                      <div className="flex items-center justify-center gap-1.5">
+                      <div className="flex items-center justify-center gap-2">
+                        {/* عرض التفاصيل */}
                         <Button
                           onClick={() => handleOpenDetails(orphan)}
                           variant="outline"
                           size="sm"
-                          className="h-8 rounded-lg px-3 text-xs bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all duration-300 hover:scale-[1.05] active:scale-[0.95] flex items-center gap-1.5 font-semibold shadow-[0_0_10px_rgba(16,185,129,0.05)]"
+                          className="h-8 rounded-lg px-2.5 text-xs bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all duration-300 hover:scale-[1.05] active:scale-[0.95] flex items-center gap-1 font-semibold shadow-[0_0_10px_rgba(16,185,129,0.05)]"
                         >
                           <Eye className="h-3.5 w-3.5" />
-                          <span>عرض التفاصيل</span>
+                          <span>التفاصيل</span>
+                        </Button>
+
+                        {/* تعديل يدوي */}
+                        <AddOrphanSheet
+                          families={families}
+                          orphan={orphan}
+                          trigger={
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 rounded-lg px-2.5 text-xs bg-amber-500/10 border-amber-500/20 text-amber-400 hover:bg-amber-50 hover:text-white hover:border-amber-500 transition-all duration-300 hover:scale-[1.05] active:scale-[0.95] flex items-center gap-1 font-semibold"
+                            >
+                              <Edit className="h-3.5 w-3.5" />
+                              <span>تعديل</span>
+                            </Button>
+                          }
+                        />
+
+                        {/* حذف/تعطيل */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={deletingId === orphan.id}
+                          onClick={() => handleDeleteOrphan(orphan.id, orphan.fullName)}
+                          className="h-8 rounded-lg px-2.5 text-xs bg-rose-500/10 border-rose-500/20 text-rose-400 hover:bg-rose-50 hover:text-white hover:border-rose-500 transition-all duration-300 hover:scale-[1.05] active:scale-[0.95] flex items-center gap-1 font-semibold"
+                        >
+                          {deletingId === orphan.id ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <>
+                              <Trash2 className="h-3.5 w-3.5" />
+                              <span>حذف</span>
+                            </>
+                          )}
                         </Button>
                       </div>
                     </TableCell>

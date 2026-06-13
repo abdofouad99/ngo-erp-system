@@ -133,7 +133,7 @@ export default async function OrphansPage() {
       </div>
 
       {/* ── Interactive Orphans Client (Table, Filters, Detailed View Sheet) ── */}
-      <OrphansClient initialOrphans={orphans} allTags={allTags} />
+      <OrphansClient initialOrphans={orphans} allTags={allTags} families={families} />
     </div>
   )
 }
