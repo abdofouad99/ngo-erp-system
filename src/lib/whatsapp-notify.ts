@@ -6,9 +6,19 @@ export async function sendWhatsAppNotification(phone: string, message: string): 
   if (!phone || !message) return false
 
   try {
-    // Format the phone number (remove non-digits)
-    const cleanedPhone = phone.replace(/\D/g, "")
+    // Format the phone number to international format
+    let cleanedPhone = phone.replace(/\D/g, "")
+    if (cleanedPhone.startsWith("00")) {
+      cleanedPhone = cleanedPhone.substring(2)
+    }
+    if (cleanedPhone.startsWith("0")) {
+      cleanedPhone = "967" + cleanedPhone.substring(1)
+    } else if (cleanedPhone.length === 9 && (cleanedPhone.startsWith("7") || cleanedPhone.startsWith("1"))) {
+      cleanedPhone = "967" + cleanedPhone
+    }
+
     if (!cleanedPhone) return false
+
 
     const botApiUrl = "http://127.0.0.1:5005/send"
     const response = await fetch(botApiUrl, {
