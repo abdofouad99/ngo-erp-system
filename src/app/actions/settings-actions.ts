@@ -225,14 +225,25 @@ export async function createSystemUser(data: {
       }
     })
 
-    // 3. Send credentials to marketer via WhatsApp automatically
+    // 3. Send credentials to marketer via WhatsApp automatically (server-side try)
+    let sentOnServer = false
     if (data.role === "MARKETER" && data.phone) {
-      const welcomeMsg = `🌹 مرحباً بك *${data.name}* في *مؤسسة الأيتام الخيرية التنموية*.\n\nلقد تم إنشاء حساب مسوق ميداني خاص بك في النظام بنجاح! 🎉\n\n🔑 *بيانات الدخول الخاصة بك:*\n📧 البريد الإلكتروني: \`${data.email}\`\n🔒 كلمة المرور: \`${data.password}\`\n\n🔗 *رابط لوحة التحكم للدخول وتحديث البيانات:*\nhttp://localhost:3000/login\n\n🔹 يرجى استخدام هذه البيانات لتسجيل الدخول والبدء بتسجيل وإدارة ملفات الأيتام.`
-      await sendWhatsAppNotification(data.phone, welcomeMsg)
+      const welcomeMsg = `🌹 مرحباً بك *${data.name}* في *مؤسسة الأيتام الخيرية التنموية*.\n\nلقد تم إنشاء حساب مسوق ميداني خاص بك في النظام بنجاح! 🎉\n\n🔑 *بيانات الدخول الخاصة بك:*\n📧 البريد الإلكتروني: \`${data.email}\`\n🔒 كلمة المرور: \`${data.password}\`\n\n🔗 *رابط لوحة التحكم للدخول وتحديث البيانات:*\nhttps://ngo-erp-system.vercel.app/login\n\n🔹 يرجى استخدام هذه البيانات لتسجيل الدخول والبدء بتسجيل وإدارة ملفات الأيتام.`
+      sentOnServer = await sendWhatsAppNotification(data.phone, welcomeMsg)
     }
 
     revalidatePath("/dashboard/settings")
-    return { success: true, user: dbUser }
+    return { 
+      success: true, 
+      user: dbUser,
+      sentOnServer,
+      notifyCredentials: data.role === "MARKETER" && data.phone && !sentOnServer ? {
+        phone: data.phone,
+        name: data.name,
+        email: data.email,
+        password: data.password
+      } : null
+    }
   } catch (error: any) {
     console.error("Failed to create user:", error)
     return { success: false, error: error.message || "فشلت عملية إنشاء المستخدم" }

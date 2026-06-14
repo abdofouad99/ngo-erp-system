@@ -745,6 +745,26 @@ export default function SettingsPage() {
                       phone: newUserPhone
                     })
                     if (res.success) {
+                      // Client-side WhatsApp fallback
+                      if (res.notifyCredentials) {
+                        try {
+                          const welcomeMsg = `🌹 مرحباً بك *${res.notifyCredentials.name}* في *مؤسسة الأيتام الخيرية التنموية*.\n\nلقد تم إنشاء حساب مسوق ميداني خاص بك في النظام بنجاح! 🎉\n\n🔑 *بيانات الدخول الخاصة بك:*\n📧 البريد الإلكتروني: \`${res.notifyCredentials.email}\`\n🔒 كلمة المرور: \`${res.notifyCredentials.password}\`\n\n🔗 *رابط لوحة التحكم للدخول وتحديث البيانات:*\nhttps://ngo-erp-system.vercel.app/login\n\n🔹 يرجى استخدام هذه البيانات لتسجيل الدخول والبدء بتسجيل وإدارة ملفات الأيتام.`
+                          
+                          let cleaned = res.notifyCredentials.phone.replace(/\D/g, "")
+                          if (cleaned.startsWith("00")) cleaned = cleaned.substring(2)
+                          if (cleaned.startsWith("0")) cleaned = "967" + cleaned.substring(1)
+                          else if (cleaned.length === 9 && (cleaned.startsWith("7") || cleaned.startsWith("1"))) cleaned = "967" + cleaned
+
+                          await fetch("http://127.0.0.1:5005/send", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ phone: cleaned, message: welcomeMsg }),
+                            mode: "cors"
+                          })
+                        } catch (err) {
+                          console.warn("⚠️ Local WhatsApp bot is not running:", err)
+                        }
+                      }
                       setNewUserName("")
                       setNewUserEmail("")
                       setNewUserPassword("")

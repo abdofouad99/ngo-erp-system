@@ -285,14 +285,24 @@ export async function approveOrphan(id: string, adminUserId?: string) {
       type: "SUCCESS"
     })
 
-    // Send WhatsApp notification if marketer created the orphan and has phone number
+    // Send WhatsApp notification if marketer created the orphan and has phone number (server-side try)
+    let sentOnServer = false
     if (updated.createdBy && updated.createdBy.role === "MARKETER" && updated.createdBy.phone) {
       const msg = `🎉 بشرى سارة! تم اعتماد وقبول ملف اليتيم: *${updated.fullName}* بنجاح في النظام من قبل الإدارة. شكراً لجهودك! 🌹`
-      await sendWhatsAppNotification(updated.createdBy.phone, msg)
+      sentOnServer = await sendWhatsAppNotification(updated.createdBy.phone, msg)
     }
 
     revalidatePath("/dashboard/orphans")
-    return { success: true }
+    return { 
+      success: true, 
+      sentOnServer,
+      notifyMarketer: updated.createdBy && updated.createdBy.role === "MARKETER" && updated.createdBy.phone && !sentOnServer ? {
+        phone: updated.createdBy.phone,
+        name: updated.createdBy.name,
+        orphanName: updated.fullName,
+        type: "APPROVED"
+      } : null
+    }
   } catch (error: any) {
     return { success: false, error: error.message || "فشلت عملية اعتماد اليتيم" }
   }
@@ -318,14 +328,25 @@ export async function rejectOrphan(id: string, reason: string, adminUserId?: str
       type: "WARNING"
     })
 
-    // Send WhatsApp notification if marketer created the orphan and has phone number
+    // Send WhatsApp notification if marketer created the orphan and has phone number (server-side try)
+    let sentOnServer = false
     if (updated.createdBy && updated.createdBy.role === "MARKETER" && updated.createdBy.phone) {
-      const msg = `⚠️ تنبيه: تم إرجاع/رفض ملف اليتيم: *${updated.fullName}* من قبل الإدارة لإجراء تعديلات.\n\n📝 *سبب الرفض/الإرجاع:*\n${reason}\n\n🔗 يرجى الدخول لحسابك وتحديث البيانات المطلوبة وإعادة الإرسال:\nhttp://localhost:3000/login`
-      await sendWhatsAppNotification(updated.createdBy.phone, msg)
+      const msg = `⚠️ تنبيه: تم إرجاع/رفض ملف اليتيم: *${updated.fullName}* من قبل الإدارة لإجراء تعديلات.\n\n📝 *سبب الرفض/الإرجاع:*\n${reason}\n\n🔗 يرجى الدخول لحسابك وتحديث البيانات المطلوبة وإعادة الإرسال:\nhttps://ngo-erp-system.vercel.app/login`
+      sentOnServer = await sendWhatsAppNotification(updated.createdBy.phone, msg)
     }
 
     revalidatePath("/dashboard/orphans")
-    return { success: true }
+    return { 
+      success: true, 
+      sentOnServer,
+      notifyMarketer: updated.createdBy && updated.createdBy.role === "MARKETER" && updated.createdBy.phone && !sentOnServer ? {
+        phone: updated.createdBy.phone,
+        name: updated.createdBy.name,
+        orphanName: updated.fullName,
+        type: "REJECTED",
+        reason: reason
+      } : null
+    }
   } catch (error: any) {
     return { success: false, error: error.message || "فشلت عملية رفض اليتيم" }
   }
