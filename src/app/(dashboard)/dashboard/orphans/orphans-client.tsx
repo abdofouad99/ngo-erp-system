@@ -364,6 +364,22 @@ export function OrphansClient({ initialOrphans, allTags = [], families = [] }: O
   const handleApprove = async (id: string) => {
     const res = await approveOrphan(id)
     if (res.success) {
+      // Fallback: send WhatsApp from browser if server couldn't reach local bot
+      if (res.notifyMarketer && res.notifyMarketer.phone) {
+        const { phone, orphanName } = res.notifyMarketer
+        let cleaned = phone.replace(/\D/g, "")
+        if (cleaned.startsWith("0")) cleaned = "967" + cleaned.substring(1)
+        else if (cleaned.length === 9) cleaned = "967" + cleaned
+        const msg = `🎉 بشرى سارة! تم اعتماد وقبول ملف اليتيم: *${orphanName}* بنجاح في النظام من قبل الإدارة. شكراً لجهودك! 🌹`
+        try {
+          await fetch("http://127.0.0.1:5005/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone: cleaned, message: msg }),
+            mode: "cors"
+          })
+        } catch (e) { console.warn("WhatsApp bot unreachable", e) }
+      }
       router.refresh()
     }
     return res
@@ -372,6 +388,22 @@ export function OrphansClient({ initialOrphans, allTags = [], families = [] }: O
   const handleReject = async (id: string, reason: string) => {
     const res = await rejectOrphan(id, reason)
     if (res.success) {
+      // Fallback: send WhatsApp from browser if server couldn't reach local bot
+      if (res.notifyMarketer && res.notifyMarketer.phone) {
+        const { phone, orphanName } = res.notifyMarketer
+        let cleaned = phone.replace(/\D/g, "")
+        if (cleaned.startsWith("0")) cleaned = "967" + cleaned.substring(1)
+        else if (cleaned.length === 9) cleaned = "967" + cleaned
+        const msg = `⚠️ تنبيه: تم إرجاع/رفض ملف اليتيم: *${orphanName}* من قبل الإدارة لإجراء تعديلات.\n\n📝 *سبب الرفض:*\n${reason}\n\n🔗 يرجى الدخول لحسابك وتحديث البيانات:\nhttps://ngo-erp-system.vercel.app/login`
+        try {
+          await fetch("http://127.0.0.1:5005/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone: cleaned, message: msg }),
+            mode: "cors"
+          })
+        } catch (e) { console.warn("WhatsApp bot unreachable", e) }
+      }
       router.refresh()
     }
     return res

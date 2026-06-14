@@ -298,6 +298,15 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
       const res = await approveOrphan(orphan.id)
       if (res?.success) {
         setOrphan(prev => ({ ...prev, verificationStatus: "APPROVED" }))
+        // Fallback: send WhatsApp from browser if server couldn't reach local bot
+        if (res.notifyMarketer && res.notifyMarketer.phone) {
+          const { phone, orphanName } = res.notifyMarketer
+          let cleaned = phone.replace(/\D/g, "")
+          if (cleaned.startsWith("0")) cleaned = "967" + cleaned.substring(1)
+          else if (cleaned.length === 9) cleaned = "967" + cleaned
+          const msg = `🎉 بشرى سارة! تم اعتماد وقبول ملف اليتيم: *${orphanName}* بنجاح في النظام من قبل الإدارة. شكراً لجهودك! 🌹`
+          await sendWhatsAppLocal(cleaned, msg)
+        }
         router.refresh()
       } else {
         alert(res?.error || "فشل اعتماد الطلب.")
@@ -318,6 +327,15 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
         setOrphan(prev => ({ ...prev, verificationStatus: "REJECTED", rejectionReason: rejectionReasonInput }))
         setIsRejecting(false)
         setRejectionReasonInput("")
+        // Fallback: send WhatsApp from browser if server couldn't reach local bot
+        if (res.notifyMarketer && res.notifyMarketer.phone) {
+          const { phone, orphanName, reason } = res.notifyMarketer
+          let cleaned = phone.replace(/\D/g, "")
+          if (cleaned.startsWith("0")) cleaned = "967" + cleaned.substring(1)
+          else if (cleaned.length === 9) cleaned = "967" + cleaned
+          const msg = `⚠️ تنبيه: تم إرجاع/رفض ملف اليتيم: *${orphanName}* من قبل الإدارة لإجراء تعديلات.\n\n📝 *سبب الرفض/الإرجاع:*\n${reason}\n\n🔗 يرجى الدخول لحسابك وتحديث البيانات المطلوبة وإعادة الإرسال:\nhttps://ngo-erp-system.vercel.app/login`
+          await sendWhatsAppLocal(cleaned, msg)
+        }
         router.refresh()
       } else {
         alert(res?.error || "فشل رفض الطلب.")
