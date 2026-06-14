@@ -9,8 +9,10 @@ import {
   ShieldX,
   MapPin,
   Loader2,
+  Download,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { exportFamiliesToExcel } from "@/lib/excel-export"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -155,6 +157,21 @@ export function FamiliesClient({ initialFamilies, geography }: FamiliesClientPro
           </div>
         </CardContent>
       </Card>
+
+      {/* ── Table Action Header ─────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-900/20 p-4 border border-white/5 rounded-xl">
+        <div className="text-sm text-slate-450 font-bold">
+          تم العثور على <span className="font-extrabold text-white text-base">{filteredFamilies.length}</span> أسرة
+        </div>
+        <Button
+          onClick={() => exportFamiliesToExcel(filteredFamilies)}
+          disabled={filteredFamilies.length === 0}
+          className="rounded-xl px-4 text-xs font-bold bg-indigo-650 hover:bg-indigo-700 text-white gap-2 transition-all duration-300 h-9 active:scale-[0.98]"
+        >
+          <Download className="h-4 w-4" />
+          <span>تصدير Excel (المصفى)</span>
+        </Button>
+      </div>
 
       {/* ── Table / Grid View ───────────────────────────────────── */}
       <Card className="glass-card overflow-hidden">

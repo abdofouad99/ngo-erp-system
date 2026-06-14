@@ -28,6 +28,8 @@ import { AddOrphanSheet } from "@/components/orphans/add-orphan-sheet"
 import { TagBadge, TagFilterPills, TagSelector } from "@/components/tags/tag-components"
 import type { TagData } from "@/components/tags/tag-components"
 import { approveOrphan, rejectOrphan, deleteOrphan } from "@/app/actions/orphan-actions"
+import { exportToExcel } from "@/lib/excel-export"
+
 
 // =============================================================================
 // TYPES
@@ -176,136 +178,69 @@ export function OrphansClient({ initialOrphans, allTags = [], families = [] }: O
       ? orphans.filter(o => selectedIds.includes(o.id))
       : filteredOrphans;
 
-    const headers = [
-      "كود اليتيم",
-      "الاسم الكامل",
-      "الاسم المختصر للكشوفات",
-      "الجنس",
-      "تاريخ الميلاد",
-      "الرقم الوطني / شهادة الميلاد",
-      "الديانة",
-      "اسم الوالد رباعياً",
-      "اسم الأم",
-      "رقم المميو كريمي",
-      "رقم حساب الكريمي الجديد",
-      "رقم حساب الكريمي القديم",
-      "رقم بيت الزكاة",
-      "المرحلة الدراسية",
-      "الصف الدراسي",
-      "اسم المدرسة",
-      "مقدار الحفظ من القرآن",
-      "وضع السكن",
-      "التغذية",
-      "الحالة الصحية",
-      "يعاني من إعاقة؟",
-      "نوع الإعاقة",
-      "تفاصيل الإعاقة",
-      "نوع اليتيم",
-      "تاريخ وفاة الأب",
-      "سبب وفاة الأب",
-      "تاريخ وفاة الأم",
-      "محافظة الميلاد",
-      "مديرية الميلاد",
-      "عزلة الميلاد",
-      "منطقة الميلاد",
-      "اسم المعرِّف",
-      "هاتف المعرِّف 1",
-      "هاتف المعرِّف 2",
-      "الجهة المسوَّق لها",
-      "الملاحظات",
-      "اسم المعيل الأساسي",
-      "رقم هوية المعيل الأساسي",
-      "صلة قرابة المعيل الأساسي",
-      "عمل المعيل الأساسي",
-      "هاتف المعيل الأساسي 1",
-      "هاتف المعيل الأساسي 2",
-      "هاتف المعيل الأساسي 3",
-      "هاتف المعيل الأساسي 4",
-      "اسم الأخ 1", "جنس الأخ 1", "مؤهل الأخ 1", "تاريخ ميلاد الأخ 1", "الحالة الاجتماعية للأخ 1",
-      "اسم الأخ 2", "جنس الأخ 2", "مؤهل الأخ 2", "تاريخ ميلاد الأخ 2", "الحالة الاجتماعية للأخ 2",
-      "اسم الأخ 3", "جنس الأخ 3", "مؤهل الأخ 3", "تاريخ ميلاد الأخ 3", "الحالة الاجتماعية للأخ 3",
-      "اسم الأخ 4", "جنس الأخ 4", "مؤهل الأخ 4", "تاريخ ميلاد الأخ 4", "الحالة الاجتماعية للأخ 4",
-      "اسم الأخ 5", "جنس الأخ 5", "مؤهل الأخ 5", "تاريخ ميلاد الأخ 5", "الحالة الاجتماعية للأخ 5",
-      "اسم الأخ 6", "جنس الأخ 6", "مؤهل الأخ 6", "تاريخ ميلاد الأخ 6", "الحالة الاجتماعية للأخ 6",
-      "اسم الأخ 7", "جنس الأخ 7", "مؤهل الأخ 7", "تاريخ ميلاد الأخ 7", "الحالة الاجتماعية للأخ 7"
-    ];
-
-    const rows = targets.map((o) => {
+    const data = targets.map((o) => {
       const primaryGuardian = o.guardians?.find((g: any) => g.isPrimary) || o.guardians?.[0] || {};
       
-      const sibRows: string[] = [];
+      const row: any = {
+        "كود اليتيم": o.orphanCode || "",
+        "الاسم الكامل": o.fullName || "",
+        "الاسم المختصر للكشوفات": o.shortName || "",
+        "الجنس": o.gender === "MALE" ? "ذكر" : "أنثى",
+        "تاريخ الميلاد": o.birthdate ? new Date(o.birthdate).toLocaleDateString("ar-YE") : "",
+        "الرقم الوطني / شهادة الميلاد": o.nationalId || "",
+        "الديانة": o.religion || "",
+        "اسم الوالد رباعياً": o.fatherFullName || "",
+        "اسم الأم": o.motherName || "",
+        "رقم المميو كريمي": o.mumaiyo || "",
+        "رقم حساب الكريمي الجديد": o.kuraimiAccount || "",
+        "رقم حساب الكريمي القديم": o.kuraimiAccountOld || "",
+        "رقم بيت الزكاة": o.baitZakatNumber || "",
+        "المرحلة الدراسية": o.educationalStage || "",
+        "الصف الدراسي": o.educationLevel || "",
+        "اسم المدرسة": o.schoolName || "",
+        "مقدار الحفظ من القرآن": o.quranMemorization || "",
+        "وضع السكن": o.housingStatus || "",
+        "التغذية": o.nutritionStatus || "",
+        "الحالة الصحية": o.healthStatus || "",
+        "يعاني من إعاقة؟": o.disability ? "نعم" : "لا",
+        "نوع الإعاقة": o.disabilityType || "",
+        "تفاصيل الإعاقة": o.disabilityDetails || "",
+        "نوع اليتيم": o.orphanType === "FATHER" ? "يتيم الأب" : o.orphanType === "MOTHER" ? "يتيم الأم" : o.orphanType === "BOTH" ? "يتيم الأبوين" : "",
+        "تاريخ وفاة الأب": o.fatherDeathDate ? new Date(o.fatherDeathDate).toLocaleDateString("ar-YE") : "",
+        "سبب وفاة الأب": o.fatherDeathCause || "",
+        "تاريخ وفاة الأم": o.motherDeathDate ? new Date(o.motherDeathDate).toLocaleDateString("ar-YE") : "",
+        "محافظة الميلاد": o.birthGovernorate || "",
+        "مديرية الميلاد": o.birthDistrict || "",
+        "عزلة الميلاد": o.birthVillage || "",
+        "منطقة الميلاد": o.birthArea || "",
+        "اسم المعرِّف": o.referrerName || "",
+        "هاتف المعرِّف 1": o.referrerPhone1 || "",
+        "هاتف المعرِّف 2": o.referrerPhone2 || "",
+        "الجهة المسوَّق لها": o.marketedToOrg || "",
+        "الملاحظات": o.notes || "",
+        "اسم المعيل الأساسي": primaryGuardian.fullName || "",
+        "رقم هوية المعيل الأساسي": primaryGuardian.nationalId || "",
+        "صلة قرابة المعيل الأساسي": primaryGuardian.relation || "",
+        "عمل المعيل الأساسي": primaryGuardian.occupation || "",
+        "هاتف المعيل الأساسي 1": primaryGuardian.phone1 || "",
+        "هاتف المعيل الأساسي 2": primaryGuardian.phone2 || "",
+        "هاتف المعيل الأساسي 3": primaryGuardian.phone3 || "",
+        "هاتف المعيل الأساسي 4": primaryGuardian.phone4 || "",
+      };
+
       for (let i = 0; i < 7; i++) {
         const sib = o.siblings?.[i] || {};
-        sibRows.push(
-          sib.fullName || "",
-          sib.gender === "MALE" ? "ذكر" : sib.gender === "FEMALE" ? "أنثى" : "",
-          sib.qualification || "",
-          sib.birthdate ? new Date(sib.birthdate).toLocaleDateString("ar-YE") : "",
-          sib.socialStatus || ""
-        );
+        row[`اسم الأخ ${i + 1}`] = sib.fullName || "";
+        row[`جنس الأخ ${i + 1}`] = sib.gender === "MALE" ? "ذكر" : sib.gender === "FEMALE" ? "أنثى" : "";
+        row[`مؤهل الأخ ${i + 1}`] = sib.qualification || "";
+        row[`تاريخ ميلاد الأخ ${i + 1}`] = sib.birthdate ? new Date(sib.birthdate).toLocaleDateString("ar-YE") : "";
+        row[`الحالة الاجتماعية للأخ ${i + 1}`] = sib.socialStatus || "";
       }
 
-      return [
-        o.orphanCode || "",
-        o.fullName || "",
-        o.shortName || "",
-        o.gender === "MALE" ? "ذكر" : "أنثى",
-        o.birthdate ? new Date(o.birthdate).toLocaleDateString("ar-YE") : "",
-        o.nationalId || "",
-        o.religion || "",
-        o.fatherFullName || "",
-        o.motherName || "",
-        o.mumaiyo || "",
-        o.kuraimiAccount || "",
-        o.kuraimiAccountOld || "",
-        o.baitZakatNumber || "",
-        o.educationalStage || "",
-        o.educationLevel || "",
-        o.schoolName || "",
-        o.quranMemorization || "",
-        o.housingStatus || "",
-        o.nutritionStatus || "",
-        o.healthStatus || "",
-        o.disability ? "نعم" : "لا",
-        o.disabilityType || "",
-        o.disabilityDetails || "",
-        o.orphanType === "FATHER" ? "يتيم الأب" : o.orphanType === "MOTHER" ? "يتيم الأم" : o.orphanType === "BOTH" ? "يتيم الأبوين" : "",
-        o.fatherDeathDate ? new Date(o.fatherDeathDate).toLocaleDateString("ar-YE") : "",
-        o.fatherDeathCause || "",
-        o.motherDeathDate ? new Date(o.motherDeathDate).toLocaleDateString("ar-YE") : "",
-        o.birthGovernorate || "",
-        o.birthDistrict || "",
-        o.birthVillage || "",
-        o.birthArea || "",
-        o.referrerName || "",
-        o.referrerPhone1 || "",
-        o.referrerPhone2 || "",
-        o.marketedToOrg || "",
-        o.notes || "",
-        // Guardian
-        primaryGuardian.fullName || "",
-        primaryGuardian.nationalId || "",
-        primaryGuardian.relation || "",
-        primaryGuardian.occupation || "",
-        primaryGuardian.phone1 || "",
-        primaryGuardian.phone2 || "",
-        primaryGuardian.phone3 || "",
-        primaryGuardian.phone4 || "",
-        // Siblings
-        ...sibRows
-      ];
+      return row;
     });
 
-    const csvContent =
-      "\uFEFF" +
-      [headers.join(","), ...rows.map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(","))].join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `تصدير_الأيتام_${new Date().toISOString().split("T")[0]}.csv`);
-    link.click();
+    exportToExcel(data, "تصدير_الأيتام", "الأيتام");
   };
   const router = useRouter()
   const [selectedGender, setSelectedGender] = useState("ALL")

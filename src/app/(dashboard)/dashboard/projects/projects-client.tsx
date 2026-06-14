@@ -14,8 +14,10 @@ import {
   DollarSign,
   CheckCircle,
   AlertCircle,
+  Download,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { exportProjectsToExcel, exportDistributionsToExcel } from "@/lib/excel-export"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -221,6 +223,21 @@ export function ProjectsClient({
             </CardContent>
           </Card>
 
+          {/* Table Action Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-900/20 p-4 border border-slate-800/80 rounded-xl">
+            <div className="text-sm text-slate-400 font-bold">
+              تم العثور على <span className="font-extrabold text-white text-base">{filteredProjects.length}</span> مشروع
+            </div>
+            <Button
+              onClick={() => exportProjectsToExcel(filteredProjects)}
+              disabled={filteredProjects.length === 0}
+              className="rounded-xl px-4 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white gap-2 transition-all duration-300 h-9 active:scale-[0.98]"
+            >
+              <Download className="h-4 w-4" />
+              <span>تصدير Excel (المصفى)</span>
+            </Button>
+          </div>
+
           {/* Table */}
           <Card className="border border-slate-800 bg-slate-950/30 backdrop-blur-md shadow-xl overflow-hidden">
             <CardContent className="p-0">
@@ -368,6 +385,21 @@ export function ProjectsClient({
               </div>
             </CardContent>
           </Card>
+
+          {/* Table Action Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-900/20 p-4 border border-slate-800/80 rounded-xl">
+            <div className="text-sm text-slate-400 font-bold">
+              تم العثور على <span className="font-extrabold text-white text-base">{filteredDistributions.length}</span> سجل
+            </div>
+            <Button
+              onClick={() => exportDistributionsToExcel(filteredDistributions)}
+              disabled={filteredDistributions.length === 0}
+              className="rounded-xl px-4 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white gap-2 transition-all duration-300 h-9 active:scale-[0.98]"
+            >
+              <Download className="h-4 w-4" />
+              <span>تصدير Excel (المصفى)</span>
+            </Button>
+          </div>
 
           {/* Table */}
           <Card className="border border-slate-800 bg-slate-950/30 backdrop-blur-md shadow-xl overflow-hidden">

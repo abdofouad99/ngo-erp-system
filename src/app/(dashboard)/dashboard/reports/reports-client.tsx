@@ -11,6 +11,7 @@ import {
   Info,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { exportToExcel } from "@/lib/excel-export"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -136,46 +137,24 @@ export function ReportsClient({ initialBeneficiaries, geography, sponsors }: Rep
   )
   const avgVulnerability = totalCount > 0 ? Math.round(totalVulnerability / totalCount) : 0
 
-  // CSV Export Handler with UTF-8 BOM for Arabic support
-  const handleExportCSV = () => {
-    const headers = [
-      "الاسم الكامل",
-      "الجنس",
-      "تاريخ الميلاد",
-      "الفئة",
-      "اسم رب الأسرة",
-      "المحافظة",
-      "المديرية",
-      "الحي/القرية",
-      "مستوى الفقر",
-      "الهشاشة",
-      "حالة الكفالة",
-    ]
+  // Excel Export Handler
+  const handleExportExcel = () => {
+    const data = filteredBeneficiaries.map((b, i) => ({
+      "#": i + 1,
+      "الاسم الكامل": b.fullName,
+      "الجنس": b.gender === "MALE" ? "ذكر" : "أنثى",
+      "تاريخ الميلاد": b.birthdate ? new Date(b.birthdate).toLocaleDateString("ar-YE") : "-",
+      "الفئة": b.category === "ORPHAN" ? "يتيم" : b.category === "STUDENT" ? "طالب علم" : b.category === "PATIENT" ? "مريض" : "عام",
+      "اسم رب الأسرة": b.family?.headFullName || "-",
+      "المحافظة": b.family?.subDistrict?.district?.governorate?.nameAr || "-",
+      "المديرية": b.family?.subDistrict?.district?.nameAr || "-",
+      "الحي/القرية": b.family?.subDistrict?.nameAr || "-",
+      "مستوى الفقر": b.family?.povertyLevel === "SEVERE" ? "شديد" : b.family?.povertyLevel === "MEDIUM" ? "متوسط" : "منخفض",
+      "الهشاشة": b.family?.vulnerabilityScore !== null ? `${b.family?.vulnerabilityScore}%` : "0%",
+      "حالة الكفالة": b.sponsorships && b.sponsorships.length > 0 ? "مكفول" : "في الانتظار",
+    }))
 
-    const rows = filteredBeneficiaries.map((b) => [
-      b.fullName,
-      b.gender === "MALE" ? "ذكر" : "أنثى",
-      new Date(b.birthdate).toLocaleDateString("ar-YE"),
-      b.category === "ORPHAN" ? "يتيم" : b.category === "STUDENT" ? "طالب" : b.category === "PATIENT" ? "مريض" : "عام",
-      b.family?.headFullName || "",
-      b.family?.subDistrict?.district?.governorate?.nameAr || "",
-      b.family?.subDistrict?.district?.nameAr || "",
-      b.family?.subDistrict?.nameAr || "",
-      b.family?.povertyLevel === "SEVERE" ? "شديد" : b.family?.povertyLevel === "MEDIUM" ? "متوسط" : "منخفض",
-      b.family?.vulnerabilityScore !== null ? `${b.family?.vulnerabilityScore}%` : "0%",
-      b.sponsorships && b.sponsorships.length > 0 ? "مكفول" : "في الانتظار",
-    ])
-
-    const csvContent =
-      "\uFEFF" +
-      [headers.join(","), ...rows.map((r) => r.map((c) => `"${c}"`).join(","))].join("\n")
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement("a")
-    link.setAttribute("href", url)
-    link.setAttribute("download", `تقرير_المستفيدين_${new Date().toISOString().split("T")[0]}.csv`)
-    link.click()
+    exportToExcel(data, "تقرير_المستفيدين", "المستفيدين")
   }
 
   // Print Report Handler
@@ -440,9 +419,9 @@ export function ReportsClient({ initialBeneficiaries, geography, sponsors }: Rep
         </div>
 
         <div className="flex items-center gap-2">
-          {/* CSV Export */}
+          {/* Excel Export */}
           <Button
-            onClick={handleExportCSV}
+            onClick={handleExportExcel}
             disabled={totalCount === 0}
             className="bg-slate-800 hover:bg-slate-700 text-white rounded-xl gap-2 font-semibold border border-slate-700 hover:border-slate-600 transition-all duration-300 hover:scale-[1.03] active:scale-[0.97]"
           >
