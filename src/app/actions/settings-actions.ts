@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { createNotification } from "@/app/actions/notification-actions"
+import { sendWhatsAppNotification } from "@/lib/whatsapp-notify"
 
 export async function getGeoStructure() {
   try {
@@ -189,6 +190,7 @@ export async function createSystemUser(data: {
   email: string
   password: string
   role: any // Role enum
+  phone?: string
 }) {
   try {
     const existing = await prisma.user.findUnique({
@@ -217,10 +219,17 @@ export async function createSystemUser(data: {
         id: authData.user.id,
         email: data.email,
         name: data.name,
+        phone: data.phone || null,
         role: data.role,
         isActive: true
       }
     })
+
+    // 3. Send credentials to marketer via WhatsApp automatically
+    if (data.role === "MARKETER" && data.phone) {
+      const welcomeMsg = `🌹 مرحباً بك *${data.name}* في *مؤسسة الأيتام الخيرية التنموية*.\n\nلقد تم إنشاء حساب مسوق ميداني خاص بك في النظام بنجاح! 🎉\n\n🔑 *بيانات الدخول الخاصة بك:*\n📧 البريد الإلكتروني: \`${data.email}\`\n🔒 كلمة المرور: \`${data.password}\`\n\n🔗 *رابط لوحة التحكم للدخول وتحديث البيانات:*\nhttp://localhost:3000/login\n\n🔹 يرجى استخدام هذه البيانات لتسجيل الدخول والبدء بتسجيل وإدارة ملفات الأيتام.`
+      await sendWhatsAppNotification(data.phone, welcomeMsg)
+    }
 
     revalidatePath("/dashboard/settings")
     return { success: true, user: dbUser }

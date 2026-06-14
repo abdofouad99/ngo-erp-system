@@ -50,6 +50,7 @@ export default function SettingsPage() {
   const [newUserName, setNewUserName] = useState("")
   const [newUserEmail, setNewUserEmail] = useState("")
   const [newUserPassword, setNewUserPassword] = useState("")
+  const [newUserPhone, setNewUserPhone] = useState("")
   const [newUserRole, setNewUserRole] = useState<Role>("MARKETER" as Role)
 
   // Form states
@@ -732,7 +733,7 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent>
                 <form
-                  onSubmit={async (e) => {
+                    onSubmit={async (e) => {
                     e.preventDefault()
                     if (!newUserName || !newUserEmail || !newUserPassword) return
                     setSubmitting(true)
@@ -740,12 +741,14 @@ export default function SettingsPage() {
                       name: newUserName,
                       email: newUserEmail,
                       password: newUserPassword,
-                      role: newUserRole
+                      role: newUserRole,
+                      phone: newUserPhone
                     })
                     if (res.success) {
                       setNewUserName("")
                       setNewUserEmail("")
                       setNewUserPassword("")
+                      setNewUserPhone("")
                       setNewUserRole("MARKETER" as Role)
                       setMessage({ text: "تم إنشاء حساب المستخدم بنجاح ومزامنته مع Supabase Auth!", type: "success" })
                       loadData()
@@ -789,6 +792,16 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-350">رقم الهاتف (الواتساب)</label>
+                    <Input
+                      type="text"
+                      placeholder="مثال: 777123456"
+                      value={newUserPhone}
+                      onChange={(e) => setNewUserPhone(e.target.value)}
+                      className="h-9 text-xs rounded-lg bg-slate-900/60 border-slate-800/80 text-white placeholder-slate-500 focus-visible:ring-emerald-500 transition-all"
+                    />
+                  </div>
+                  <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-350">الدور والصلاحية</label>
                     <select
                       value={newUserRole}
@@ -828,6 +841,7 @@ export default function SettingsPage() {
                       <tr className="border-b border-slate-800 text-slate-400 font-bold">
                         <th className="pb-2">الاسم</th>
                         <th className="pb-2">البريد الإلكتروني</th>
+                        <th className="pb-2">الهاتف (الواتساب)</th>
                         <th className="pb-2">الصلاحية</th>
                         <th className="pb-2 text-center">الحالة</th>
                         <th className="pb-2 text-left">الإجراء</th>
@@ -838,6 +852,7 @@ export default function SettingsPage() {
                         <tr key={user.id} className="text-slate-300 hover:bg-slate-850/20">
                           <td className="py-3 font-semibold text-white">{user.name}</td>
                           <td className="py-3 font-mono text-slate-400">{user.email}</td>
+                          <td className="py-3 font-mono text-slate-300">{user.phone || <span className="text-slate-600">—</span>}</td>
                           <td className="py-3">
                             {user.role === "ADMIN" && (
                               <Badge className="bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/10 text-[10px]">مشرف نظام</Badge>

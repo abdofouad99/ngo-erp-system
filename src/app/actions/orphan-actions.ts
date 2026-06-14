@@ -6,6 +6,8 @@ import { z } from "zod"
 import { Gender, OrphanType, VerificationStatus, BeneficiaryCategory } from "@prisma/client"
 import { diffObjects, createAuditLog } from "@/lib/audit-utils"
 import { createNotification } from "@/app/actions/notification-actions"
+import { sendWhatsAppNotification } from "@/lib/whatsapp-notify"
+
 
 // =============================================================================
 // VALIDATION SCHEMA
@@ -271,6 +273,9 @@ export async function approveOrphan(id: string, adminUserId?: string) {
         verificationStatus: "APPROVED",
         rejectionReason: null,
         verifiedBy: adminUserId || "مشرف النظام"
+      },
+      include: {
+        createdBy: true
       }
     })
 
@@ -279,6 +284,12 @@ export async function approveOrphan(id: string, adminUserId?: string) {
       message: `تم اعتماد وقبول اليتيم: ${updated.fullName} في النظام بنجاح.`,
       type: "SUCCESS"
     })
+
+    // Send WhatsApp notification if marketer created the orphan and has phone number
+    if (updated.createdBy && updated.createdBy.role === "MARKETER" && updated.createdBy.phone) {
+      const msg = `🎉 بشرى سارة! تم اعتماد وقبول ملف اليتيم: *${updated.fullName}* بنجاح في النظام من قبل الإدارة. شكراً لجهودك! 🌹`
+      await sendWhatsAppNotification(updated.createdBy.phone, msg)
+    }
 
     revalidatePath("/dashboard/orphans")
     return { success: true }
@@ -295,6 +306,9 @@ export async function rejectOrphan(id: string, reason: string, adminUserId?: str
         verificationStatus: "REJECTED",
         rejectionReason: reason,
         verifiedBy: adminUserId || "مشرف النظام"
+      },
+      include: {
+        createdBy: true
       }
     })
 
@@ -303,6 +317,12 @@ export async function rejectOrphan(id: string, reason: string, adminUserId?: str
       message: `تم إرجاع/رفض طلب اليتيم: ${updated.fullName} بسبب: ${reason}`,
       type: "WARNING"
     })
+
+    // Send WhatsApp notification if marketer created the orphan and has phone number
+    if (updated.createdBy && updated.createdBy.role === "MARKETER" && updated.createdBy.phone) {
+      const msg = `⚠️ تنبيه: تم إرجاع/رفض ملف اليتيم: *${updated.fullName}* من قبل الإدارة لإجراء تعديلات.\n\n📝 *سبب الرفض/الإرجاع:*\n${reason}\n\n🔗 يرجى الدخول لحسابك وتحديث البيانات المطلوبة وإعادة الإرسال:\nhttp://localhost:3000/login`
+      await sendWhatsAppNotification(updated.createdBy.phone, msg)
+    }
 
     revalidatePath("/dashboard/orphans")
     return { success: true }
