@@ -50,32 +50,23 @@ async function getDashboardStats() {
   }
 }
 
-async function getDashboardChartsData() {
-  const [
-    severePoverty,
-    mediumPoverty,
-    lowPoverty,
-    maleOrphans,
-    femaleOrphans,
-    allFamilies,
-    sponsoredOrphansCount,
-    totalOrphansCount
-  ] = await Promise.all([
-    prisma.family.count({ where: { povertyLevel: "SEVERE", isActive: true, deletedAt: null } }),
-    prisma.family.count({ where: { povertyLevel: "MEDIUM", isActive: true, deletedAt: null } }),
-    prisma.family.count({ where: { povertyLevel: "LOW", isActive: true, deletedAt: null } }),
-    prisma.beneficiary.count({ where: { category: "ORPHAN", gender: "MALE", isActive: true, deletedAt: null } }),
-    prisma.beneficiary.count({ where: { category: "ORPHAN", gender: "FEMALE", isActive: true, deletedAt: null } }),
+async function getDashboardRawData() {
+  const [families, beneficiaries, governorates] = await Promise.all([
     prisma.family.findMany({
-      where: { isActive: true, deletedAt: null },
+      where: { deletedAt: null },
       select: {
+        id: true,
+        createdAt: true,
+        povertyLevel: true,
+        isActive: true,
         subDistrict: {
           select: {
             district: {
               select: {
                 governorate: {
                   select: {
-                    nameAr: true
+                    id: true,
+                    nameAr: true,
                   }
                 }
               }
@@ -84,58 +75,69 @@ async function getDashboardChartsData() {
         }
       }
     }),
-    prisma.beneficiary.count({
-      where: {
-        category: "ORPHAN",
+    prisma.beneficiary.findMany({
+      where: { deletedAt: null },
+      select: {
+        id: true,
+        createdAt: true,
+        category: true,
+        gender: true,
         isActive: true,
-        deletedAt: null,
-        sponsorships: {
-          some: {
-            status: "ACTIVE",
-            deletedAt: null
+        family: {
+          select: {
+            subDistrict: {
+              select: {
+                district: {
+                  select: {
+                    governorate: {
+                      select: {
+                        id: true,
+                        nameAr: true,
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
+        },
+        sponsorships: {
+          where: { status: "ACTIVE", deletedAt: null },
+          select: { id: true }
         }
       }
     }),
-    prisma.beneficiary.count({
-      where: {
-        category: "ORPHAN",
-        isActive: true,
-        deletedAt: null
-      }
+    prisma.governorate.findMany({
+      select: { id: true, nameAr: true }
     })
   ])
 
-  // Group families by governorate
-  const geoCounts: Record<string, number> = {}
-  allFamilies.forEach(f => {
-    const govName = f.subDistrict?.district?.governorate?.nameAr || "أخرى"
-    geoCounts[govName] = (geoCounts[govName] || 0) + 1
-  })
-
-  const geoData = Object.entries(geoCounts).map(([name, value]) => ({
-    name,
-    value
+  // Flatten the data for easy client-side processing
+  const formattedFamilies = families.map(f => ({
+    id: f.id,
+    createdAt: f.createdAt.toISOString(),
+    povertyLevel: f.povertyLevel || "LOW",
+    isActive: f.isActive,
+    governorateId: f.subDistrict?.district?.governorate?.id || null,
+    governorateName: f.subDistrict?.district?.governorate?.nameAr || "أخرى"
   }))
 
-  const povertyData = [
-    { name: "فقر شديد", value: severePoverty },
-    { name: "فقر متوسط", value: mediumPoverty },
-    { name: "فقر منخفض", value: lowPoverty }
-  ]
+  const formattedBeneficiaries = beneficiaries.map(b => ({
+    id: b.id,
+    createdAt: b.createdAt.toISOString(),
+    category: b.category,
+    gender: b.gender,
+    isActive: b.isActive,
+    isSponsored: b.sponsorships.length > 0,
+    governorateId: b.family?.subDistrict?.district?.governorate?.id || null,
+    governorateName: b.family?.subDistrict?.district?.governorate?.nameAr || "أخرى"
+  }))
 
-  const genderData = [
-    { name: "ذكور", value: maleOrphans },
-    { name: "إناث", value: femaleOrphans }
-  ]
-
-  const unsponsoredCount = Math.max(0, totalOrphansCount - sponsoredOrphansCount)
-  const sponsorshipData = [
-    { name: "مكفولين", value: sponsoredOrphansCount },
-    { name: "في الانتظار", value: unsponsoredCount }
-  ]
-
-  return { povertyData, genderData, geoData, sponsorshipData }
+  return {
+    families: formattedFamilies,
+    beneficiaries: formattedBeneficiaries,
+    governorates
+  }
 }
 
 // =============================================================================
@@ -143,57 +145,10 @@ async function getDashboardChartsData() {
 // =============================================================================
 
 export default async function DashboardPage() {
-  const [stats, chartsData] = await Promise.all([
+  const [stats, rawData] = await Promise.all([
     getDashboardStats(),
-    getDashboardChartsData()
+    getDashboardRawData()
   ])
-
-  const kpiCards = [
-    {
-      title: "إجمالي الأسر",
-      value: stats.families,
-      description: "أسرة نشطة مسجلة",
-      icon: Users,
-      iconBg: "bg-blue-500/10",
-      iconColor: "text-blue-400",
-      trend: "+12%",
-      trendUp: true,
-      href: "/dashboard/families",
-    },
-    {
-      title: "المستفيدون",
-      value: stats.beneficiaries,
-      description: "فرد مستفيد",
-      icon: TrendingUp,
-      iconBg: "bg-emerald-500/10",
-      iconColor: "text-emerald-400",
-      trend: "+8%",
-      trendUp: true,
-      href: "/dashboard/families",
-    },
-    {
-      title: "المشاريع النشطة",
-      value: stats.projects,
-      description: "مشروع قيد التنفيذ",
-      icon: PackageOpen,
-      iconBg: "bg-orange-500/10",
-      iconColor: "text-orange-400",
-      trend: "+2",
-      trendUp: true,
-      href: "/dashboard/projects",
-    },
-    {
-      title: "الرعايات الفعّالة",
-      value: stats.sponsorships,
-      description: "كفالة نشطة حالياً",
-      icon: HeartHandshake,
-      iconBg: "bg-rose-500/10",
-      iconColor: "text-rose-400",
-      trend: "+5%",
-      trendUp: true,
-      href: "/dashboard/sponsors",
-    },
-  ]
 
   const quickActions = [
     {
@@ -268,53 +223,12 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* ── KPI Cards ───────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {kpiCards.map((card) => {
-          const Icon = card.icon
-          return (
-            <Link key={card.title} href={card.href}>
-              <Card className="group cursor-pointer glass-card hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/5 hover:border-emerald-500/20 duration-300">
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between">
-                    <div className={`rounded-xl ${card.iconBg} p-2.5`}>
-                      <Icon className={`h-5 w-5 ${card.iconColor}`} />
-                    </div>
-                    <span
-                      className={`flex items-center gap-0.5 text-xs font-semibold ${
-                        card.trendUp ? "text-emerald-400" : "text-rose-400"
-                      }`}
-                    >
-                      {card.trendUp ? (
-                        <ArrowUpRight className="h-3.5 w-3.5" />
-                      ) : (
-                        <ArrowDownRight className="h-3.5 w-3.5" />
-                      )}
-                      {card.trend}
-                    </span>
-                  </div>
-                  <div className="mt-4">
-                    <p className="text-2xl font-bold tabular-nums text-foreground md:text-3xl">
-                      {card.value.toLocaleString("ar-SA")}
-                    </p>
-                    <p className="mt-1 text-sm font-semibold text-foreground/90">
-                      {card.title}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{card.description}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          )
-        })}
-      </div>
-
-      {/* ── Visual Analytics & Graphs ───────────────────────────── */}
+      {/* ── KPI Cards & Visual Analytics ────────────────────────── */}
       <DashboardCharts
-        povertyData={chartsData.povertyData}
-        genderData={chartsData.genderData}
-        geoData={chartsData.geoData}
-        sponsorshipData={chartsData.sponsorshipData}
+        rawFamilies={rawData.families}
+        rawBeneficiaries={rawData.beneficiaries}
+        governorates={rawData.governorates}
+        activeProjectsCount={stats.projects}
       />
 
       {/* ── Quick Actions + System Status ───────────────────────── */}
