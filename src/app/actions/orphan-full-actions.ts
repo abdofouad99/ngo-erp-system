@@ -143,6 +143,8 @@ export async function createFullOrphan(data: {
   educationLevel?:   string
   schoolName?:       string
   educationalStage?: string
+  averageGrade?:     number | string
+  educationalNeeds?: string
   quranMemorization?: string
   // صحة
   healthStatus?:     string
@@ -242,6 +244,8 @@ export async function createFullOrphan(data: {
         educationLevel:    orphanData.educationLevel || null,
         schoolName:        orphanData.schoolName || null,
         educationalStage:  orphanData.educationalStage || null,
+        averageGrade:      (orphanData.averageGrade !== undefined && orphanData.averageGrade !== null && orphanData.averageGrade !== "") ? Number(orphanData.averageGrade) : null,
+        educationalNeeds:  orphanData.educationalNeeds || null,
         quranMemorization: orphanData.quranMemorization || null,
         healthStatus:      orphanData.healthStatus || null,
         disabilityType:    orphanData.disabilityType || null,
@@ -316,6 +320,8 @@ export async function updateFullOrphan(
       educationLevel:    orphanData.educationLevel || null,
       schoolName:        orphanData.schoolName || null,
       educationalStage:  orphanData.educationalStage || null,
+      averageGrade:      (orphanData.averageGrade !== undefined && orphanData.averageGrade !== null && orphanData.averageGrade !== "") ? Number(orphanData.averageGrade) : null,
+      educationalNeeds:  orphanData.educationalNeeds || null,
       quranMemorization: orphanData.quranMemorization || null,
       healthStatus:      orphanData.healthStatus || null,
       disabilityType:    orphanData.disabilityType || null,

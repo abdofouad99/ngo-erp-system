@@ -113,6 +113,8 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan,
     educationLevel:    orphan?.educationLevel || "",
     schoolName:        orphan?.schoolName || "",
     educationalStage:  orphan?.educationalStage || "",
+    averageGrade:      orphan?.averageGrade !== undefined && orphan?.averageGrade !== null ? orphan.averageGrade : "",
+    educationalNeeds:  orphan?.educationalNeeds || "",
     quranMemorization: orphan?.quranMemorization || "",
     healthStatus:      orphan?.healthStatus || "",
     disability:        orphan?.disability || false,
@@ -174,7 +176,7 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan,
     setNewFileType("NATIONAL_ID")
     setNewFileDesc("")
     if (!isEditMode) {
-      setForm({ familyId: "", orphanCode: "", kuraimiAccount: "", kuraimiAccountOld: "", kuraimiAccountHolder: "", mumaiyo: "", baitZakatNumber: "", fullName: "", shortName: "", gender: "MALE", birthdate: "", nationalId: "", religion: "", fatherFullName: "", motherName: "", educationLevel: "", schoolName: "", educationalStage: "", quranMemorization: "", healthStatus: "", disability: false, disabilityType: "", disabilityDetails: "", nutritionStatus: "", housingStatus: "", orphanType: "FATHER", fatherDeathDate: "", fatherDeathCause: "", motherDeathDate: "", birthGovernorate: "", birthDistrict: "", birthVillage: "", birthArea: "", referrerName: "", referrerPhone1: "", referrerPhone2: "", marketedToOrg: "", notes: "" })
+      setForm({ familyId: "", orphanCode: "", kuraimiAccount: "", kuraimiAccountOld: "", kuraimiAccountHolder: "", mumaiyo: "", baitZakatNumber: "", fullName: "", shortName: "", gender: "MALE", birthdate: "", nationalId: "", religion: "", fatherFullName: "", motherName: "", educationLevel: "", schoolName: "", educationalStage: "", averageGrade: "", educationalNeeds: "", quranMemorization: "", healthStatus: "", disability: false, disabilityType: "", disabilityDetails: "", nutritionStatus: "", housingStatus: "", orphanType: "FATHER", fatherDeathDate: "", fatherDeathCause: "", motherDeathDate: "", birthGovernorate: "", birthDistrict: "", birthVillage: "", birthArea: "", referrerName: "", referrerPhone1: "", referrerPhone2: "", marketedToOrg: "", notes: "" })
       setGuardians([{ fullName: "", nationalId: "", relation: "", occupation: "", phone1: "", phone2: "", phone3: "", phone4: "" }])
       setSiblings([])
     }
@@ -393,6 +395,12 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan,
             </FieldRow>
             <FieldRow label="اسم المدرسة">
               <Input className={inputCls} placeholder="المدرسة الحالية" value={form.schoolName} onChange={e => setF("schoolName", e.target.value)} />
+            </FieldRow>
+            <FieldRow label="المعدل الدراسي (%)">
+              <Input type="number" min="0" max="100" step="0.01" className={inputCls} placeholder="مثال: 95.5" value={form.averageGrade} onChange={e => setF("averageGrade", e.target.value)} />
+            </FieldRow>
+            <FieldRow label="الاحتياجات التعليمية">
+              <Input className={inputCls} placeholder="كتب، زي مدرسي، رسوم..." value={form.educationalNeeds} onChange={e => setF("educationalNeeds", e.target.value)} />
             </FieldRow>
             <FieldRow label="مقدار الحفظ من القرآن">
               <Input className={inputCls} placeholder="مثال: جزء عم، ربع..." value={form.quranMemorization} onChange={e => setF("quranMemorization", e.target.value)} />

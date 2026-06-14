@@ -24,7 +24,6 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Card, CardContent } from "@/components/ui/card"
-import { OrphanDetailsSheet } from "@/components/orphans/orphan-details-sheet"
 import { AddOrphanSheet } from "@/components/orphans/add-orphan-sheet"
 import { TagBadge, TagFilterPills, TagSelector } from "@/components/tags/tag-components"
 import type { TagData } from "@/components/tags/tag-components"
@@ -379,8 +378,7 @@ export function OrphansClient({ initialOrphans, allTags = [], families = [] }: O
   }
 
   const handleOpenDetails = (orphan: Orphan) => {
-    setSelectedOrphan(orphan)
-    setIsSheetOpen(true)
+    router.push(`/dashboard/orphans/${orphan.id}`)
   }
 
   // Helper translations
@@ -720,14 +718,6 @@ export function OrphansClient({ initialOrphans, allTags = [], families = [] }: O
         </div>
       </Card>
 
-      {/* ── Detailed View Side Sheet ────────────────────────────── */}
-      <OrphanDetailsSheet
-        orphan={selectedOrphan}
-        open={isSheetOpen}
-        onOpenChange={setIsSheetOpen}
-        onApprove={handleApprove}
-        onReject={handleReject}
-      />
     </div>
   )
 }
