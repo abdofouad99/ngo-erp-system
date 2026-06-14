@@ -88,8 +88,14 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: false, error: "كود اليتيم مطلوب" }, { status: 400 })
       }
 
-      const orphan = await prisma.beneficiary.findUnique({
-        where: { orphanCode: code.trim() },
+      const orphan = await prisma.beneficiary.findFirst({
+        where: {
+          orphanCode: {
+            equals: code.trim(),
+            mode: "insensitive"
+          },
+          deletedAt: null
+        },
         select: {
           fullName: true,
           orphanCode: true,
