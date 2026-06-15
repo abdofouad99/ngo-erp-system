@@ -352,7 +352,7 @@ export async function rejectOrphan(id: string, reason: string, adminUserId?: str
   }
 }
 
-export async function sendBulkOrphanWhatsApp(orphanIds: string[], messageTemplate: string) {
+export async function sendBulkOrphanWhatsApp(orphanIds: string[], messageTemplate: string, skipSend = false) {
   try {
     if (!orphanIds || orphanIds.length === 0) {
       return { success: false, error: "لم يتم تحديد أي يتيم" }
@@ -433,7 +433,14 @@ export async function sendBulkOrphanWhatsApp(orphanIds: string[], messageTemplat
         .replace(/{code}/g, orphan.orphanCode || "غير محدد")
         .replace(/{guardian}/g, contactName || "غير محدد")
 
-      const sent = await sendWhatsAppNotification(phone, message)
+      let sent = false
+      let reason = ""
+      if (skipSend) {
+        reason = "جاهز للإرسال التلقائي عبر المتصفح"
+      } else {
+        sent = await sendWhatsAppNotification(phone, message)
+        reason = sent ? "تم الإرسال بنجاح" : "فشل الإرسال عبر خادم الواتساب (يرجى التأكد من تشغيل البوت محلياً)"
+      }
 
       results.push({
         id: orphan.id,
@@ -443,7 +450,7 @@ export async function sendBulkOrphanWhatsApp(orphanIds: string[], messageTemplat
         contactName,
         message,
         status: (sent ? "SUCCESS" : "FAILED") as "SUCCESS" | "FAILED",
-        reason: sent ? "تم الإرسال بنجاح" : "فشل الإرسال عبر خادم الواتساب (يرجى التأكد من تشغيل البوت محلياً)",
+        reason,
         source
       })
     }

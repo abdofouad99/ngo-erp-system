@@ -226,15 +226,80 @@ export function OrphansClient({
     setIsSending(true)
     setSendResults(null)
     try {
-      const res = await sendBulkOrphanWhatsApp(selectedIds, messageTemplate)
+      const isRemote = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+      const res = await sendBulkOrphanWhatsApp(selectedIds, messageTemplate, isRemote)
       if (res.success && res.results) {
-        const successCount = res.results.filter(r => r.status === "SUCCESS").length
-        const failCount = res.results.filter(r => r.status === "FAILED").length
-        setSendResults({
-          successCount,
-          failCount,
-          details: res.results
-        })
+        if (isRemote) {
+          const itemsToSend = res.results.filter(r => r.phone)
+          const updatedDetails = res.results.map(r => ({
+            ...r,
+            status: "FAILED" as "SUCCESS" | "FAILED",
+            reason: r.phone ? "جاري الإرسال عبر المتصفح..." : r.reason
+          }))
+
+          setSendResults({
+            successCount: 0,
+            failCount: res.results.length,
+            details: updatedDetails
+          })
+
+          let currentSuccess = 0
+          let currentFail = res.results.length
+
+          for (const item of itemsToSend) {
+            let cleaned = item.phone!.replace(/\D/g, "")
+            if (cleaned.startsWith("0")) {
+              cleaned = "967" + cleaned.substring(1)
+            } else if (cleaned.length === 9) {
+              cleaned = "967" + cleaned
+            }
+
+            try {
+              const response = await fetch("http://127.0.0.1:5005/send", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ phone: cleaned, message: item.message }),
+                mode: "cors"
+              })
+
+              const detailIndex = updatedDetails.findIndex(d => d.id === item.id)
+              if (response.ok) {
+                if (detailIndex !== -1) {
+                  updatedDetails[detailIndex].status = "SUCCESS"
+                  updatedDetails[detailIndex].reason = "تم الإرسال بنجاح"
+                  currentSuccess++
+                  currentFail--
+                }
+              } else {
+                if (detailIndex !== -1) {
+                  updatedDetails[detailIndex].reason = `فشل عبر المتصفح (رمز: ${response.status})`
+                }
+              }
+            } catch (err) {
+              console.error("Auto browser send error:", err)
+              const detailIndex = updatedDetails.findIndex(d => d.id === item.id)
+              if (detailIndex !== -1) {
+                updatedDetails[detailIndex].reason = "تعذر الاتصال بالبوت المحلي (تأكد من تشغيله)"
+              }
+            }
+
+            // Realtime update
+            setSendResults({
+              successCount: currentSuccess,
+              failCount: currentFail,
+              details: [...updatedDetails]
+            })
+          }
+        } else {
+          // Local environment, server action handled everything
+          const successCount = res.results.filter(r => r.status === "SUCCESS").length
+          const failCount = res.results.filter(r => r.status === "FAILED").length
+          setSendResults({
+            successCount,
+            failCount,
+            details: res.results
+          })
+        }
       } else {
         alert(res.error || "فشل إرسال الرسائل الجماعية")
       }
