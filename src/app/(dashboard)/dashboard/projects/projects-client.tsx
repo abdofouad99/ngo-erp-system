@@ -156,7 +156,7 @@ export function ProjectsClient({
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="projects" className="w-full" onValueChange={setActiveTab}>
+      <Tabs defaultValue="projects" dir="rtl" className="w-full" onValueChange={setActiveTab}>
         <TabsList className="bg-slate-900/50 border border-slate-800/80 rounded-xl p-1 mb-6 flex-shrink-0 gap-1 sm:w-auto w-full justify-start">
           <TabsTrigger 
             value="projects" 

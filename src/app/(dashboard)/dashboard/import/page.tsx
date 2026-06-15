@@ -239,6 +239,7 @@ export default function ImportPage() {
           setActiveTab(val)
           handleClear()
         }}
+        dir="rtl"
         className="space-y-6"
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/40 p-3 rounded-xl border border-slate-800/80 backdrop-blur-md">

@@ -421,7 +421,7 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
         {/* Main Details (Col 1 & 2) */}
         <div className="lg:col-span-2 space-y-6">
           <Card className="glass-card border-slate-800 bg-slate-950/40 p-5">
-            <Tabs defaultValue="personal" className="w-full flex flex-col">
+            <Tabs defaultValue="personal" dir="rtl" className="w-full flex flex-col">
               <TabsList className="bg-slate-900/60 rounded-xl p-1 mb-6 flex-wrap h-auto gap-1 justify-start">
                 <TabsTrigger value="personal" className="text-xs py-2 flex-1 md:flex-initial">
                   <User className="h-3.5 w-3.5 ml-1.5" />

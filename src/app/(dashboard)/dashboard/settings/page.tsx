@@ -160,7 +160,7 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl" className="space-y-6">
         <TabsList className="bg-slate-950 p-1 rounded-xl w-full sm:w-auto flex justify-start gap-1 overflow-x-auto border border-slate-800/80">
           <TabsTrigger value="geo" className="rounded-lg text-xs font-bold gap-1.5 px-4 py-2 data-[state=active]:bg-slate-800 data-[state=active]:text-white">
             <Map className="h-4 w-4 text-slate-400" />

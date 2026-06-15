@@ -118,7 +118,7 @@ export default function TrashPage() {
       ) : (
         <Card className="bg-slate-900/40 border border-slate-800/80 backdrop-blur-md rounded-2xl overflow-hidden shadow-sm">
           <CardContent className="p-6">
-            <Tabs defaultValue="families" className="space-y-6">
+            <Tabs defaultValue="families" dir="rtl" className="space-y-6">
               <TabsList className="flex flex-wrap gap-2 justify-start border-b border-slate-800/60 pb-2 bg-transparent h-auto">
                 <TabsTrigger
                   value="families"
