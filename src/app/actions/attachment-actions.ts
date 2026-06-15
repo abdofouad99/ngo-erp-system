@@ -29,9 +29,9 @@ export async function uploadOrphanAttachment(formData: FormData) {
       return { success: false, error: "حجم الملف يتجاوز الحد المسموح (5 ميغابايت)" }
     }
 
-    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp", "application/pdf"]
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "application/pdf"]
     if (!allowedTypes.includes(file.type)) {
-      return { success: false, error: "نوع الملف غير مدعوم. يُسمح بـ JPG, PNG, WEBP, PDF فقط" }
+      return { success: false, error: "نوع الملف غير مدعوم. يُسمح بـ PDF, JPG, PNG فقط" }
     }
 
     const supabase  = createSupabaseAdminClient()

@@ -223,6 +223,27 @@ export async function createFullOrphan(data: {
       }
     }
     // ─────────────────────────────────────────────────────────────────────────
+    
+    // توليد كود اليتيم تلقائياً إذا لم يُدخل
+    let finalOrphanCode = orphanData.orphanCode?.trim()
+    if (!finalOrphanCode) {
+      const count = await prisma.beneficiary.count({
+        where: { category: "ORPHAN" }
+      })
+      let codeNum = count + 1
+      let codeExists = true
+      while (codeExists) {
+        finalOrphanCode = `ORF-${new Date().getFullYear()}-${codeNum.toString().padStart(3, '0')}`
+        const existing = await prisma.beneficiary.findUnique({
+          where: { orphanCode: finalOrphanCode }
+        })
+        if (!existing) {
+          codeExists = false
+        } else {
+          codeNum++
+        }
+      }
+    }
 
     const orphan = await prisma.beneficiary.create({
       data: {
@@ -235,7 +256,7 @@ export async function createFullOrphan(data: {
         birthdate:         new Date(orphanData.birthdate),
         nationalId:        orphanData.nationalId || null,
         religion:          orphanData.religion || null,
-        orphanCode:        orphanData.orphanCode || null,
+        orphanCode:        finalOrphanCode || null,
         kuraimiAccount:    orphanData.kuraimiAccount || null,
         kuraimiAccountOld:    orphanData.kuraimiAccountOld    || null,
         kuraimiAccountHolder:  orphanData.kuraimiAccountHolder || null,

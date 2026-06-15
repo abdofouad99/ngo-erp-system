@@ -108,6 +108,8 @@ interface OrphansClientProps {
   initialOrphans: any[]
   allTags?: TagData[]
   families?: { id: string; headFullName: string }[]
+  currentUserRole?: string
+  currentUserId?: string
 }
 
 // =============================================================================
@@ -144,7 +146,13 @@ function formatCurrency(amount: number | null): string {
   }).format(amount)
 }
 
-export function OrphansClient({ initialOrphans, allTags = [], families = [] }: OrphansClientProps) {
+export function OrphansClient({ 
+  initialOrphans, 
+  allTags = [], 
+  families = [],
+  currentUserRole,
+  currentUserId,
+}: OrphansClientProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedIds, setSelectedIds] = useState<string[]>([])
 
@@ -642,10 +650,12 @@ export function OrphansClient({ initialOrphans, allTags = [], families = [] }: O
                           <span>التفاصيل</span>
                         </Button>
 
-                        {/* تعديل يدوي */}
                         <AddOrphanSheet
                           families={families}
                           orphan={orphan}
+                          userRole={currentUserRole}
+                          createdById={currentUserId}
+                          isMarketer={currentUserRole === "MARKETER"}
                           trigger={
                             <Button
                               variant="outline"

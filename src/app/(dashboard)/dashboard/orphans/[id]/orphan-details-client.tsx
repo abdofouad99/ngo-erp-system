@@ -656,10 +656,7 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
                         <p className="text-xs text-gray-400 font-semibold mb-1">هاتف رب الأسرة البديل</p>
                         <p className="text-sm font-mono font-bold text-white">{renderValue(orphan.family.headAltPhone)}</p>
                       </div>
-                      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
-                        <p className="text-xs text-gray-400 font-semibold mb-1">تاريخ ميلاد رب الأسرة</p>
-                        <p className="text-sm font-bold text-white">{formatDate(orphan.family.headBirthdate)}</p>
-                      </div>
+
 
                       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                         <p className="text-xs text-gray-400 font-semibold mb-1">عدد أفراد الأسرة</p>
@@ -755,11 +752,26 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
                                 {s.siblingOrder}
                               </div>
                               <div className="flex-1 min-w-0 grid grid-cols-2 gap-1.5">
-                                <div className="col-span-2"><p className="text-[10px] text-gray-400">الاسم</p><p className="text-xs font-bold text-white truncate">{s.fullName}</p></div>
-                                <div><p className="text-[10px] text-gray-400">الجنس</p><p className="text-xs text-white">{s.gender === "MALE" ? "ذكر" : s.gender === "FEMALE" ? "أنثى" : "-"}</p></div>
-                                <div><p className="text-[10px] text-gray-400">تاريخ الميلاد</p><p className="text-xs font-mono text-white">{s.birthdate ? new Date(s.birthdate).toLocaleDateString("ar-YE") : "-"}</p></div>
-                                <div><p className="text-[10px] text-gray-400">المؤهل</p><p className="text-xs text-white truncate">{s.qualification || "-"}</p></div>
-                                <div><p className="text-[10px] text-gray-400">الحالة</p><p className="text-xs text-white truncate">{s.socialStatus || "-"}</p></div>
+                                <div className="col-span-2">
+                                  <p className="text-[10px] text-gray-400">الاسم بالكامل</p>
+                                  <p className="text-xs font-bold text-white break-words">{s.fullName}</p>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] text-gray-400">الجنس</p>
+                                  <p className="text-xs text-white">{s.gender === "MALE" ? "ذكر" : s.gender === "FEMALE" ? "أنثى" : "-"}</p>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] text-gray-400">تاريخ الميلاد</p>
+                                  <p className="text-xs font-mono text-white">{s.birthdate ? new Date(s.birthdate).toLocaleDateString("ar-YE") : "-"}</p>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] text-gray-400">المؤهل</p>
+                                  <p className="text-xs text-white break-words">{s.qualification || "-"}</p>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] text-gray-400">الحالة</p>
+                                  <p className="text-xs text-white break-words">{s.socialStatus || "-"}</p>
+                                </div>
                               </div>
                             </div>
                           ))}
@@ -780,23 +792,33 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
                         <p className="text-xs text-gray-400 font-semibold mb-1">تصنيف حالة اليتم</p>
                         <p className="text-sm font-extrabold text-emerald-400">{translateOrphanType(orphan.orphanType)}</p>
                       </div>
-                      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
-                        <p className="text-xs text-gray-400 font-semibold mb-1">اسم الأم بالكامل</p>
-                        <p className="text-sm font-bold text-white">{renderValue(orphan.motherName)}</p>
-                      </div>
-                      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
-                        <p className="text-xs text-gray-400 font-semibold mb-1">تاريخ وفاة الأب</p>
-                        <p className="text-sm font-bold text-white font-mono">{orphan.fatherDeathDate ? formatDate(orphan.fatherDeathDate) : renderValue(null)}</p>
-                      </div>
-                      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
-                        <p className="text-xs text-gray-400 font-semibold mb-1">سبب وفاة الأب</p>
-                        <p className="text-sm font-bold text-white">{renderValue(orphan.fatherDeathCause)}</p>
-                      </div>
+                      {(orphan.orphanType === "FATHER" || orphan.orphanType === "BOTH") && (
+                        <>
+                          <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
+                            <p className="text-xs text-gray-400 font-semibold mb-1">اسم الأب المتوفي بالكامل</p>
+                            <p className="text-sm font-bold text-white">{renderValue(orphan.fatherFullName)}</p>
+                          </div>
+                          <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
+                            <p className="text-xs text-gray-400 font-semibold mb-1">تاريخ وفاة الأب</p>
+                            <p className="text-sm font-bold text-white font-mono">{orphan.fatherDeathDate ? formatDate(orphan.fatherDeathDate) : renderValue(null)}</p>
+                          </div>
+                          <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
+                            <p className="text-xs text-gray-400 font-semibold mb-1">سبب وفاة الأب</p>
+                            <p className="text-sm font-bold text-white">{renderValue(orphan.fatherDeathCause)}</p>
+                          </div>
+                        </>
+                      )}
                       {(orphan.orphanType === "MOTHER" || orphan.orphanType === "BOTH") && (
-                        <div className="col-span-1 sm:col-span-2 rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
-                          <p className="text-xs text-gray-400 font-semibold mb-1">تاريخ وفاة الأم</p>
-                          <p className="text-sm font-bold text-white font-mono">{orphan.motherDeathDate ? formatDate(orphan.motherDeathDate) : renderValue(null)}</p>
-                        </div>
+                        <>
+                          <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
+                            <p className="text-xs text-gray-400 font-semibold mb-1">اسم الأم المتوفاة بالكامل</p>
+                            <p className="text-sm font-bold text-white">{renderValue(orphan.motherName)}</p>
+                          </div>
+                          <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
+                            <p className="text-xs text-gray-400 font-semibold mb-1">تاريخ وفاة الأم</p>
+                            <p className="text-sm font-bold text-white font-mono">{orphan.motherDeathDate ? formatDate(orphan.motherDeathDate) : renderValue(null)}</p>
+                          </div>
+                        </>
                       )}
                     </div>
                   </div>

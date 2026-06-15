@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import {
   Plus, User, GraduationCap, Activity, CreditCard,
   AlertCircle, Loader2, Users, MapPin, Heart, ChevronLeft, ChevronRight, Check,
@@ -14,6 +14,7 @@ import {
 import { createFullOrphan, updateFullOrphan } from "@/app/actions/orphan-full-actions"
 import { uploadOrphanAttachment } from "@/app/actions/attachment-actions"
 import { translateDocumentType } from "@/lib/attachment-utils"
+import { getGeoStructure } from "@/app/actions/settings-actions"
 
 // =============================================================================
 // TYPES
@@ -23,6 +24,7 @@ interface AddOrphanSheetProps {
   families?:    { id: string; headFullName: string }[]
   createdById?: string
   isMarketer?:  boolean
+  userRole?:    string
   orphan?:      any          // بيانات اليتيم عند وضع التعديل
   trigger?:     React.ReactNode  // زر تشغيل مخصص
 }
@@ -36,9 +38,13 @@ interface PendingFile {
 
 // أنواع المستندات
 const DOCUMENT_TYPES = [
-  { value: "NATIONAL_ID",        label: "صورة الهوية الوطنية" },
-  { value: "BIRTH_CERTIFICATE",  label: "شهادة الميلاد" },
-  { value: "DEATH_CERTIFICATE",  label: "شهادة الوفاة" },
+  { value: "NATIONAL_ID",        label: "صورة الهوية الوطنية لليتيم" },
+  { value: "BIRTH_CERTIFICATE",  label: "شهادة الميلاد لليتيم" },
+  { value: "DEATH_CERTIFICATE",  label: "شهادة وفاة الأب" },
+  { value: "MOTHER_ID",          label: "بطاقة الأم" },
+  { value: "GUARDIAN_ID",        label: "بطاقة هوية المعيل" },
+  { value: "ORPHAN_PHOTO_4X6",   label: "صورة شخصية 4×6 لليتيم" },
+  { value: "ORPHAN_PHOTO_10X15",  label: "صورة كاملة 10×15 لليتيم" },
   { value: "DISABILITY_CARD",    label: "بطاقة الإعاقة" },
   { value: "FIELD_PHOTO",        label: "صورة ميدانية" },
   { value: "MEDICAL_REPORT",     label: "تقرير طبي" },
@@ -55,6 +61,35 @@ const STEPS = [
   { id: 6, label: "الإخوة",            icon: Users },
   { id: 7, label: "المعرِّف والتسويق", icon: MapPin },
   { id: 8, label: "المستندات والمرفقات", icon: Paperclip },
+]
+
+const EDUCATIONAL_LEVELS: Record<string, string[]> = {
+  "ماقبل سن الدراسه": ["تمهيدي أول", "تمهيدي ثاني"],
+  "ابتدائي": ["الصف الأول", "الصف الثاني", "الصف الثالث", "الصف الرابع", "الصف الخامس", "الصف السادس"],
+  "أساسي": ["الصف السابع", "الصف الثامن", "الصف التاسع"],
+  "ثانوي": ["الصف العاشر (الأول الثانوي)", "الصف الحادي عشر (الثاني الثانوي)", "الصف الثاني عشر (الثالث الثانوي)"],
+  "جامعي": ["المستوى الأول", "المستوى الثاني", "المستوى الثالث", "المستوى الرابع", "المستوى الخامس", "المستوى السادس"],
+  "لايدرس": ["لا ينطبق"],
+}
+
+const EDUCATIONAL_NEEDS = ["رسوم", "زي", "حقيبة", "كتب", "دروس", "مواصلات", "احتياجات تقنية"]
+
+const QURAN_PARTS = [
+  "لا يوجد",
+  "جزء واحد",
+  "جزأين",
+  "3 أجزاء",
+  "4 أجزاء",
+  "5 أجزاء",
+  "6 أجزاء",
+  "7 أجزاء",
+  "8 أجزاء",
+  "9 أجزاء",
+  "10 أجزاء",
+  "15 جزءاً",
+  "20 جزءاً",
+  "25 جزءاً",
+  "القرآن كاملاً"
 ]
 
 // =============================================================================
@@ -79,12 +114,26 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   return <h4 className="text-xs font-extrabold text-emerald-400 border-b border-emerald-500/20 pb-1">{children}</h4>
 }
 
+function calculateAge(birthdateStr: string): string {
+  if (!birthdateStr) return "";
+  const birthDate = new Date(birthdateStr);
+  if (isNaN(birthDate.getTime())) return "";
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age >= 0 ? `${age} سنة` : "";
+}
+
 // =============================================================================
 // COMPONENT
 // =============================================================================
 
-export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan, trigger }: AddOrphanSheetProps) {
+export function AddOrphanSheet({ families = [], createdById, isMarketer, userRole, orphan, trigger }: AddOrphanSheetProps) {
   const isEditMode = !!orphan
+  const isSupervisor = userRole === "ADMIN" || userRole === "MANAGER"
 
   const [open, setOpen]       = useState(false)
   const [step, setStep]       = useState(1)
@@ -92,6 +141,18 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan,
   const [errorMsg, setErrorMsg]     = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const [geoStructure, setGeoStructure] = useState<any[]>([])
+
+  useEffect(() => {
+    if (open && geoStructure.length === 0) {
+      getGeoStructure().then(res => {
+        if (res.success && res.governorates) {
+          setGeoStructure(res.governorates)
+        }
+      })
+    }
+  }, [open, geoStructure.length])
 
   // ── Form State (مع تهيئة من بيانات اليتيم في وضع التعديل) ────────────────
   const [form, setForm] = useState({
@@ -107,7 +168,7 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan,
     gender:            orphan?.gender || "MALE",
     birthdate:         orphan?.birthdate ? new Date(orphan.birthdate).toISOString().split("T")[0] : "",
     nationalId:        orphan?.nationalId || "",
-    religion:          orphan?.religion || "",
+    religion:          orphan?.religion || "مسلم",
     fatherFullName:    orphan?.fatherFullName || "",
     motherName:        orphan?.motherName || "",
     educationLevel:    orphan?.educationLevel || "",
@@ -133,7 +194,7 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan,
     referrerName:      orphan?.referrerName || "",
     referrerPhone1:    orphan?.referrerPhone1 || "",
     referrerPhone2:    orphan?.referrerPhone2 || "",
-    marketedToOrg:     orphan?.marketedToOrg || "",
+    marketedToOrg:     orphan?.marketedToOrg || "مؤسسة اليتامى الخيرية التنموية",
     notes:             orphan?.notes || "",
   })
 
@@ -176,7 +237,7 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan,
     setNewFileType("NATIONAL_ID")
     setNewFileDesc("")
     if (!isEditMode) {
-      setForm({ familyId: "", orphanCode: "", kuraimiAccount: "", kuraimiAccountOld: "", kuraimiAccountHolder: "", mumaiyo: "", baitZakatNumber: "", fullName: "", shortName: "", gender: "MALE", birthdate: "", nationalId: "", religion: "", fatherFullName: "", motherName: "", educationLevel: "", schoolName: "", educationalStage: "", averageGrade: "", educationalNeeds: "", quranMemorization: "", healthStatus: "", disability: false, disabilityType: "", disabilityDetails: "", nutritionStatus: "", housingStatus: "", orphanType: "FATHER", fatherDeathDate: "", fatherDeathCause: "", motherDeathDate: "", birthGovernorate: "", birthDistrict: "", birthVillage: "", birthArea: "", referrerName: "", referrerPhone1: "", referrerPhone2: "", marketedToOrg: "", notes: "" })
+      setForm({ familyId: "", orphanCode: "", kuraimiAccount: "", kuraimiAccountOld: "", kuraimiAccountHolder: "", mumaiyo: "", baitZakatNumber: "", fullName: "", shortName: "", gender: "MALE", birthdate: "", nationalId: "", religion: "مسلم", fatherFullName: "", motherName: "", educationLevel: "", schoolName: "", educationalStage: "", averageGrade: "", educationalNeeds: "", quranMemorization: "", healthStatus: "", disability: false, disabilityType: "", disabilityDetails: "", nutritionStatus: "", housingStatus: "", orphanType: "FATHER", fatherDeathDate: "", fatherDeathCause: "", motherDeathDate: "", birthGovernorate: "", birthDistrict: "", birthVillage: "", birthArea: "", referrerName: "", referrerPhone1: "", referrerPhone2: "", marketedToOrg: "مؤسسة اليتامى الخيرية التنموية", notes: "" })
       setGuardians([{ fullName: "", nationalId: "", relation: "", occupation: "", phone1: "", phone2: "", phone3: "", phone4: "" }])
       setSiblings([])
     }
@@ -195,9 +256,9 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan,
       setErrorMsg("حجم الملف يتجاوز 5 ميغابايت")
       return
     }
-    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp", "application/pdf"]
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "application/pdf"]
     if (!allowedTypes.includes(file.type)) {
-      setErrorMsg("نوع الملف غير مدعوم. يُسمح بـ JPG, PNG, WEBP, PDF فقط")
+      setErrorMsg("نوع الملف غير مدعوم. يُسمح بـ JPG, JPEG, PNG, PDF فقط")
       return
     }
     setErrorMsg(null)
@@ -265,6 +326,15 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan,
     }
   }
 
+  const handleFullNameChange = (name: string) => {
+    const parts = name.trim().split(/\s+/)
+    let short = name
+    if (parts.length >= 3) {
+      short = `${parts[0]} ${parts[1]} ${parts[parts.length - 1]}`
+    }
+    setForm(prev => ({ ...prev, fullName: name, shortName: short }))
+  }
+
   // =============================================================================
   // RENDER STEPS
   // =============================================================================
@@ -275,8 +345,8 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan,
       // ── STEP 1: أرقام التعريف والحسابات ─────────────────────────────────────
       case 1: return (
         <div className="space-y-4">
-          {/* ربط الأسرة — مخفي للمسوق */}
-          {!isMarketer && (
+          {/* ربط الأسرة — للمشرفين فقط */}
+          {isSupervisor && (
             <>
               <SectionTitle>ربط الأسرة</SectionTitle>
               <FieldRow label="الأسرة التابع لها اليتيم" required>
@@ -288,19 +358,13 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan,
             </>
           )}
 
-          {/* أرقام التعريف — مخفية للمسوق */}
-          {!isMarketer && (
+          {/* أرقام التعريف — للمشرفين فقط */}
+          {isSupervisor && (
             <>
               <SectionTitle>أرقام التعريف (للمشرف فقط)</SectionTitle>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3">
                 <FieldRow label="رقم ملف اليتيم (كود)">
-                  <Input className={inputCls} placeholder="ORF-2026-001" value={form.orphanCode} onChange={e => setF("orphanCode", e.target.value)} />
-                </FieldRow>
-                <FieldRow label="رقم بيت الزكاة">
-                  <Input className={inputCls} placeholder="رقم الملف في بيت الزكاة" value={form.baitZakatNumber} onChange={e => setF("baitZakatNumber", e.target.value)} />
-                </FieldRow>
-                <FieldRow label="رقم المميو كريمي">
-                  <Input className={inputCls} placeholder="رقم المميو" value={form.mumaiyo} onChange={e => setF("mumaiyo", e.target.value)} />
+                  <Input className={inputCls} disabled value={isEditMode ? form.orphanCode : "تلقائي (سيتم توليده)"} />
                 </FieldRow>
               </div>
             </>
@@ -308,17 +372,17 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan,
 
           <SectionTitle>أرقام الحسابات</SectionTitle>
           <div className="grid grid-cols-2 gap-3">
-            <FieldRow label="رقم الكريمي الجديد">
-              <Input className={inputCls} placeholder="رقم حساب الكريمي" value={form.kuraimiAccount} onChange={e => setF("kuraimiAccount", e.target.value)} />
+            <FieldRow label="رقم الكريمي (حساب يمني)">
+              <Input className={inputCls} placeholder="رقم حساب الكريمي بالريال اليمني" value={form.kuraimiAccount} onChange={e => setF("kuraimiAccount", e.target.value)} />
             </FieldRow>
-            <FieldRow label="رقم الكريمي القديم">
-              <Input className={inputCls} placeholder="الرقم القديم إن وجد" value={form.kuraimiAccountOld} onChange={e => setF("kuraimiAccountOld", e.target.value)} />
+            <FieldRow label="رقم الكريمي (حساب سعودي)">
+              <Input className={inputCls} placeholder="رقم حساب الكريمي بالريال السعودي" value={form.kuraimiAccountOld} onChange={e => setF("kuraimiAccountOld", e.target.value)} />
             </FieldRow>
             <FieldRow label="اسم صاحب الحساب" required>
               <Input className={inputCls} placeholder="الاسم المسجّل في بنك الكريمي" value={form.kuraimiAccountHolder} onChange={e => setF("kuraimiAccountHolder", e.target.value)} />
             </FieldRow>
             <FieldRow label="رقم الميّز">
-              <Input className={inputCls} placeholder="رقم المميو كريمي" value={form.mumaiyo} onChange={e => setF("mumaiyo", e.target.value)} />
+              <Input className={inputCls} placeholder="رقم المميو كريمي" value={form.mumaiyo} onChange={setF ? e => setF("mumaiyo", e.target.value) : undefined} />
             </FieldRow>
           </div>
 
@@ -336,10 +400,10 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan,
           <SectionTitle>البيانات الشخصية</SectionTitle>
           <div className="grid grid-cols-2 gap-3">
             <FieldRow label="الاسم الكامل" required>
-              <Input className={inputCls} placeholder="الاسم الرباعي" value={form.fullName} onChange={e => setF("fullName", e.target.value)} />
+              <Input className={inputCls} placeholder="الاسم الرباعي" value={form.fullName} onChange={e => handleFullNameChange(e.target.value)} />
             </FieldRow>
             <FieldRow label="الاسم المختصر للكشوفات">
-              <Input className={inputCls} placeholder="اسم مختصر" value={form.shortName} onChange={e => setF("shortName", e.target.value)} />
+              <Input className={inputCls} disabled placeholder="يُقترح تلقائياً" value={form.shortName} />
             </FieldRow>
             <FieldRow label="الجنس" required>
               <select className={selectCls} value={form.gender} onChange={e => setF("gender", e.target.value)}>
@@ -350,11 +414,11 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan,
             <FieldRow label="تاريخ الميلاد" required>
               <Input type="date" className={inputCls} value={form.birthdate} onChange={e => setF("birthdate", e.target.value)} />
             </FieldRow>
-            <FieldRow label="رقم الهوية">
+            <FieldRow label="رقم الهوية (رقم شهادة ميلاد اليتيم)">
               <Input className={inputCls} placeholder="الرقم الوطني" value={form.nationalId} onChange={e => setF("nationalId", e.target.value)} />
             </FieldRow>
             <FieldRow label="الديانة">
-              <Input className={inputCls} placeholder="إسلام / مسيحي..." value={form.religion} onChange={e => setF("religion", e.target.value)} />
+              <Input className={inputCls} disabled value="مسلم" />
             </FieldRow>
             <FieldRow label="اسم الوالد رباعياً">
               <Input className={inputCls} placeholder="الاسم الكامل للأب" value={form.fatherFullName} onChange={e => setF("fatherFullName", e.target.value)} />
@@ -367,10 +431,32 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan,
           <SectionTitle>مكان الميلاد</SectionTitle>
           <div className="grid grid-cols-2 gap-3">
             <FieldRow label="المحافظة">
-              <Input className={inputCls} placeholder="محافظة الميلاد" value={form.birthGovernorate} onChange={e => setF("birthGovernorate", e.target.value)} />
+              <select
+                className={selectCls}
+                value={form.birthGovernorate}
+                onChange={e => {
+                  const govName = e.target.value
+                  setForm(prev => ({ ...prev, birthGovernorate: govName, birthDistrict: "" }))
+                }}
+              >
+                <option value="">{geoStructure.length === 0 ? "جاري تحميل المحافظات..." : "-- اختر المحافظة --"}</option>
+                {geoStructure.map(g => (
+                  <option key={g.id} value={g.nameAr}>{g.nameAr}</option>
+                ))}
+              </select>
             </FieldRow>
             <FieldRow label="المديرية">
-              <Input className={inputCls} placeholder="مديرية الميلاد" value={form.birthDistrict} onChange={e => setF("birthDistrict", e.target.value)} />
+              <select
+                className={selectCls}
+                value={form.birthDistrict}
+                onChange={e => setF("birthDistrict", e.target.value)}
+                disabled={!form.birthGovernorate}
+              >
+                <option value="">-- اختر المديرية --</option>
+                {(geoStructure.find(g => g.nameAr === form.birthGovernorate)?.districts || []).map((d: any) => (
+                  <option key={d.id} value={d.nameAr}>{d.nameAr}</option>
+                ))}
+              </select>
             </FieldRow>
             <FieldRow label="العزلة">
               <Input className={inputCls} placeholder="عزلة الميلاد" value={form.birthVillage} onChange={e => setF("birthVillage", e.target.value)} />
@@ -388,10 +474,35 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan,
           <SectionTitle>بيانات التعليم</SectionTitle>
           <div className="grid grid-cols-2 gap-3">
             <FieldRow label="المرحلة الدراسية">
-              <Input className={inputCls} placeholder="ابتدائي / ثانوي..." value={form.educationalStage} onChange={e => setF("educationalStage", e.target.value)} />
+              <select
+                className={selectCls}
+                value={form.educationalStage}
+                onChange={e => {
+                  setForm(p => ({
+                    ...p,
+                    educationalStage: e.target.value,
+                    educationLevel: ""
+                  }))
+                }}
+              >
+                <option value="">-- اختر المرحلة الدراسية --</option>
+                {Object.keys(EDUCATIONAL_LEVELS).map(stage => (
+                  <option key={stage} value={stage}>{stage}</option>
+                ))}
+              </select>
             </FieldRow>
             <FieldRow label="الصف الدراسي">
-              <Input className={inputCls} placeholder="مثال: الصف الثامن" value={form.educationLevel} onChange={e => setF("educationLevel", e.target.value)} />
+              <select
+                className={selectCls}
+                value={form.educationLevel}
+                onChange={e => setF("educationLevel", e.target.value)}
+                disabled={!form.educationalStage}
+              >
+                <option value="">-- اختر الصف الدراسي --</option>
+                {(EDUCATIONAL_LEVELS[form.educationalStage] || []).map(level => (
+                  <option key={level} value={level}>{level}</option>
+                ))}
+              </select>
             </FieldRow>
             <FieldRow label="اسم المدرسة">
               <Input className={inputCls} placeholder="المدرسة الحالية" value={form.schoolName} onChange={e => setF("schoolName", e.target.value)} />
@@ -400,32 +511,94 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan,
               <Input type="number" min="0" max="100" step="0.01" className={inputCls} placeholder="مثال: 95.5" value={form.averageGrade} onChange={e => setF("averageGrade", e.target.value)} />
             </FieldRow>
             <FieldRow label="الاحتياجات التعليمية">
-              <Input className={inputCls} placeholder="كتب، زي مدرسي، رسوم..." value={form.educationalNeeds} onChange={e => setF("educationalNeeds", e.target.value)} />
+              <select
+                className={selectCls}
+                value={form.educationalNeeds}
+                onChange={e => setF("educationalNeeds", e.target.value)}
+              >
+                <option value="">-- اختر الاحتياج --</option>
+                {EDUCATIONAL_NEEDS.map(need => (
+                  <option key={need} value={need}>{need}</option>
+                ))}
+                <option value="لا يوجد">لا يوجد</option>
+              </select>
             </FieldRow>
             <FieldRow label="مقدار الحفظ من القرآن">
-              <Input className={inputCls} placeholder="مثال: جزء عم، ربع..." value={form.quranMemorization} onChange={e => setF("quranMemorization", e.target.value)} />
+              <select
+                className={selectCls}
+                value={form.quranMemorization}
+                onChange={e => setF("quranMemorization", e.target.value)}
+              >
+                <option value="">-- اختر المقدار --</option>
+                {QURAN_PARTS.map(part => (
+                  <option key={part} value={part}>{part}</option>
+                ))}
+              </select>
             </FieldRow>
           </div>
 
           <SectionTitle>الحالة الصحية</SectionTitle>
           <div className="grid grid-cols-2 gap-3">
             <FieldRow label="الحالة الصحية العامة">
-              <Input className={inputCls} placeholder="سليم / مريض / ..." value={form.healthStatus} onChange={e => setF("healthStatus", e.target.value)} />
+              <select
+                className={selectCls}
+                value={form.healthStatus}
+                onChange={e => {
+                  const val = e.target.value
+                  if (val === "مريض") {
+                    setForm(p => ({
+                      ...p,
+                      healthStatus: val,
+                      disability: true
+                    }))
+                  } else if (val === "سليم") {
+                    setForm(p => ({
+                      ...p,
+                      healthStatus: val,
+                      disability: false,
+                      disabilityType: "",
+                      disabilityDetails: ""
+                    }))
+                  } else {
+                    setForm(p => ({
+                      ...p,
+                      healthStatus: "",
+                      disability: false,
+                      disabilityType: "",
+                      disabilityDetails: ""
+                    }))
+                  }
+                }}
+              >
+                <option value="">-- اختر الحالة --</option>
+                <option value="سليم">سليم</option>
+                <option value="مريض">مريض</option>
+              </select>
             </FieldRow>
-            <FieldRow label="هل يعاني من إعاقة؟">
-              <div className="flex items-center gap-2 h-9">
-                <input type="checkbox" id="dis" checked={form.disability} onChange={e => setF("disability", e.target.checked)} className="h-4 w-4 rounded" />
-                <label htmlFor="dis" className="text-xs text-slate-300 cursor-pointer">نعم، يوجد إعاقة</label>
-              </div>
-            </FieldRow>
-            {form.disability && <>
-              <FieldRow label="نوع الإعاقة">
-                <Input className={inputCls} placeholder="حركية / بصرية / ..." value={form.disabilityType} onChange={e => setF("disabilityType", e.target.value)} />
-              </FieldRow>
-              <FieldRow label="تفاصيل الإعاقة">
-                <Input className={inputCls} placeholder="تفاصيل إضافية" value={form.disabilityDetails} onChange={e => setF("disabilityDetails", e.target.value)} />
-              </FieldRow>
-            </>}
+            {form.disability && (
+              <>
+                <FieldRow label="نوع الإعاقة">
+                  <select
+                    className={selectCls}
+                    value={form.disabilityType}
+                    onChange={e => setF("disabilityType", e.target.value)}
+                  >
+                    <option value="">-- اختر نوع الإعاقة --</option>
+                    <option value="حركية">حركية</option>
+                    <option value="بصرية">بصرية</option>
+                    <option value="سمعية">سمعية</option>
+                    <option value="نطق وتخاطب">نطق وتخاطب</option>
+                    <option value="ذهنية">ذهنية</option>
+                    <option value="نفسية">نفسية</option>
+                    <option value="مرض مزمن">مرض مزمن</option>
+                    <option value="أخرى">أخرى</option>
+                  </select>
+                </FieldRow>
+                <FieldRow label="تفاصيل الإعاقة">
+                  <Input className={inputCls} placeholder="تفاصيل إضافية" value={form.disabilityDetails} onChange={e => setF("disabilityDetails", e.target.value)} />
+                </FieldRow>
+              </>
+            )}
           </div>
 
           <SectionTitle>البيانات المعيشية</SectionTitle>
@@ -508,33 +681,69 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan,
               بيانات المعيل الأول ستُستخدم تلقائياً لإنشاء ملف الأسرة إذا لم يكن مسجلاً مسبقاً.
             </div>
           )}
-          {guardians.map((g: typeof guardians[0], i: number) => (
-            <div key={i} className="border border-slate-700/60 rounded-xl p-3 space-y-3 bg-slate-900/20">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-emerald-400">{i === 0 ? "المعيل الأساسي" : "المعيل الثاني"}</span>
-              {i > 0 && <button onClick={() => setGuardians((p: typeof guardians) => p.filter((_: typeof guardians[0], j: number) => j !== i))} className="text-red-400 text-xs hover:text-red-300">حذف</button>}
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <FieldRow label="الاسم الكامل">
-                  <Input className={inputCls} placeholder="اسم المعيل" value={g.fullName} onChange={e => setGuardians((p: typeof guardians) => p.map((x: typeof guardians[0], j: number) => j === i ? { ...x, fullName: e.target.value } : x))} />
-                </FieldRow>
-                <FieldRow label="رقم الهوية">
-                  <Input className={inputCls} placeholder="رقم هوية المعيل" value={g.nationalId} onChange={e => setGuardians((p: typeof guardians) => p.map((x: typeof guardians[0], j: number) => j === i ? { ...x, nationalId: e.target.value } : x))} />
-                </FieldRow>
-                <FieldRow label="علاقته باليتيم">
-                  <Input className={inputCls} placeholder="أخ / عم / خال..." value={g.relation} onChange={e => setGuardians((p: typeof guardians) => p.map((x: typeof guardians[0], j: number) => j === i ? { ...x, relation: e.target.value } : x))} />
-                </FieldRow>
-                <FieldRow label="عمله">
-                  <Input className={inputCls} placeholder="المهنة" value={g.occupation} onChange={e => setGuardians((p: typeof guardians) => p.map((x: typeof guardians[0], j: number) => j === i ? { ...x, occupation: e.target.value } : x))} />
-                </FieldRow>
-                {["phone1", "phone2", "phone3", "phone4"].map((ph, pi) => (
-                  <FieldRow key={ph} label={`هاتف ${pi + 1}`}>
-                    <Input className={inputCls} placeholder={`رقم الهاتف ${pi + 1}`} value={(g as any)[ph]} onChange={e => setGuardians((p: typeof guardians) => p.map((x: typeof guardians[0], j: number) => j === i ? { ...x, [ph]: e.target.value } : x))} />
+          {guardians.map((g: typeof guardians[0], i: number) => {
+            const phoneLabels: Record<string, string> = {
+              phone1: "هاتف 1 (واتساب)",
+              phone2: "هاتف 2 (اتصال مباشر)",
+              phone3: "هاتف 3 (إضافي)",
+              phone4: "هاتف 4 (إضافي)",
+            }
+            return (
+              <div key={i} className="border border-slate-700/60 rounded-xl p-3 space-y-3 bg-slate-900/20">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-emerald-400">{i === 0 ? "المعيل الأساسي" : "المعيل الثاني"}</span>
+                  {i > 0 && <button onClick={() => setGuardians((p: typeof guardians) => p.filter((_: typeof guardians[0], j: number) => j !== i))} className="text-red-400 text-xs hover:text-red-300">حذف</button>}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <FieldRow label="الاسم الكامل">
+                    <Input className={inputCls} placeholder="اسم المعيل" value={g.fullName} onChange={e => setGuardians((p: typeof guardians) => p.map((x: typeof guardians[0], j: number) => j === i ? { ...x, fullName: e.target.value } : x))} />
                   </FieldRow>
-                ))}
+                  <FieldRow label="رقم الهوية">
+                    <Input className={inputCls} placeholder="رقم هوية المعيل" value={g.nationalId} onChange={e => setGuardians((p: typeof guardians) => p.map((x: typeof guardians[0], j: number) => j === i ? { ...x, nationalId: e.target.value } : x))} />
+                  </FieldRow>
+                  <FieldRow label="علاقته باليتيم">
+                    <select
+                      className={selectCls}
+                      value={g.relation}
+                      onChange={e => setGuardians((p: typeof guardians) => p.map((x: typeof guardians[0], j: number) => j === i ? { ...x, relation: e.target.value } : x))}
+                    >
+                      <option value="">-- اختر علاقة القرابة --</option>
+                      <option value="الأم">الأم</option>
+                      <option value="العم">العم</option>
+                      <option value="الخال">الخال</option>
+                      <option value="الجد">الجد</option>
+                      <option value="الجدة">الجدة</option>
+                      <option value="الأخ">الأخ</option>
+                      <option value="الأخت">الأخت</option>
+                      <option value="عمتي">عمتي</option>
+                      <option value="خالتي">خالتي</option>
+                      <option value="أخرى">أخرى</option>
+                    </select>
+                  </FieldRow>
+                  <FieldRow label="عمله">
+                    <select
+                      className={selectCls}
+                      value={g.occupation}
+                      onChange={e => setGuardians((p: typeof guardians) => p.map((x: typeof guardians[0], j: number) => j === i ? { ...x, occupation: e.target.value } : x))}
+                    >
+                      <option value="">-- اختر المهنة --</option>
+                      <option value="عاطل عن العمل">عاطل عن العمل</option>
+                      <option value="موظف حكومي">موظف حكومي</option>
+                      <option value="قطاع خاص">قطاع خاص</option>
+                      <option value="أعمال حرة">أعمال حرة</option>
+                      <option value="متقاعد">متقاعد</option>
+                      <option value="أخرى">أخرى</option>
+                    </select>
+                  </FieldRow>
+                  {["phone1", "phone2", "phone3", "phone4"].map(ph => (
+                    <FieldRow key={ph} label={phoneLabels[ph]}>
+                      <Input className={inputCls} placeholder={phoneLabels[ph]} value={(g as any)[ph]} onChange={e => setGuardians((p: typeof guardians) => p.map((x: typeof guardians[0], j: number) => j === i ? { ...x, [ph]: e.target.value } : x))} />
+                    </FieldRow>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )
 
@@ -574,7 +783,14 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan,
                   <Input className={inputCls} placeholder="دراسي / جامعي / ..." value={s.qualification} onChange={e => setSiblings(p => p.map((x, j) => j === i ? { ...x, qualification: e.target.value } : x))} />
                 </FieldRow>
                 <FieldRow label="تاريخ الميلاد">
-                  <Input type="date" className={inputCls} value={s.birthdate} onChange={e => setSiblings(p => p.map((x, j) => j === i ? { ...x, birthdate: e.target.value } : x))} />
+                  <div className="space-y-1">
+                    <Input type="date" className={inputCls} value={s.birthdate} onChange={e => setSiblings(p => p.map((x, j) => j === i ? { ...x, birthdate: e.target.value } : x))} />
+                    {s.birthdate && (
+                      <span className="text-[11px] text-slate-400 mt-1 block">
+                        العمر: {calculateAge(s.birthdate)}
+                      </span>
+                    )}
+                  </div>
                 </FieldRow>
                 <FieldRow label="الحالة الاجتماعية">
                   <Input className={inputCls} placeholder="أعزب / متزوج / ..." value={s.socialStatus} onChange={e => setSiblings(p => p.map((x, j) => j === i ? { ...x, socialStatus: e.target.value } : x))} />
@@ -593,10 +809,10 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan,
             <FieldRow label="اسم المعرِّف">
               <Input className={inputCls} placeholder="من عرّف اليتيم" value={form.referrerName} onChange={e => setF("referrerName", e.target.value)} />
             </FieldRow>
-            <FieldRow label="هاتف المعرِّف 1">
+            <FieldRow label="هاتف المعرِّف 1 (واتساب)">
               <Input className={inputCls} placeholder="رقم الهاتف" value={form.referrerPhone1} onChange={e => setF("referrerPhone1", e.target.value)} />
             </FieldRow>
-            <FieldRow label="هاتف المعرِّف 2">
+            <FieldRow label="هاتف المعرِّف 2 (اتصال مباشر)">
               <Input className={inputCls} placeholder="رقم هاتف بديل" value={form.referrerPhone2} onChange={e => setF("referrerPhone2", e.target.value)} />
             </FieldRow>
           </div>
@@ -604,7 +820,7 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan,
           <SectionTitle>التسويق والكفالة</SectionTitle>
           <div className="grid grid-cols-1 gap-3">
             <FieldRow label="الجهة المسوَّق لها">
-              <Input className={inputCls} placeholder="مثال: بيت الزكاة الكويتي" value={form.marketedToOrg} onChange={e => setF("marketedToOrg", e.target.value)} />
+              <Input className={inputCls} disabled placeholder="الجهة المسوق لها" value={form.marketedToOrg} />
             </FieldRow>
           </div>
         </div>
@@ -635,12 +851,12 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, orphan,
             >
               <Upload className="h-7 w-7" />
               <span className="text-xs font-bold">اضغط لاختيار ملف</span>
-              <span className="text-[10px] text-slate-500">JPG, PNG, WEBP, PDF — الحد الأقصى 5 ميغابايت</span>
+              <span className="text-[10px] text-slate-500">JPG, JPEG, PNG, PDF — الحد الأقصى 5 ميغابايت</span>
             </button>
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/jpeg,image/jpg,image/png,image/webp,application/pdf"
+              accept="image/jpeg,image/jpg,image/png,application/pdf"
               onChange={handleFileSelect}
               className="hidden"
             />

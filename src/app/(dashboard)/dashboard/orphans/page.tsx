@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { OrphansClient } from "./orphans-client"
 import { AddOrphanSheet } from "@/components/orphans/add-orphan-sheet"
 import { getAllTags } from "@/app/actions/tag-actions"
+import { getCurrentUser } from "@/app/actions/auth-actions"
 
 // =============================================================================
 // DATA FETCHING
@@ -61,6 +62,9 @@ async function getFamilies() {
 // =============================================================================
 
 export default async function OrphansPage() {
+  const currentUser = await getCurrentUser()
+  const isMarketer = currentUser?.role === "MARKETER"
+
   const [orphans, families, tagsResult] = await Promise.all([
     getOrphans(),
     getFamilies(),
@@ -78,7 +82,7 @@ export default async function OrphansPage() {
             استعراض وإدارة بيانات الأيتام المسجلين في النظام وتتبع حالات كفالتهم.
           </p>
         </div>
-        <AddOrphanSheet families={families} />
+        <AddOrphanSheet families={families} userRole={currentUser?.role} createdById={currentUser?.id} isMarketer={isMarketer} />
       </div>
 
       {/* ── Stats Summary ───────────────────────────────────────── */}
@@ -133,7 +137,13 @@ export default async function OrphansPage() {
       </div>
 
       {/* ── Interactive Orphans Client (Table, Filters, Detailed View Sheet) ── */}
-      <OrphansClient initialOrphans={orphans} allTags={allTags} families={families} />
+      <OrphansClient 
+        initialOrphans={orphans} 
+        allTags={allTags} 
+        families={families} 
+        currentUserRole={currentUser?.role} 
+        currentUserId={currentUser?.id} 
+      />
     </div>
   )
 }

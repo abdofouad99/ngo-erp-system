@@ -75,6 +75,10 @@ enum DocumentType {
   FIELD_PHOTO         // On-ground visit photo
   DELIVERY_PROOF      // Proof of aid delivery (signature/photo)
   MEDICAL_REPORT
+  MOTHER_ID           // Mother's national ID/card
+  GUARDIAN_ID         // Guardian's national ID/card
+  ORPHAN_PHOTO_4X6    // 4x6 portrait photo of the orphan
+  ORPHAN_PHOTO_10X15  // 10x15 full-length photo of the orphan
   OTHER
 }
 
