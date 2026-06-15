@@ -351,3 +351,107 @@ export async function rejectOrphan(id: string, reason: string, adminUserId?: str
     return { success: false, error: error.message || "فشلت عملية رفض اليتيم" }
   }
 }
+
+export async function sendBulkOrphanWhatsApp(orphanIds: string[], messageTemplate: string) {
+  try {
+    if (!orphanIds || orphanIds.length === 0) {
+      return { success: false, error: "لم يتم تحديد أي يتيم" }
+    }
+    if (!messageTemplate) {
+      return { success: false, error: "نص الرسالة فارغ" }
+    }
+
+    const orphans = await prisma.beneficiary.findMany({
+      where: {
+        id: { in: orphanIds },
+        category: BeneficiaryCategory.ORPHAN,
+        deletedAt: null
+      },
+      include: {
+        guardians: true,
+        family: true
+      }
+    })
+
+    const results = []
+
+    for (const orphan of orphans) {
+      let phone: string | null = null
+      let contactName: string | null = null
+      let source = ""
+
+      // Priority lookup:
+      // 1. Primary guardian WhatsApp (phone1 where isPrimary = true)
+      // 2. Head of family phone (headPhoneNumber)
+      // 3. Head of family alt phone (headAltPhone)
+      // 4. Primary guardian phone2
+      // 5. Any guardian phone1
+      const primaryGuardian = orphan.guardians.find(g => g.isPrimary)
+      if (primaryGuardian?.phone1) {
+        phone = primaryGuardian.phone1
+        contactName = primaryGuardian.fullName
+        source = "المعيل الأساسي (رقم 1)"
+      } else if (orphan.family.headPhoneNumber) {
+        phone = orphan.family.headPhoneNumber
+        contactName = orphan.family.headFullName
+        source = "رب الأسرة (الأساسي)"
+      } else if (orphan.family.headAltPhone) {
+        phone = orphan.family.headAltPhone
+        contactName = orphan.family.headFullName
+        source = "رب الأسرة (البديل)"
+      } else if (primaryGuardian?.phone2) {
+        phone = primaryGuardian.phone2
+        contactName = primaryGuardian.fullName
+        source = "المعيل الأساسي (رقم 2)"
+      } else {
+        const anyGuardian = orphan.guardians.find(g => g.phone1)
+        if (anyGuardian?.phone1) {
+          phone = anyGuardian.phone1
+          contactName = anyGuardian.fullName
+          source = `المعيل (${anyGuardian.fullName})`
+        }
+      }
+
+      if (!phone) {
+        results.push({
+          id: orphan.id,
+          name: orphan.fullName,
+          code: orphan.orphanCode,
+          phone: null,
+          contactName: null,
+          message: null,
+          status: "FAILED" as const,
+          reason: "لا يوجد رقم هاتف مسجل للمعيل أو رب الأسرة",
+          source: ""
+        })
+        continue
+      }
+
+      // Variable interpolation
+      const message = messageTemplate
+        .replace(/{name}/g, orphan.fullName)
+        .replace(/{code}/g, orphan.orphanCode || "غير محدد")
+        .replace(/{guardian}/g, contactName || "غير محدد")
+
+      const sent = await sendWhatsAppNotification(phone, message)
+
+      results.push({
+        id: orphan.id,
+        name: orphan.fullName,
+        code: orphan.orphanCode,
+        phone,
+        contactName,
+        message,
+        status: (sent ? "SUCCESS" : "FAILED") as "SUCCESS" | "FAILED",
+        reason: sent ? "تم الإرسال بنجاح" : "فشل الإرسال عبر خادم الواتساب (يرجى التأكد من تشغيل البوت محلياً)",
+        source
+      })
+    }
+
+    return { success: true, results }
+  } catch (error: any) {
+    console.error("Error in sendBulkOrphanWhatsApp:", error)
+    return { success: false, error: error.message || "حدث خطأ غير متوقع أثناء إرسال الرسائل الجماعية" }
+  }
+}
+

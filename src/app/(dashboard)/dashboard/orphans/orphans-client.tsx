@@ -11,6 +11,12 @@ import {
   Edit,
   Trash2,
   Loader2,
+  MessageSquare,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  Copy,
+  AlertCircle
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,8 +33,16 @@ import { Card, CardContent } from "@/components/ui/card"
 import { AddOrphanSheet } from "@/components/orphans/add-orphan-sheet"
 import { TagBadge, TagFilterPills, TagSelector } from "@/components/tags/tag-components"
 import type { TagData } from "@/components/tags/tag-components"
-import { approveOrphan, rejectOrphan, deleteOrphan } from "@/app/actions/orphan-actions"
+import { approveOrphan, rejectOrphan, deleteOrphan, sendBulkOrphanWhatsApp } from "@/app/actions/orphan-actions"
 import { exportToExcel } from "@/lib/excel-export"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet"
+import { Textarea } from "@/components/ui/textarea"
 
 
 // =============================================================================
@@ -153,8 +167,142 @@ export function OrphansClient({
   currentUserRole,
   currentUserId,
 }: OrphansClientProps) {
+  const orphans = initialOrphans as any[]
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedIds, setSelectedIds] = useState<string[]>([])
+
+  const [isBulkMessageOpen, setIsBulkMessageOpen] = useState(false)
+  const [messageTemplate, setMessageTemplate] = useState("يرجى حضور معيل اليتيم {name} (كود: {code}) إلى مقر المؤسسة لاستلام المساعدات المالية والغذائية في أقرب وقت. شكراً لكم.")
+  const [isSending, setIsSending] = useState(false)
+  const [isRetryingBrowser, setIsRetryingBrowser] = useState(false)
+  const [sendResults, setSendResults] = useState<{
+    successCount: number
+    failCount: number
+    details: {
+      id: string
+      name: string
+      code: string | null
+      phone: string | null
+      contactName: string | null
+      message: string | null
+      status: "SUCCESS" | "FAILED"
+      reason: string
+      source?: string
+    }[]
+  } | null>(null)
+
+  const firstSelectedOrphan = selectedIds.length > 0
+    ? orphans.find(o => o.id === selectedIds[0])
+    : null
+
+  const getLivePreview = () => {
+    if (!firstSelectedOrphan) return ""
+    
+    let contactName = "غير محدد"
+    const primaryGuardian = firstSelectedOrphan.guardians?.find((g: any) => g.isPrimary)
+    if (primaryGuardian?.phone1) {
+      contactName = primaryGuardian.fullName
+    } else if (firstSelectedOrphan.family?.headPhoneNumber) {
+      contactName = firstSelectedOrphan.family.headFullName
+    } else if (firstSelectedOrphan.family?.headAltPhone) {
+      contactName = firstSelectedOrphan.family.headFullName
+    } else if (primaryGuardian?.phone2) {
+      contactName = primaryGuardian.fullName
+    } else {
+      const anyGuardian = firstSelectedOrphan.guardians?.find((g: any) => g.phone1)
+      if (anyGuardian) {
+        contactName = anyGuardian.fullName
+      }
+    }
+
+    return messageTemplate
+      .replace(/{name}/g, firstSelectedOrphan.fullName)
+      .replace(/{code}/g, firstSelectedOrphan.orphanCode || "غير محدد")
+      .replace(/{guardian}/g, contactName)
+  }
+
+  const handleSendBulkMessages = async () => {
+    if (selectedIds.length === 0) return
+    setIsSending(true)
+    setSendResults(null)
+    try {
+      const res = await sendBulkOrphanWhatsApp(selectedIds, messageTemplate)
+      if (res.success && res.results) {
+        const successCount = res.results.filter(r => r.status === "SUCCESS").length
+        const failCount = res.results.filter(r => r.status === "FAILED").length
+        setSendResults({
+          successCount,
+          failCount,
+          details: res.results
+        })
+      } else {
+        alert(res.error || "فشل إرسال الرسائل الجماعية")
+      }
+    } catch (err) {
+      console.error(err)
+      alert("حدث خطأ غير متوقع أثناء عملية الإرسال.")
+    } finally {
+      setIsSending(false)
+    }
+  }
+
+  const handleSendFailedViaBrowser = async () => {
+    if (!sendResults) return
+    const failedItems = sendResults.details.filter(d => d.status === "FAILED" && d.phone)
+    if (failedItems.length === 0) return
+    
+    setIsRetryingBrowser(true)
+    const newDetails = [...sendResults.details]
+    let successCount = sendResults.successCount
+    let failCount = sendResults.failCount
+
+    for (const item of failedItems) {
+      if (!item.phone || !item.message) continue
+      
+      let cleaned = item.phone.replace(/\D/g, "")
+      if (cleaned.startsWith("0")) {
+        cleaned = "967" + cleaned.substring(1)
+      } else if (cleaned.length === 9) {
+        cleaned = "967" + cleaned
+      }
+
+      try {
+        const response = await fetch("http://127.0.0.1:5005/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone: cleaned, message: item.message }),
+          mode: "cors"
+        })
+
+        const detailIndex = newDetails.findIndex(d => d.id === item.id)
+        if (response.ok) {
+          if (detailIndex !== -1 && newDetails[detailIndex].status === "FAILED") {
+            newDetails[detailIndex].status = "SUCCESS"
+            newDetails[detailIndex].reason = "تم الإرسال بنجاح عبر المتصفح"
+            successCount++
+            failCount--
+          }
+        } else {
+          if (detailIndex !== -1) {
+            newDetails[detailIndex].reason = `فشل الإرسال عبر المتصفح (رمز: ${response.status})`
+          }
+        }
+      } catch (err) {
+        console.error("Browser direct send error:", err)
+        const detailIndex = newDetails.findIndex(d => d.id === item.id)
+        if (detailIndex !== -1) {
+          newDetails[detailIndex].reason = "تعذر الاتصال بالبوت المحلي من المتصفح (تأكد من تشغيل البوت)"
+        }
+      }
+    }
+
+    setSendResults({
+      successCount,
+      failCount,
+      details: newDetails
+    })
+    setIsRetryingBrowser(false)
+  }
 
   const handleSelectRow = (id: string) => {
     setSelectedIds(prev =>
@@ -277,8 +425,7 @@ export function OrphansClient({
     }
   }
 
-  // Cast initial orphans to local typed array
-  const orphans = initialOrphans as any[]
+  // Cast initial orphans to local typed array (moved to top)
 
   // Tags filtered by category
   const operationalTags = allTags.filter((t) => t.category === "ORPHAN_OPERATIONAL_STATUS")
@@ -490,6 +637,20 @@ export function OrphansClient({
                 </Button>
               </div>
 
+              {/* Bulk Message Button */}
+              {selectedIds.length > 0 && (
+                <Button
+                  onClick={() => {
+                    setSendResults(null)
+                    setIsBulkMessageOpen(true)
+                  }}
+                  className="rounded-xl px-4 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white gap-2 transition-all duration-300 h-9 active:scale-[0.98] border border-emerald-500/30"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  <span>إرسال رسالة جماعية ({selectedIds.length})</span>
+                </Button>
+              )}
+
               {/* Export Button */}
               <Button
                 onClick={handleExportSelected}
@@ -694,6 +855,226 @@ export function OrphansClient({
           </Table>
         </div>
       </Card>
+
+      {/* ── Bulk Messaging Sheet ──────────────────────────────────── */}
+      <Sheet open={isBulkMessageOpen} onOpenChange={setIsBulkMessageOpen}>
+        <SheetContent
+          className="w-full sm:max-w-2xl bg-slate-950/95 border-l border-white/10 text-white overflow-y-auto text-right p-6"
+          dir="rtl"
+        >
+          <SheetHeader className="text-right space-y-2 mb-6">
+            <SheetTitle className="text-xl font-bold text-white flex items-center gap-2 justify-start">
+              <MessageSquare className="h-5 w-5 text-emerald-500" />
+              <span>إرسال رسائل جماعية عبر الواتساب</span>
+            </SheetTitle>
+            <SheetDescription className="text-sm text-slate-400">
+              إرسال رسالة جماعية مخصصة إلى ({selectedIds.length}) من الأيتام/الأسر المحددة. سيقوم النظام باستبدال المتغيرات تلقائياً لكل مستلم.
+            </SheetDescription>
+          </SheetHeader>
+
+          {/* Form / Report Toggle */}
+          {!sendResults ? (
+            <div className="space-y-6">
+              {/* Variables Instructions */}
+              <div className="bg-slate-900/60 border border-white/5 rounded-xl p-4 space-y-3">
+                <h4 className="text-xs font-bold text-slate-300">المتغيرات المتاحة للاستخدام في الرسالة:</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  <div 
+                    onClick={() => setMessageTemplate(prev => prev + " {name}")}
+                    className="cursor-pointer bg-slate-950 hover:bg-slate-800/80 border border-white/5 rounded-lg p-2 text-center transition-all duration-200"
+                  >
+                    <code className="text-emerald-400 font-mono text-xs block">{`{name}`}</code>
+                    <span className="text-[10px] text-slate-400 mt-1 block">اسم اليتيم الكامل</span>
+                  </div>
+                  <div 
+                    onClick={() => setMessageTemplate(prev => prev + " {code}")}
+                    className="cursor-pointer bg-slate-950 hover:bg-slate-800/80 border border-white/5 rounded-lg p-2 text-center transition-all duration-200"
+                  >
+                    <code className="text-emerald-400 font-mono text-xs block">{`{code}`}</code>
+                    <span className="text-[10px] text-slate-400 mt-1 block">كود ملف اليتيم</span>
+                  </div>
+                  <div 
+                    onClick={() => setMessageTemplate(prev => prev + " {guardian}")}
+                    className="cursor-pointer bg-slate-950 hover:bg-slate-800/80 border border-white/5 rounded-lg p-2 text-center transition-all duration-200"
+                  >
+                    <code className="text-emerald-400 font-mono text-xs block">{`{guardian}`}</code>
+                    <span className="text-[10px] text-slate-400 mt-1 block">اسم المستلم (المعيل/رب الأسرة)</span>
+                  </div>
+                </div>
+                <p className="text-[10px] text-slate-400 text-center">
+                  💡 انقر على أي متغير أعلاه لإضافته مباشرة إلى نهاية نص الرسالة.
+                </p>
+              </div>
+
+              {/* Message Template Textarea */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-300 block">نص الرسالة (القالب):</label>
+                <Textarea
+                  value={messageTemplate}
+                  onChange={(e) => setMessageTemplate(e.target.value)}
+                  placeholder="اكتب نص الرسالة هنا..."
+                  className="min-h-[140px] bg-slate-900/40 border-white/10 text-white placeholder-slate-500 focus-visible:ring-emerald-500/50 focus-visible:border-emerald-500/50 resize-y text-right text-sm"
+                />
+              </div>
+
+              {/* Live Preview Card */}
+              {firstSelectedOrphan && (
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-300 block">معاينة حية لشكل الرسالة (لليتيم الأول):</label>
+                  <div className="bg-slate-900/40 border border-white/5 rounded-xl p-4 space-y-3 relative overflow-hidden">
+                    <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-slate-950/80 px-2 py-0.5 rounded-full border border-white/5">
+                      <span className="text-[9px] font-bold text-emerald-400">معاينة</span>
+                    </div>
+                    {/* Chat Bubble Simulation */}
+                    <div className="flex flex-col gap-1 items-start mt-2">
+                      <div className="bg-emerald-950/40 border border-emerald-500/20 text-slate-200 p-3.5 rounded-2xl rounded-tr-none max-w-[90%] text-sm leading-relaxed text-right relative">
+                        <p className="whitespace-pre-line">{getLivePreview()}</p>
+                        <span className="text-[9px] text-slate-400 block text-left mt-1.5">الآن</span>
+                      </div>
+                      <span className="text-[10px] text-slate-400 mt-1 pr-2">
+                        سيتم إرسالها إلى: <span className="font-bold text-white">{firstSelectedOrphan.fullName}</span> (المستلم: {
+                          firstSelectedOrphan.guardians?.find((g: any) => g.isPrimary)?.fullName || firstSelectedOrphan.family?.headFullName || "غير محدد"
+                        })
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Submit Buttons */}
+              <div className="flex items-center gap-3 pt-4 border-t border-white/5">
+                <Button
+                  onClick={handleSendBulkMessages}
+                  disabled={isSending || !messageTemplate.trim()}
+                  className="flex-1 rounded-xl h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm gap-2 transition-all duration-300 active:scale-[0.98]"
+                >
+                  {isSending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>جاري إرسال الرسائل...</span>
+                    </>
+                  ) : (
+                    <>
+                      <MessageSquare className="h-4 w-4" />
+                      <span>بدء الإرسال الجماعي ({selectedIds.length} رسالة)</span>
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={() => setIsBulkMessageOpen(false)}
+                  variant="outline"
+                  className="rounded-xl h-11 border-white/10 hover:bg-white/5 text-slate-300"
+                >
+                  إلغاء
+                </Button>
+              </div>
+            </div>
+          ) : (
+            /* Results & Report View */
+            <div className="space-y-6">
+              {/* Summary Stats Card */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-center">
+                  <span className="text-2xl font-bold text-emerald-400 block tabular-nums">{sendResults.successCount}</span>
+                  <span className="text-xs text-emerald-500/70 font-semibold mt-1 block">رسائل نجحت</span>
+                </div>
+                <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-center">
+                  <span className="text-2xl font-bold text-rose-400 block tabular-nums">{sendResults.failCount}</span>
+                  <span className="text-xs text-rose-500/70 font-semibold mt-1 block">رسائل فشلت</span>
+                </div>
+              </div>
+
+              {/* Browser direct send trigger (if there are failures) */}
+              {sendResults.failCount > 0 && (
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 space-y-3">
+                  <div className="flex items-start gap-2 justify-start">
+                    <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-bold text-amber-400">فشل في إرسال بعض الرسائل</h4>
+                      <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                        قد يرجع ذلك لعدم اتصال الخادم بالبوت المحلي (الواتساب) أو عدم وجود رقم هاتف. يمكنك محاولة إرسال الرسائل الفاشلة مباشرة من متصفحك الحالي عبر البوت المحلي.
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={handleSendFailedViaBrowser}
+                    disabled={isRetryingBrowser || sendResults.details.filter(d => d.status === "FAILED" && d.phone).length === 0}
+                    className="w-full rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs h-9 gap-2 transition-all duration-300"
+                  >
+                    {isRetryingBrowser ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>جاري المحاولة عبر المتصفح...</span>
+                      </>
+                    ) : (
+                      <>
+                        <MessageSquare className="h-4 w-4" />
+                        <span>محاولة إرسال الأرقام الفاشلة عبر المتصفح</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+
+              {/* Detailed Results List */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-bold text-slate-300 block">تفاصيل نتائج الإرسال:</h4>
+                <div className="border border-white/5 rounded-xl overflow-hidden divide-y divide-white/5 bg-slate-900/20 max-h-[300px] overflow-y-auto">
+                  {sendResults.details.map((item) => (
+                    <div key={item.id} className="p-3 flex items-center justify-between text-xs hover:bg-white/5 transition-colors">
+                      <div className="space-y-1 text-right">
+                        <span className="font-bold text-white block">{item.name}</span>
+                        <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                          {item.phone ? (
+                            <span className="font-mono">{item.phone}</span>
+                          ) : (
+                            <span className="text-rose-400">بدون هاتف</span>
+                          )}
+                          {item.source && (
+                            <span className="bg-slate-950 px-1.5 py-0.5 rounded border border-white/5 text-[9px] text-slate-500">
+                              {item.source}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {item.status === "SUCCESS" ? (
+                          <Badge className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 gap-1 rounded-lg py-0.5 px-2">
+                            <CheckCircle2 className="h-3 w-3" />
+                            <span>مكتمل</span>
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-rose-500/10 border border-rose-500/20 text-rose-400 gap-1 rounded-lg py-0.5 px-2">
+                            <XCircle className="h-3 w-3" />
+                            <span>فشل</span>
+                          </Badge>
+                        )}
+                        <span className="text-[10px] text-slate-400 max-w-[120px] truncate" title={item.reason}>
+                          {item.reason}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Close Button */}
+              <div className="pt-4 border-t border-white/5">
+                <Button
+                  onClick={() => {
+                    setIsBulkMessageOpen(false)
+                    setSelectedIds([])
+                    setSendResults(null)
+                  }}
+                  className="w-full rounded-xl h-11 bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm"
+                >
+                  إغلاق وتفريغ التحديد
+                </Button>
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
 
     </div>
   )
