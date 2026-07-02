@@ -36,6 +36,49 @@ function cleanInt(raw: any): number | null {
   return isNaN(n) ? null : n
 }
 
+async function withRetry<T>(fn: () => Promise<T>, retries = 3, delayMs = 1500): Promise<T> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn()
+    } catch (err: any) {
+      const isConnectionError = err?.message?.includes("Server has closed") ||
+        err?.message?.includes("Can't reach") ||
+        err?.message?.includes("Connection refused") ||
+        err?.code === "P1001" || err?.code === "P1017"
+      if (isConnectionError && attempt < retries) {
+        console.warn(`⚠️ Connection error, retrying in ${delayMs}ms (attempt ${attempt + 1}/${retries})...`)
+        await new Promise(r => setTimeout(r, delayMs))
+        continue
+      }
+      throw err
+    }
+  }
+  throw new Error("Max retries exceeded")
+}async function pMap<T, R>(items: T[], limit: number, fn: (item: T, index: number) => Promise<R>): Promise<R[]> {
+  const results: R[] = []
+  const promises: Promise<void>[] = []
+  let index = 0
+
+  async function worker() {
+    while (index < items.length) {
+      const currIndex = index++
+      const item = items[currIndex]
+      try {
+        results[currIndex] = await fn(item, currIndex)
+      } catch (err) {
+        // preserve error to handle in main loop
+        results[currIndex] = err as any
+      }
+    }
+  }
+
+  for (let i = 0; i < Math.min(limit, items.length); i++) {
+    promises.push(worker())
+  }
+  await Promise.all(promises)
+  return results
+}
+
 function mapGender(raw: any): "MALE" | "FEMALE" | null {
   const s = cleanString(raw)
   if (!s) return null
@@ -46,7 +89,7 @@ function mapGender(raw: any): "MALE" | "FEMALE" | null {
 
 function mapOrphanType(raw: any): string {
   const s = cleanString(raw) || ""
-  if (s.includes("أبوين") || s.includes("ابوين")) return "BOTH_PARENTS"
+  if (s.includes("أبوين") || s.includes("ابوين")) return "BOTH"
   if (s.includes("الأم") || s.includes("الام")) return "MOTHER"
   return "FATHER" // most common default
 }
@@ -67,25 +110,81 @@ async function main() {
   console.log(`📋 Found ${dataRows.length} valid orphan rows to import.`)
 
   // Get or create system admin user for createdBy
-  let adminUser = await prisma.user.findFirst({ where: { role: "ADMIN" } })
+  let adminUser = await withRetry(() => prisma.user.findFirst({ where: { role: "ADMIN" } }))
   if (!adminUser) {
     console.error("❌ No admin user found. Please create one first.")
     process.exit(1)
   }
 
   // Get or create a default SubDistrict for orphans (required by Family)
-  let defaultSubDistrict = await prisma.subDistrict.findFirst()
+  let defaultSubDistrict = await withRetry(() => prisma.subDistrict.findFirst())
   if (!defaultSubDistrict) {
     console.error("❌ No SubDistrict found in the database. Please seed location data first.")
     process.exit(1)
   }
 
+  console.log("📥 Loading existing database records into memory cache...")
+  const sponsors = await withRetry(() => prisma.sponsor.findMany())
+  const sponsorMap = new Map<string, any>(sponsors.map(s => [s.organization || s.fullName, s]))
+
+  const families = await withRetry(() => prisma.family.findMany({ where: { headNationalId: { startsWith: "IMPORT-FAM-" } } }))
+  const familyMap = new Map<string, any>(families.map(f => [f.headNationalId, f]))
+
+  const beneficiaries = await withRetry(() => prisma.beneficiary.findMany({ where: { category: "ORPHAN" } }))
+  const beneficiaryMap = new Map<string, any>(beneficiaries.map(b => [b.orphanCode || "", b]))
+
+  const guardians = await withRetry(() => prisma.guardian.findMany())
+  const guardianSet = new Set<string>(guardians.map(g => `${g.beneficiaryId}_${g.fullName}`))
+
+  const sponsorships = await withRetry(() => prisma.sponsorship.findMany())
+  const sponsorshipSet = new Set<string>(sponsorships.map(s => `${s.sponsorId}_${s.beneficiaryId}`))
+
+  const tags = await withRetry(() => prisma.tag.findMany())
+  const tagMap = new Map<string, any>(tags.map(t => [t.nameAr, t]))
+
+  const beneficiaryTags = await withRetry(() => prisma.beneficiaryTag.findMany())
+  const benTagSet = new Set<string>(beneficiaryTags.map(bt => `${bt.beneficiaryId}_${bt.tagId}`))
+  console.log(`✅ Loaded ${sponsors.length} sponsors, ${families.length} families, ${beneficiaries.length} orphans, ${tags.length} tags into memory.`)
+
+  // ── Pre-create Sponsors & Tags to avoid parallel duplicates ───────────
+  console.log("🚀 Pre-creating sponsors & tags...")
+  const uniqueSponsorNames = Array.from(new Set(dataRows.map(row => cleanString(row[4])).filter(Boolean) as string[]))
+  for (const name of uniqueSponsorNames) {
+    let sponsor = sponsorMap.get(name)
+    if (!sponsor) {
+      sponsor = await prisma.sponsor.create({
+        data: {
+          fullName: name,
+          organization: name,
+          country: "SA"
+        }
+      })
+      sponsorMap.set(name, sponsor)
+    }
+  }
+
+  const uniqueTags = Array.from(new Set(dataRows.map(row => cleanString(row[19])).filter(Boolean) as string[]))
+  for (const name of uniqueTags) {
+    let tag = tagMap.get(name)
+    if (!tag) {
+      tag = await prisma.tag.create({
+        data: {
+          nameAr: name,
+          category: "ORPHAN_OPERATIONAL_STATUS",
+          color: "#6366f1"
+        }
+      })
+      tagMap.set(name, tag)
+    }
+  }
+  console.log("✅ Pre-creation finished.")
+
   let successCount = 0
   let skipCount = 0
   let errorCount = 0
 
-  for (let i = 0; i < dataRows.length; i++) {
-    const row = dataRows[i]
+  await pMap(dataRows, 5, async (row, i) => {
+    if (errorCount > 30) return
 
     try {
       // ── Extract all columns ──────────────────────────────────────────────
@@ -153,7 +252,7 @@ async function main() {
 
       if (!fullName) {
         skipCount++
-        continue
+        return
       }
 
       // Determine final orphanCode
@@ -167,185 +266,200 @@ async function main() {
           })
         }
         successCount++
-        continue
+        return
       }
+      await withRetry(async () => {
+        // ── Step 1: Find or create Sponsor ──────────────────────────────────
+        let sponsor = null
+        if (sponsorOrgName) {
+          sponsor = sponsorMap.get(sponsorOrgName)
+          if (!sponsor) {
+            sponsor = await prisma.sponsor.create({
+              data: {
+                fullName: sponsorOrgName,
+                organization: sponsorOrgName,
+                country: "SA"
+              }
+            })
+            sponsorMap.set(sponsorOrgName, sponsor)
+          }
+        }
 
-      // ── Step 1: Find or create Sponsor ──────────────────────────────────
-      let sponsor = null
-      if (sponsorOrgName) {
-        sponsor = await prisma.sponsor.findFirst({
-          where: { organization: sponsorOrgName }
-        })
-        if (!sponsor) {
-          sponsor = await prisma.sponsor.create({
+        // ── Step 2: Create Family record (Idempotent by deterministic headNationalId) ──────────────────────────
+        const familyHeadName = fatherName || guardianName || fullName || `أسرة-${i}`
+        const fakeNationalId = `IMPORT-FAM-${finalOrphanCode}`
+        let family = familyMap.get(fakeNationalId)
+        if (!family) {
+          family = await prisma.family.create({
             data: {
-              fullName: sponsorOrgName,
-              organization: sponsorOrgName,
-              country: "SA"
+              headFullName: familyHeadName,
+              headNationalId: fakeNationalId,
+              subDistrictId: defaultSubDistrict!.id,
+              guardianName: guardianName,
+              guardianRelation: guardianRel,
+              guardianPhone: phone1,
+              createdById: adminUser!.id,
             }
           })
+          familyMap.set(fakeNationalId, family)
         }
-      }
 
-      // ── Step 2: Create Family record ────────────────────────────────────
-      // headNationalId must be unique — use a generated value based on row index + orphan code
-      const familyHeadName = fatherName || guardianName || fullName || `أسرة-${i}`
-      const fakeNationalId = `IMPORT-${Date.now()}-${i}`
-      const family = await prisma.family.create({
-        data: {
-          headFullName: familyHeadName,
-          headNationalId: fakeNationalId,
-          subDistrictId: defaultSubDistrict!.id,
-          guardianName: guardianName,
-          guardianRelation: guardianRel,
-          guardianPhone: phone1,
-          createdById: adminUser!.id,
+        // ── Step 3: Create Beneficiary (Orphan) (Idempotent by finalOrphanCode) ───────────────────────────
+        let beneficiary = beneficiaryMap.get(finalOrphanCode)
+        if (!beneficiary) {
+          beneficiary = await prisma.beneficiary.create({
+            data: {
+              fullName: fullName!,
+              gender: gender || "MALE",
+              birthdate: birthdate || new Date("2010-01-01"),
+              religion: religion,
+              category: "ORPHAN",
+              familyId: family.id,
+              createdById: adminUser!.id,
+
+              // Identification
+              orphanCode: finalOrphanCode,
+              kuraimiAccount: codeSaudi,
+              mumaiyo: codeMumaiyo,
+
+              // Education
+              educationLevel: educLevel,
+              schoolName: schoolName,
+              schoolGrade: schoolGrade,
+              educationDropoutReason: dropoutReason,
+              quranMemorization: quranMemorize,
+              prayerCommitment: prayer,
+              aspirations: aspirations,
+
+              // Health
+              healthStatus: healthStatus,
+              disabilityType: diseaseType,
+              disability: !!(diseaseType && diseaseType !== "لايوجد" && diseaseType !== "لا يوجد" && diseaseType !== "سليم"),
+
+              // Living
+              nutritionStatus: nutrition,
+              housingStatus: housing,
+
+              // Orphan info
+              orphanType: mapOrphanType(orphanTypeRaw || "") as any,
+              fatherFullName: fatherName,
+              fatherDeathDate: fatherDeathDate,
+              fatherDeathCause: fatherDeathCause,
+              motherName: motherName,
+
+              // Birth location
+              birthGovernorate: birthGov,
+              birthDistrict: birthDist,
+              birthVillage: birthVillage,
+              birthArea: birthArea,
+
+              // Current location
+              currentGovernorate: currentGov,
+              currentDistrict: currentDist,
+              currentArea: currentArea,
+              currentAddressFull: currentAddrFull,
+
+              // Siblings count
+              siblingsMaleCount: siblingsMale,
+              siblingsFemaleCount: siblingsFemale,
+              siblingsTotal: siblingsTotal,
+
+              verificationStatus: "APPROVED",
+              isActive: true,
+            }
+          })
+          beneficiaryMap.set(finalOrphanCode, beneficiary)
+        }
+
+        // ── Step 4: Create Guardian (Idempotent) ──────────────────────────────────────────
+        if (guardianName) {
+          const guardianKey = `${beneficiary.id}_${guardianName}`
+          if (!guardianSet.has(guardianKey)) {
+            await prisma.guardian.create({
+              data: {
+                beneficiaryId: beneficiary.id,
+                fullName: guardianName,
+                relation: guardianRel,
+                occupation: guardianJob,
+                incomeType: incomeType,
+                incomeSufficiency: incomeSuff,
+                phone1: phone1,
+                phone2: phone2,
+                phone3: phone3,
+                isPrimary: true,
+              }
+            })
+            guardianSet.add(guardianKey)
+          }
+        }
+
+        // ── Step 5: Create Sponsorship (Idempotent) ───────────────────────────────────────
+        if (sponsor && sponsorAmount && sponsorAmount > 0) {
+          const sponsorshipKey = `${sponsor.id}_${beneficiary.id}`
+          if (!sponsorshipSet.has(sponsorshipKey)) {
+            await prisma.sponsorship.create({
+              data: {
+                sponsorId: sponsor.id,
+                beneficiaryId: beneficiary.id,
+                amount: sponsorAmount,
+                currency: "KWD" as any,
+                paymentCycle: "MONTHLY",
+                status: "ACTIVE",
+                createdById: adminUser!.id,
+
+                // Months
+                sponsorshipMonths: sponsorMonths,
+
+                // KWD breakdown
+                shareOrphanKWD: shareOrphanKWD,
+                shareOrgKWD: shareOrgKWD,
+                totalAmountKWD: totalKWD,
+
+                // SAR breakdown
+                shareOrphanSAR: shareOrphanSAR,
+                shareOrgSAR: shareOrgSAR,
+                totalAmountSAR: totalSAR,
+
+                // Shares
+                orphanShare: orphanShare,
+                orphanShareRounded: orphanShareRnd,
+                houseShare: houseShare,
+              }
+            })
+            sponsorshipSet.add(sponsorshipKey)
+          }
+        }
+
+        // ── Step 6: Create Tag for classification ────────────────────────────
+        if (classification) {
+          let tag = tagMap.get(classification)
+          if (!tag) {
+            tag = await prisma.tag.create({ data: { nameAr: classification, category: "ORPHAN_OPERATIONAL_STATUS", color: "#6366f1" } })
+            tagMap.set(classification, tag)
+          }
+          const benTagKey = `${beneficiary.id}_${tag.id}`
+          if (!benTagSet.has(benTagKey)) {
+            await prisma.beneficiaryTag.create({
+              data: {
+                beneficiaryId: beneficiary.id,
+                tagId: tag.id,
+              }
+            }).catch(() => {}) // ignore duplicate
+            benTagSet.add(benTagKey)
+          }
         }
       })
-
-      // ── Step 3: Create Beneficiary (Orphan) ─────────────────────────────
-      const beneficiary = await prisma.beneficiary.create({
-        data: {
-          fullName: fullName!,
-          gender: gender || "MALE",
-          birthdate: birthdate || new Date("2010-01-01"),
-          religion: religion,
-          category: "ORPHAN",
-          familyId: family.id,
-          createdById: adminUser!.id,
-
-          // Identification
-          orphanCode: finalOrphanCode,
-          kuraimiAccount: codeSaudi,
-          mumaiyo: codeMumaiyo,
-
-          // Education
-          educationLevel: educLevel,
-          schoolName: schoolName,
-          schoolGrade: schoolGrade,
-          educationDropoutReason: dropoutReason,
-          quranMemorization: quranMemorize,
-          prayerCommitment: prayer,
-          aspirations: aspirations,
-
-          // Health
-          healthStatus: healthStatus,
-          disabilityType: diseaseType,
-          disability: !!(diseaseType && diseaseType !== "لايوجد" && diseaseType !== "لا يوجد" && diseaseType !== "سليم"),
-
-          // Living
-          nutritionStatus: nutrition,
-          housingStatus: housing,
-
-          // Orphan info
-          orphanType: mapOrphanType(orphanTypeRaw || "") as any,
-          fatherFullName: fatherName,
-          fatherDeathDate: fatherDeathDate,
-          fatherDeathCause: fatherDeathCause,
-          motherName: motherName,
-
-          // Birth location
-          birthGovernorate: birthGov,
-          birthDistrict: birthDist,
-          birthVillage: birthVillage,
-          birthArea: birthArea,
-
-          // Current location
-          currentGovernorate: currentGov,
-          currentDistrict: currentDist,
-          currentArea: currentArea,
-          currentAddressFull: currentAddrFull,
-
-          // Siblings count
-          siblingsMaleCount: siblingsMale,
-          siblingsFemaleCount: siblingsFemale,
-          siblingsTotal: siblingsTotal,
-
-          verificationStatus: "APPROVED",
-          isActive: true,
-        }
-      })
-
-      // ── Step 4: Create Guardian ──────────────────────────────────────────
-      if (guardianName) {
-        await prisma.guardian.create({
-          data: {
-            beneficiaryId: beneficiary.id,
-            fullName: guardianName,
-            relation: guardianRel,
-            occupation: guardianJob,
-            incomeType: incomeType,
-            incomeSufficiency: incomeSuff,
-            phone1: phone1,
-            phone2: phone2,
-            phone3: phone3,
-            isPrimary: true,
-          }
-        })
-      }
-
-      // ── Step 5: Create Sponsorship ───────────────────────────────────────
-      if (sponsor && sponsorAmount && sponsorAmount > 0) {
-        await prisma.sponsorship.create({
-          data: {
-            sponsorId: sponsor.id,
-            beneficiaryId: beneficiary.id,
-            amount: sponsorAmount,
-            currency: "KWD" as any,
-            paymentCycle: "MONTHLY",
-            status: "ACTIVE",
-            createdById: adminUser!.id,
-
-            // Months
-            sponsorshipMonths: sponsorMonths,
-
-            // KWD breakdown
-            shareOrphanKWD: shareOrphanKWD,
-            shareOrgKWD: shareOrgKWD,
-            totalAmountKWD: totalKWD,
-
-            // SAR breakdown
-            shareOrphanSAR: shareOrphanSAR,
-            shareOrgSAR: shareOrgSAR,
-            totalAmountSAR: totalSAR,
-
-            // Shares
-            orphanShare: orphanShare,
-            orphanShareRounded: orphanShareRnd,
-            houseShare: houseShare,
-          }
-        })
-      }
-
-      // ── Step 6: Create Tag for classification ────────────────────────────
-      if (classification) {
-        let tag = await prisma.tag.findFirst({ where: { nameAr: classification } })
-        if (!tag) {
-          tag = await prisma.tag.create({ data: { nameAr: classification, category: "ORPHAN" as any, color: "#6366f1" } })
-        }
-        await prisma.beneficiaryTag.create({
-          data: {
-            beneficiaryId: beneficiary.id,
-            tagId: tag.id,
-          }
-        }).catch(() => {}) // ignore duplicate
-      }
-
       successCount++
 
-      if (successCount % 100 === 0) {
+      if (successCount % 20 === 0) {
         console.log(`✅ Imported ${successCount}/${dataRows.length}...`)
       }
 
     } catch (err: any) {
       errorCount++
       console.error(`❌ Error on row ${i + 4} (${cleanString(row[20])}): ${err.message}`)
-      if (errorCount > 20) {
-        console.error("Too many errors. Stopping.")
-        break
-      }
     }
-  }
+  })
 
   console.log("\n🎉 Import completed!")
   console.log(JSON.stringify({ successCount, skipCount, errorCount }, null, 2))
