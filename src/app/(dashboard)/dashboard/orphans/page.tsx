@@ -65,11 +65,9 @@ export default async function OrphansPage() {
   const currentUser = await getCurrentUser()
   const isMarketer = currentUser?.role === "MARKETER"
 
-  const [orphans, families, tagsResult] = await Promise.all([
-    getOrphans(),
-    getFamilies(),
-    getAllTags(),
-  ])
+  const orphans = await getOrphans()
+  const families = await getFamilies()
+  const tagsResult = await getAllTags()
   const allTags = tagsResult.success ? tagsResult.tags || [] : []
 
   return (
