@@ -86,6 +86,7 @@ enum Currency {
   USD
   EUR
   SAR // Saudi Riyal
+  KWD // Kuwaiti Dinar
   TRY // Turkish Lira
   IQD // Iraqi Dinar
   SYP // Syrian Pound
@@ -280,12 +281,16 @@ model Beneficiary {
   baitZakatNumber     String?          // رقم بيت الزكاة
 
   // --- Education ---
-  educationLevel    String?
-  schoolName        String?
-  educationalStage  String?
-  averageGrade      Float?
-  educationalNeeds  String?
-  quranMemorization String?  // مقدار الحفظ من القرآن
+  educationLevel         String?
+  schoolName             String?
+  educationalStage       String?
+  schoolGrade            String?  // الصف الدراسي
+  averageGrade           Float?
+  educationalNeeds       String?
+  educationDropoutReason String?  // سبب عدم الدراسة
+  quranMemorization      String?  // مقدار الحفظ من القرآن
+  prayerCommitment       String?  // الالتزام بالصلاة: ملتزم / غير ملتزم
+  aspirations            String?  // هويات / طموحات اليتيم
 
   // --- Health ---
   healthStatus      String?
@@ -310,6 +315,17 @@ model Beneficiary {
   birthDistrict     String?  // مديرية الميلاد
   birthVillage      String?  // عزلة الميلاد
   birthArea         String?  // منطقة الميلاد
+
+  // --- Current Residence ---
+  currentGovernorate  String?  // محافظة السكن الحالي
+  currentDistrict     String?  // مديرية السكن الحالي
+  currentArea         String?  // منطقة السكن الحالي
+  currentAddressFull  String?  // السكن الحالي العام (نص كامل)
+
+  // --- Siblings Count (from Excel summary) ---
+  siblingsMaleCount   Int?  // عدد الإخوة الذكور
+  siblingsFemaleCount Int?  // عدد الأخوات الإناث
+  siblingsTotal       Int?  // إجمالي الإخوة
 
   // --- Referrer (المعرِّف) ---
   referrerName      String?
@@ -362,15 +378,17 @@ model Guardian {
   beneficiary   Beneficiary @relation(fields: [beneficiaryId], references: [id], onDelete: Cascade)
   beneficiaryId String
 
-  fullName      String       // اسم المعيل
-  nationalId    String?      // رقم الهوية
-  relation      String?      // علاقته باليتيم
-  occupation    String?      // عمله
-  phone1        String?
-  phone2        String?
-  phone3        String?
-  phone4        String?
-  isPrimary     Boolean      @default(true) // المعيل الأساسي؟
+  fullName          String       // اسم المعيل
+  nationalId        String?      // رقم الهوية
+  relation          String?      // علاقته باليتيم
+  occupation        String?      // عمله
+  incomeType        String?      // نوع الدخل: ثابت / متغير
+  incomeSufficiency String?      // كفاية الدخل: يكفي / لا يكفي
+  phone1            String?
+  phone2            String?
+  phone3            String?
+  phone4            String?
+  isPrimary         Boolean      @default(true) // المعيل الأساسي؟
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -532,6 +550,18 @@ model Sponsorship {
   // --- Timeline ---
   startDate    DateTime      @default(now())
   endDate      DateTime?     // Null means open-ended
+
+  // --- Financial Breakdown (from Excel كشف الكفالات) ---
+  sponsorshipMonths  Int?              // عدد الأشهر
+  shareOrphanKWD     Decimal?  @db.Decimal(12, 4)  // لليتيم بالدينار الكويتي
+  shareOrgKWD        Decimal?  @db.Decimal(12, 4)  // للجهة بالدينار الكويتي
+  totalAmountKWD     Decimal?  @db.Decimal(12, 4)  // الإجمالي بالدينار الكويتي
+  shareOrphanSAR     Decimal?  @db.Decimal(12, 4)  // لليتيم بالريال السعودي
+  shareOrgSAR        Decimal?  @db.Decimal(12, 4)  // للجهة بالريال السعودي
+  totalAmountSAR     Decimal?  @db.Decimal(12, 4)  // الإجمالي بالريال السعودي
+  orphanShare        Decimal?  @db.Decimal(12, 6)  // حصة اليتيم (محسوبة)
+  orphanShareRounded Decimal?  @db.Decimal(12, 2)  // حصة اليتيم بالتقريب
+  houseShare         Decimal?  @db.Decimal(12, 4)  // حصة الدار
 
   sponsorCountry   String?
   sponsorshipNotes String?

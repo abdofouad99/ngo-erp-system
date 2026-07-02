@@ -59,6 +59,17 @@ type Sponsorship = {
   status: string
   sponsorCountry: string | null
   sponsorshipNotes: string | null
+  // تفاصيل التوزيع المالي
+  sponsorshipMonths: number | null
+  shareOrphanKWD: any | null
+  shareOrgKWD: any | null
+  totalAmountKWD: any | null
+  shareOrphanSAR: any | null
+  shareOrgSAR: any | null
+  totalAmountSAR: any | null
+  orphanShare: any | null
+  orphanShareRounded: any | null
+  houseShare: any | null
   sponsor: Sponsor
 }
 
@@ -103,9 +114,13 @@ type Orphan = {
   educationLevel: string | null
   schoolName: string | null
   educationalStage: string | null
+  schoolGrade: string | null
   averageGrade: number | null
   educationalNeeds: string | null
+  educationDropoutReason: string | null
   quranMemorization: string | null
+  prayerCommitment: string | null
+  aspirations: string | null
   // صحة
   healthStatus: string | null
   disabilityType: string | null
@@ -126,6 +141,15 @@ type Orphan = {
   birthDistrict: string | null
   birthVillage: string | null
   birthArea: string | null
+  // السكن الحالي
+  currentGovernorate: string | null
+  currentDistrict: string | null
+  currentArea: string | null
+  currentAddressFull: string | null
+  // الإخوة
+  siblingsMaleCount: number | null
+  siblingsFemaleCount: number | null
+  siblingsTotal: number | null
   // معرِّف
   referrerName: string | null
   referrerPhone1: string | null
@@ -142,7 +166,7 @@ type Orphan = {
   // علاقات
   family: Family
   sponsorships: Sponsorship[]
-  guardians?: { id: string; fullName: string; nationalId: string | null; relation: string | null; occupation: string | null; phone1: string | null; phone2: string | null; phone3: string | null; phone4: string | null; isPrimary: boolean }[]
+  guardians?: { id: string; fullName: string; nationalId: string | null; relation: string | null; occupation: string | null; incomeType: string | null; incomeSufficiency: string | null; phone1: string | null; phone2: string | null; phone3: string | null; phone4: string | null; isPrimary: boolean }[]
   siblings?: { id: string; fullName: string; qualification: string | null; birthdate: Date | null; socialStatus: string | null; gender: string | null; siblingOrder: number }[]
 }
 
@@ -501,7 +525,7 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
                       </div>
                       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                         <p className="text-xs text-gray-400 font-semibold mb-1">الصف الدراسي</p>
-                        <p className="text-sm font-bold text-white">{renderValue(orphan.educationLevel)}</p>
+                        <p className="text-sm font-bold text-white">{renderValue(orphan.schoolGrade || orphan.educationLevel)}</p>
                       </div>
                       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                         <p className="text-xs text-gray-400 font-semibold mb-1">اسم المدرسة</p>
@@ -511,7 +535,13 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
                         <p className="text-xs text-gray-400 font-semibold mb-1">مقدار الحفظ من القرآن</p>
                         <p className="text-sm font-bold text-white">{renderValue(orphan.quranMemorization)}</p>
                       </div>
-                      {/* حقول مضافة حديثاً */}
+                      {orphan.educationDropoutReason && (
+                        <div className="rounded-xl border border-amber-500/20 bg-amber-950/10 p-3.5 col-span-1 sm:col-span-2">
+                          <p className="text-xs text-amber-400 font-semibold mb-1">سبب عدم الدراسة</p>
+                          <p className="text-sm font-bold text-amber-200">{orphan.educationDropoutReason}</p>
+                        </div>
+                      )}
+                      {/* حقل مضاف حديثاً */}
                       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                         <p className="text-xs text-gray-400 font-semibold mb-1">المعدل الدراسي (%)</p>
                         <p className="text-sm font-bold text-emerald-400 font-mono tabular-nums">
@@ -521,6 +551,25 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
                       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                         <p className="text-xs text-gray-400 font-semibold mb-1">الاحتياجات التعليمية</p>
                         <p className="text-sm font-bold text-white">{renderValue(orphan.educationalNeeds)}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator className="bg-slate-850" />
+
+                  {/* القيم الدينية والسلوكية */}
+                  <div>
+                    <h3 className="text-sm font-bold text-purple-400 mb-3 flex items-center gap-1.5">
+                      <span className="text-base">💎</span> القيم الدينية والسلوكية
+                    </h3>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <div className="rounded-xl border border-purple-500/20 bg-purple-950/10 p-3.5">
+                        <p className="text-xs text-purple-300 font-semibold mb-1">الالتزام بالصلاة</p>
+                        <p className="text-sm font-bold text-white">{renderValue(orphan.prayerCommitment)}</p>
+                      </div>
+                      <div className="rounded-xl border border-purple-500/20 bg-purple-950/10 p-3.5">
+                        <p className="text-xs text-purple-300 font-semibold mb-1">هوايات / طموحات اليتيم</p>
+                        <p className="text-sm font-bold text-white">{renderValue(orphan.aspirations)}</p>
                       </div>
                     </div>
                   </div>
@@ -585,6 +634,54 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
                       ))}
                     </div>
                   </div>
+
+                  <Separator className="bg-slate-850" />
+
+                  {/* السكن الحالي */}
+                  <div>
+                    <h3 className="text-sm font-bold text-blue-400 mb-3 flex items-center gap-1.5">
+                      <MapPin className="h-4 w-4" /> مكان السكن الحالي
+                    </h3>
+                    {orphan.currentAddressFull && (
+                      <div className="rounded-xl border border-blue-500/20 bg-blue-950/10 p-3 mb-3">
+                        <p className="text-xs text-blue-300 font-semibold mb-1">العنوان الكامل</p>
+                        <p className="text-sm font-bold text-white">{orphan.currentAddressFull}</p>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                      {[["المحافظة الحالية", orphan.currentGovernorate], ["المديرية الحالية", orphan.currentDistrict], ["المنطقة الحالية", orphan.currentArea]].map(([label, val]) => (
+                        <div key={label as string} className="rounded-xl border border-slate-800 bg-slate-900/40 p-3">
+                          <p className="text-xs text-gray-400 font-semibold mb-1">{label as string}</p>
+                          <p className="text-xs font-bold text-white">{renderValue(val)}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Separator className="bg-slate-850" />
+
+                  {/* ملخص الإخوة من الكشف */}
+                  {(orphan.siblingsTotal !== null || orphan.siblingsMaleCount !== null) && (
+                    <div>
+                      <h3 className="text-sm font-bold text-emerald-400 mb-3 flex items-center gap-1.5">
+                        <Users className="h-4 w-4" /> ملخص عدد الإخوة
+                      </h3>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="rounded-xl border border-blue-500/20 bg-blue-950/10 p-3.5 text-center">
+                          <p className="text-2xl font-black text-blue-400 tabular-nums">{orphan.siblingsMaleCount ?? 0}</p>
+                          <p className="text-xs text-gray-400 mt-1">ذكور</p>
+                        </div>
+                        <div className="rounded-xl border border-pink-500/20 bg-pink-950/10 p-3.5 text-center">
+                          <p className="text-2xl font-black text-pink-400 tabular-nums">{orphan.siblingsFemaleCount ?? 0}</p>
+                          <p className="text-xs text-gray-400 mt-1">إناث</p>
+                        </div>
+                        <div className="rounded-xl border border-slate-500/20 bg-slate-900/40 p-3.5 text-center">
+                          <p className="text-2xl font-black text-white tabular-nums">{orphan.siblingsTotal ?? 0}</p>
+                          <p className="text-xs text-gray-400 mt-1">الإجمالي</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <Separator className="bg-slate-850" />
 
@@ -724,7 +821,7 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
                               {g.isPrimary ? "المعيل الأساسي والقانوني" : `معيل احتياطي (${i + 1})`}
                             </p>
                             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                              {[["الاسم الكامل", g.fullName], ["رقم الهوية", g.nationalId], ["العلاقة", g.relation], ["المهنة", g.occupation], ["هاتف 1", g.phone1], ["هاتف 2", g.phone2], ["هاتف 3", g.phone3], ["هاتف 4", g.phone4]].filter(([, v]) => v).map(([label, val]) => (
+                              {[["الاسم الكامل", g.fullName], ["رقم الهوية", g.nationalId], ["العلاقة", g.relation], ["المهنة", g.occupation], ["نوع الدخل", g.incomeType], ["كفاية الدخل", g.incomeSufficiency], ["هاتف 1", g.phone1], ["هاتف 2", g.phone2], ["هاتف 3", g.phone3], ["هاتف 4", g.phone4]].filter(([, v]) => v).map(([label, val]) => (
                                 <div key={label as string} className="rounded-lg bg-slate-950/45 p-2">
                                   <p className="text-[10px] text-gray-400 mb-0.5">{label as string}</p>
                                   <p className="text-xs font-semibold text-white font-mono">{val as string}</p>
