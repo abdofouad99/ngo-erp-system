@@ -319,6 +319,7 @@ async function main() {
 
               // Identification
               orphanCode: finalOrphanCode,
+              kuraimiAccountYemeni: codeYemeni,
               kuraimiAccount: codeSaudi,
               mumaiyo: codeMumaiyo,
 

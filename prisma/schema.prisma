@@ -273,12 +273,14 @@ model Beneficiary {
   // --- Classification ---
   category    BeneficiaryCategory
 
-  orphanCode          String?  @unique // رقم ملف اليتيم
-  kuraimiAccount      String?          // رقم حساب الكريمي الجديد
-  kuraimiAccountOld   String?          // رقم حساب الكريمي القديم
-  kuraimiAccountHolder String?         // اسم صاحب حساب الكريمي
-  mumaiyo             String?          // رقم المميو كريمي
-  baitZakatNumber     String?          // رقم بيت الزكاة
+  orphanCode           String?  @unique // رقم ملف اليتيم
+  kuraimiAccountYemeni String?          // رقم حساب الكريمي اليمني
+  kuraimiAccount       String?          // رقم حساب الكريمي الجديد
+  kuraimiAccountOld    String?          // رقم حساب الكريمي القديم
+  kuraimiAccountHolder String?          // اسم صاحب حساب الكريمي
+  mumaiyo              String?          // رقم المميو كريمي
+  baitZakatNumber      String?          // رقم بيت الزكاة
+
 
   // --- Education ---
   educationLevel         String?

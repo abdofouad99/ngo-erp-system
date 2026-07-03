@@ -105,6 +105,7 @@ type Orphan = {
   category: string
   // حسابات
   orphanCode: string | null
+  kuraimiAccountYemeni: string | null
   kuraimiAccount: string | null
   kuraimiAccountOld: string | null
   kuraimiAccountHolder: string | null
@@ -938,30 +939,36 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
                     <h3 className="text-sm font-bold text-emerald-400 mb-3 flex items-center gap-1.5">
                       <CreditCard className="h-4 w-4" /> الحسابات المالية وتفاصيل الصرف
                     </h3>
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                       <div className="rounded-xl border border-emerald-500/20 bg-emerald-950/10 p-3.5">
-                        <p className="text-xs text-emerald-400 font-semibold mb-1">حساب الكريمي الجديد</p>
+                        <p className="text-xs text-emerald-400 font-semibold mb-1">حساب الكريمي اليمني (العمود 1)</p>
+                        <p className="text-sm font-mono font-bold text-white tabular-nums">{renderValue(orphan.kuraimiAccountYemeni)}</p>
+                      </div>
+                      <div className="rounded-xl border border-emerald-500/20 bg-emerald-950/10 p-3.5">
+                        <p className="text-xs text-emerald-400 font-semibold mb-1">حساب الكريمي السعودي (العمود 2)</p>
                         <p className="text-sm font-mono font-bold text-white tabular-nums">{renderValue(orphan.kuraimiAccount)}</p>
+                      </div>
+                      <div className="rounded-xl border border-emerald-500/20 bg-emerald-950/10 p-3.5">
+                        <p className="text-xs text-emerald-400 font-semibold mb-1">رقم المميز / المميو (العمود 3)</p>
+                        <p className="text-sm font-mono font-bold text-white tabular-nums">{renderValue(orphan.mumaiyo)}</p>
+                      </div>
+                      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
+                        <p className="text-xs text-gray-400 font-semibold mb-1">رقم ملف اليتيم (العمود 16)</p>
+                        <p className="text-sm font-mono font-bold text-white tabular-nums">{renderValue(orphan.orphanCode)}</p>
+                      </div>
+                      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
+                        <p className="text-xs text-gray-400 font-semibold mb-1">اسم صاحب حساب الكريمي</p>
+                        <p className="text-sm font-bold text-white truncate">{renderValue(orphan.kuraimiAccountHolder)}</p>
                       </div>
                       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                         <p className="text-xs text-gray-400 font-semibold mb-1">حساب الكريمي القديم</p>
                         <p className="text-sm font-mono font-bold text-white tabular-nums">{renderValue(orphan.kuraimiAccountOld)}</p>
                       </div>
-                      {/* حقل مضاف حديثاً */}
-                      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
-                        <p className="text-xs text-gray-400 font-semibold mb-1">اسم صاحب حساب الكريمي</p>
-                        <p className="text-sm font-bold text-white">{renderValue(orphan.kuraimiAccountHolder)}</p>
-                      </div>
-                      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
-                        <p className="text-xs text-gray-400 font-semibold mb-1">رقم المميو (كريمي مميز)</p>
-                        <p className="text-sm font-mono font-bold text-white tabular-nums">{renderValue(orphan.mumaiyo)}</p>
-                      </div>
                       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                         <p className="text-xs text-gray-400 font-semibold mb-1">رقم بيت الزكاة</p>
                         <p className="text-sm font-mono font-bold text-white tabular-nums">{renderValue(orphan.baitZakatNumber)}</p>
                       </div>
-                      
-                      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
+                      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5 col-span-1 sm:col-span-2">
                         <p className="text-xs text-gray-400 font-semibold mb-1">المسؤول عن مراجعة وتدقيق الملف</p>
                         <p className="text-sm font-bold text-white">{renderValue(orphan.verifiedBy || "لم يتم التحديد بعد")}</p>
                       </div>
@@ -992,11 +999,17 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
                               <Badge className="bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/20 text-xs">نشطة</Badge>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 pt-2">
+                            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 pt-2">
                               <div>
-                                <p className="text-xs text-gray-400 font-semibold">قيمة الكفالة</p>
+                                <p className="text-xs text-gray-400 font-semibold">قيمة الكفالة الشهرية</p>
                                 <p className="text-sm font-bold text-emerald-400 font-mono tabular-nums">
                                   {Number(spons.amount).toLocaleString("ar-YE")} {spons.currency}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-400 font-semibold">عدد أشهر الكفالة</p>
+                                <p className="text-sm font-bold text-white tabular-nums">
+                                  {spons.sponsorshipMonths ? `${spons.sponsorshipMonths} أشهر` : "—"}
                                 </p>
                               </div>
                               <div>
@@ -1011,11 +1024,82 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
                                 </p>
                               </div>
                             </div>
-                            
+
+                            <Separator className="bg-slate-850 my-2" />
+
+                            <div className="space-y-3">
+                              <h4 className="text-xs font-bold text-blue-400">توزيع مبالغ الكفالة بالعملات (من كشف البيانات الشامل)</h4>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* KWD Breakdown Card */}
+                                <div className="rounded-xl border border-blue-500/10 bg-blue-950/5 p-3 space-y-2">
+                                  <p className="text-xs font-bold text-blue-400 border-b border-blue-500/10 pb-1 flex justify-between">
+                                    <span>الكفالة بالدينار الكويتي (KWD)</span>
+                                    <span>د.ك</span>
+                                  </p>
+                                  <div className="grid grid-cols-3 gap-2 text-center">
+                                    <div>
+                                      <p className="text-[10px] text-gray-400">لليتيم</p>
+                                      <p className="text-xs font-bold text-white font-mono">{spons.shareOrphanKWD ? `${Number(spons.shareOrphanKWD).toLocaleString("ar-YE")} د.ك` : "—"}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-[10px] text-gray-400">للجهة</p>
+                                      <p className="text-xs font-bold text-white font-mono">{spons.shareOrgKWD ? `${Number(spons.shareOrgKWD).toLocaleString("ar-YE")} د.ك` : "—"}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-[10px] text-gray-400">الإجمالي</p>
+                                      <p className="text-xs font-bold text-emerald-400 font-mono">{spons.totalAmountKWD ? `${Number(spons.totalAmountKWD).toLocaleString("ar-YE")} د.ك` : "—"}</p>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* SAR Breakdown Card */}
+                                <div className="rounded-xl border border-amber-500/10 bg-amber-950/5 p-3 space-y-2">
+                                  <p className="text-xs font-bold text-amber-400 border-b border-amber-500/10 pb-1 flex justify-between">
+                                    <span>الكفالة بالريال السعودي (SAR)</span>
+                                    <span>ر.س</span>
+                                  </p>
+                                  <div className="grid grid-cols-3 gap-2 text-center">
+                                    <div>
+                                      <p className="text-[10px] text-gray-400">لليتيم</p>
+                                      <p className="text-xs font-bold text-white font-mono">{spons.shareOrphanSAR ? `${Number(spons.shareOrphanSAR).toLocaleString("ar-YE")} ر.س` : "—"}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-[10px] text-gray-400">للجهة</p>
+                                      <p className="text-xs font-bold text-white font-mono">{spons.shareOrgSAR ? `${Number(spons.shareOrgSAR).toLocaleString("ar-YE")} ر.س` : "—"}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-[10px] text-gray-400">الإجمالي</p>
+                                      <p className="text-xs font-bold text-emerald-400 font-mono">{spons.totalAmountSAR ? `${Number(spons.totalAmountSAR).toLocaleString("ar-YE")} ر.س` : "—"}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <Separator className="bg-slate-850 my-2" />
+
+                            <div className="space-y-2">
+                              <h4 className="text-xs font-bold text-pink-400">حصص ونسب الصرف المعتمدة (بالريال السعودي)</h4>
+                              <div className="grid grid-cols-3 gap-3 text-center">
+                                <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-2.5">
+                                  <p className="text-[10px] text-gray-400">حصة اليتيم الفعلية</p>
+                                  <p className="text-xs font-bold text-white font-mono mt-1">{spons.orphanShare ? Number(spons.orphanShare).toLocaleString("ar-YE") : "—"}</p>
+                                </div>
+                                <div className="rounded-xl border border-slate-800 bg-slate-950 p-2.5">
+                                  <p className="text-[10px] text-pink-400 font-bold">حصة اليتيم بالتقريب</p>
+                                  <p className="text-sm font-black text-white font-mono mt-1">{spons.orphanShareRounded ? `${Number(spons.orphanShareRounded).toLocaleString("ar-YE")} ر.س` : "—"}</p>
+                                </div>
+                                <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-2.5">
+                                  <p className="text-[10px] text-gray-400">حصة الدار</p>
+                                  <p className="text-xs font-bold text-white font-mono mt-1">{spons.houseShare ? `${Number(spons.houseShare).toLocaleString("ar-YE")} ر.س` : "—"}</p>
+                                </div>
+                              </div>
+                            </div>
+
                             {spons.sponsorshipNotes && (
-                              <div className="bg-slate-955 p-2 rounded-lg text-xs border border-slate-850">
-                                <p className="text-slate-500 font-semibold mb-0.5">ملاحظات الكفالة:</p>
-                                <p className="text-slate-350">{spons.sponsorshipNotes}</p>
+                              <div className="bg-slate-955 p-2.5 rounded-xl text-xs border border-slate-850">
+                                <p className="text-slate-400 font-bold mb-0.5">ملاحظات الكفالة:</p>
+                                <p className="text-slate-300">{spons.sponsorshipNotes}</p>
                               </div>
                             )}
                           </div>
