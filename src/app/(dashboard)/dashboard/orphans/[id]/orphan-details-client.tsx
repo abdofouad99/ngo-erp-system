@@ -169,6 +169,7 @@ type Orphan = {
   sponsorships: Sponsorship[]
   guardians?: { id: string; fullName: string; nationalId: string | null; relation: string | null; occupation: string | null; incomeType: string | null; incomeSufficiency: string | null; phone1: string | null; phone2: string | null; phone3: string | null; phone4: string | null; isPrimary: boolean }[]
   siblings?: { id: string; fullName: string; qualification: string | null; birthdate: Date | null; socialStatus: string | null; gender: string | null; siblingOrder: number }[]
+  tags?: { tag: { id: string; nameAr: string; color: string } }[]
 }
 
 interface OrphanDetailsClientProps {
@@ -420,7 +421,16 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {orphan.tags && orphan.tags.map((bt) => (
+              <Badge
+                key={bt.tag.id}
+                style={{ backgroundColor: `${bt.tag.color}20`, borderColor: `${bt.tag.color}40`, color: bt.tag.color }}
+                className="border px-3 py-1 text-xs font-bold rounded-xl"
+              >
+                {bt.tag.nameAr}
+              </Badge>
+            ))}
             {orphan.verificationStatus === "APPROVED" && (
               <Badge className="bg-emerald-500/20 text-emerald-350 border border-emerald-500/30 px-3 py-1 text-xs font-bold rounded-xl">
                 ✓ معتمد ومقبول
