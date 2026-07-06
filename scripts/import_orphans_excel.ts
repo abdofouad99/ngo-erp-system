@@ -325,6 +325,7 @@ async function main() {
 
               // Education
               educationLevel: educLevel,
+              educationalStage: educLevel,
               schoolName: schoolName,
               schoolGrade: schoolGrade,
               educationDropoutReason: dropoutReason,
