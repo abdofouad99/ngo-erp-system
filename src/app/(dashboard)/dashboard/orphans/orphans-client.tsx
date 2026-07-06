@@ -95,7 +95,11 @@ type Orphan = {
   nationalId: string | null
   category: string
   orphanCode: string | null
+  kuraimiAccountYemeni: string | null
   kuraimiAccount: string | null
+  kuraimiAccountOld: string | null
+  kuraimiAccountHolder: string | null
+  mumaiyo: string | null
   educationLevel: string | null
   schoolName: string | null
   educationalStage: string | null
@@ -412,10 +416,24 @@ export function OrphansClient({
         "الديانة": o.religion || "",
         "اسم الوالد رباعياً": o.fatherFullName || "",
         "اسم الأم": o.motherName || "",
-        "رقم المميو كريمي": o.mumaiyo || "",
-        "رقم حساب الكريمي الجديد": o.kuraimiAccount || "",
+        "رقم حساب الكريمي اليمني": o.kuraimiAccountYemeni || "",
+        "رقم حساب الكريمي السعودي": o.kuraimiAccount || "",
+        "رقم المميز / المميو": o.mumaiyo || "",
+        "اسم صاحب حساب الكريمي": o.kuraimiAccountHolder || "",
         "رقم حساب الكريمي القديم": o.kuraimiAccountOld || "",
         "رقم بيت الزكاة": o.baitZakatNumber || "",
+        "الشركة الراعية / الكافل": o.sponsorships?.[0]?.sponsor?.fullName || "",
+        "بلد الكافل": o.sponsorships?.[0]?.sponsorCountry || o.sponsorships?.[0]?.sponsor?.country || "",
+        "عدد أشهر الكفالة": o.sponsorships?.[0]?.sponsorshipMonths || "",
+        "حصة اليتيم كويتي (KWD)": o.sponsorships?.[0]?.shareOrphanKWD || "",
+        "حصة الجهة كويتي (KWD)": o.sponsorships?.[0]?.shareOrgKWD || "",
+        "إجمالي المبلغ كويتي (KWD)": o.sponsorships?.[0]?.totalAmountKWD || "",
+        "حصة اليتيم سعودي (SAR)": o.sponsorships?.[0]?.shareOrphanSAR || "",
+        "حصة الجهة سعودي (SAR)": o.sponsorships?.[0]?.shareOrgSAR || "",
+        "إجمالي المبلغ سعودي (SAR)": o.sponsorships?.[0]?.totalAmountSAR || "",
+        "حصة اليتيم الفعلية": o.sponsorships?.[0]?.orphanShare || "",
+        "حصة اليتيم بالتقريب": o.sponsorships?.[0]?.orphanShareRounded || "",
+        "حصة الدار": o.sponsorships?.[0]?.houseShare || "",
         "المرحلة الدراسية": o.educationalStage || "",
         "الصف الدراسي": o.educationLevel || "",
         "اسم المدرسة": o.schoolName || "",
@@ -502,6 +520,11 @@ export function OrphansClient({
       (orphan.family?.headFullName && orphan.family.headFullName.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (orphan.nationalId && orphan.nationalId.includes(searchTerm)) ||
       (orphan.orphanCode && orphan.orphanCode.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (orphan.kuraimiAccountYemeni && orphan.kuraimiAccountYemeni.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (orphan.kuraimiAccount && orphan.kuraimiAccount.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (orphan.kuraimiAccountOld && orphan.kuraimiAccountOld.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (orphan.kuraimiAccountHolder && orphan.kuraimiAccountHolder.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (orphan.mumaiyo && orphan.mumaiyo.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (orphan.marketedToOrg && orphan.marketedToOrg.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (orphan.tags && orphan.tags.some((bt: any) => bt.tag?.nameAr?.toLowerCase().includes(searchTerm.toLowerCase()))) ||
       (orphan.sponsorships && orphan.sponsorships.some((s: any) => s.sponsor?.fullName?.toLowerCase().includes(searchTerm.toLowerCase())))
