@@ -219,8 +219,9 @@ async function main() {
       const stats = fs.statSync(path.join(folderPath, f))
       if (!stats.isFile()) return false
       const ext = path.extname(f).toLowerCase()
+      if (ext === ".db" || f.startsWith(".")) return false
       const isPhoto = [".jpg", ".jpeg", ".png"].includes(ext)
-      const isDoc = ext === ".pdf"
+      const isDoc = [".pdf", ".docx", ".doc", ".xls", ".xlsx", ".zip", ".rar"].includes(ext)
       if (PHOTOS_ONLY && !isPhoto) return false
       if (DOCUMENTS_ONLY && !isDoc) return false
       return true
@@ -271,6 +272,11 @@ async function main() {
         console.warn(`  ⚠️ Warning: Failed to check existence of "${fileName}" in DB (will try uploading):`, dbErr)
       }
 
+      if (sizeBytes > 10 * 1024 * 1024) {
+        console.warn(`  ⚠️ Skip: "${fileName}" exceeds max allowed size of 10MB (${(sizeBytes / (1024*1024)).toFixed(2)} MB).`)
+        continue
+      }
+
       if (DRY_RUN) {
         console.log(`  [DRY] Would upload "${fileName}" (${docType}) to storage: ${storagePath}`)
         filesUploadedCount++
@@ -280,16 +286,36 @@ async function main() {
           // Read local file into buffer
           const fileBuffer = fs.readFileSync(filePath)
 
-          // 1. Upload to Supabase Storage
-          const { error: uploadError } = await supabase.storage
-            .from(BUCKET)
-            .upload(storagePath, fileBuffer, {
-              contentType: mimeType,
-              upsert: false
-            })
+          // 1. Upload to Supabase Storage with retries
+          let uploadSuccess = false
+          let uploadErrorMsg = ""
+          let storageRetries = 3
+          while (storageRetries > 0) {
+            try {
+              const { error: uploadError } = await supabase.storage
+                .from(BUCKET)
+                .upload(storagePath, fileBuffer, {
+                  contentType: mimeType,
+                  upsert: false
+                })
 
-          if (uploadError) {
-            console.error(`  ❌ Failed to upload "${fileName}" for ${orphan.fullName}: ${uploadError.message}`)
+              if (!uploadError) {
+                uploadSuccess = true
+                break
+              }
+              uploadErrorMsg = uploadError.message
+            } catch (err: any) {
+              uploadErrorMsg = err.message || String(err)
+            }
+            storageRetries--
+            if (storageRetries > 0) {
+              console.warn(`  ⚠️ Storage upload failed, retrying... (${storageRetries} retries left). Error: ${uploadErrorMsg}`)
+              await new Promise(r => setTimeout(r, 3000))
+            }
+          }
+
+          if (!uploadSuccess) {
+            console.error(`  ❌ Failed to upload "${fileName}" for ${orphan.fullName} after all retries: ${uploadErrorMsg}`)
             continue
           }
 
