@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
-import { Calendar, User, Trash2, ShieldAlert, Phone, Home, HeartPulse, GraduationCap, Coins, Info } from "lucide-react"
+import { Calendar, User, Trash2, Phone, Home, HeartPulse, GraduationCap, Coins, Info } from "lucide-react"
 
 interface CaseActivityTabProps {
   familyId?: string | null
@@ -14,12 +14,12 @@ interface CaseActivityTabProps {
 }
 
 const ACTIVITY_TYPES = [
-  { value: "VISIT", label: "زيارة ميدانية", icon: Home, color: "text-blue-600 bg-blue-50 border-blue-100" },
-  { value: "CALL", label: "اتصال هاتفي", icon: Phone, color: "text-amber-600 bg-amber-50 border-amber-100" },
-  { value: "HEALTH_CHECK", label: "فحص طبي/صحي", icon: HeartPulse, color: "text-rose-600 bg-rose-50 border-rose-100" },
-  { value: "EDUCATION_CHECK", label: "متابعة دراسية وتعليمية", icon: GraduationCap, color: "text-purple-600 bg-purple-50 border-purple-100" },
-  { value: "FINANCIAL_ASSISTANCE", label: "متابعة دعم مالي", icon: Coins, color: "text-emerald-600 bg-emerald-50 border-emerald-100" },
-  { value: "OTHER", label: "أخرى / ملاحظة حالة", icon: Info, color: "text-slate-600 bg-slate-50 border-slate-100" },
+  { value: "VISIT", label: "زيارة ميدانية", icon: Home, color: "text-blue-450 bg-blue-500/10 border-blue-500/20" },
+  { value: "CALL", label: "اتصال هاتفي", icon: Phone, color: "text-amber-400 bg-amber-500/10 border-amber-500/20" },
+  { value: "HEALTH_CHECK", label: "فحص طبي/صحي", icon: HeartPulse, color: "text-rose-450 bg-rose-500/10 border-rose-500/20" },
+  { value: "EDUCATION_CHECK", label: "متابعة دراسية وتعليمية", icon: GraduationCap, color: "text-purple-400 bg-purple-500/10 border-purple-500/20" },
+  { value: "FINANCIAL_ASSISTANCE", label: "متابعة دعم مالي", icon: Coins, color: "text-emerald-450 bg-emerald-500/10 border-emerald-500/20" },
+  { value: "OTHER", label: "أخرى / ملاحظة حالة", icon: Info, color: "text-slate-400 bg-slate-500/10 border-slate-500/20" },
 ]
 
 export function CaseActivityTab({ familyId, beneficiaryId }: CaseActivityTabProps) {
@@ -85,11 +85,11 @@ export function CaseActivityTab({ familyId, beneficiaryId }: CaseActivityTabProp
   return (
     <div className="space-y-6">
       {/* ── Add New Activity Form ── */}
-      <form onSubmit={handleSubmit} className="border border-gray-100 rounded-xl p-4 bg-gray-50/30 space-y-4">
-        <h4 className="text-xs font-bold text-gray-800 border-b border-gray-100 pb-2">تسجيل حركة متابعة / زيارة ميدانية جديدة</h4>
+      <form onSubmit={handleSubmit} className="border border-slate-850 rounded-xl p-4 bg-slate-900/40 space-y-4">
+        <h4 className="text-xs font-bold text-slate-350 border-b border-slate-850 pb-2">تسجيل حركة متابعة / زيارة ميدانية جديدة</h4>
         
         {error && (
-          <div className="text-xs font-semibold text-red-600 bg-red-50 p-2 rounded-lg border border-red-100">
+          <div className="text-xs font-semibold text-red-400 bg-red-950/20 p-2 rounded-lg border border-red-900/30">
             {error}
           </div>
         )}
@@ -97,14 +97,14 @@ export function CaseActivityTab({ familyId, beneficiaryId }: CaseActivityTabProp
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {/* Type Select */}
           <div className="space-y-1">
-            <label className="text-xs font-bold text-gray-600">نوع الحركة</label>
+            <label className="text-xs font-bold text-slate-400">نوع الحركة</label>
             <select
               value={type}
               onChange={(e) => setType(e.target.value)}
-              className="flex h-9 w-full rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right text-gray-700"
+              className="flex h-9 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right text-white"
             >
               {ACTIVITY_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>
+                <option key={t.value} value={t.value} className="bg-slate-950 text-white">
                   {t.label}
                 </option>
               ))}
@@ -113,12 +113,12 @@ export function CaseActivityTab({ familyId, beneficiaryId }: CaseActivityTabProp
 
           {/* Title */}
           <div className="space-y-1 md:col-span-2">
-            <label className="text-xs font-bold text-gray-600">العنوان / ملخص موضوع الزيارة</label>
+            <label className="text-xs font-bold text-slate-400">العنوان / ملخص موضوع الزيارة</label>
             <Input
               placeholder="مثال: زيارة لتسليم الكفالة السنوية وتفقد أحوال المنزل..."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="h-9 text-xs placeholder-gray-400 bg-white border-gray-200 text-right"
+              className="h-9 text-xs placeholder-slate-500 bg-slate-950 border-slate-800 text-white text-right focus-visible:ring-emerald-500"
               required
             />
           </div>
@@ -126,12 +126,12 @@ export function CaseActivityTab({ familyId, beneficiaryId }: CaseActivityTabProp
 
         {/* Description */}
         <div className="space-y-1">
-          <label className="text-xs font-bold text-gray-600">التفاصيل وتقرير الزيارة</label>
+          <label className="text-xs font-bold text-slate-400">التفاصيل وتقرير الزيارة</label>
           <Textarea
             placeholder="اكتب التقرير الميداني المفصل للزيارة أو المكالمة، بما في ذلك أي احتياجات طارئة..."
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="text-xs placeholder-gray-400 bg-white border-gray-200 text-right min-h-[80px]"
+            className="text-xs placeholder-slate-500 bg-slate-950 border-slate-800 text-white text-right min-h-[80px] focus-visible:ring-emerald-500"
             required
           />
         </div>
@@ -141,7 +141,7 @@ export function CaseActivityTab({ familyId, beneficiaryId }: CaseActivityTabProp
           <Button
             type="submit"
             disabled={submitting}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg px-4 h-9 shadow-sm"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg px-4 h-9 shadow-md transition-all hover:shadow-emerald-900/30"
           >
             {submitting ? "جاري الحفظ..." : "تسجيل التقرير الميداني"}
           </Button>
@@ -150,12 +150,12 @@ export function CaseActivityTab({ familyId, beneficiaryId }: CaseActivityTabProp
 
       {/* ── Activities Timeline List ── */}
       <div className="space-y-4">
-        <h4 className="text-xs font-bold text-gray-800 border-b border-gray-100 pb-2">سجل المتابعات الميدانية السابقة ({activities.length})</h4>
+        <h4 className="text-xs font-bold text-slate-350 border-b border-slate-850 pb-2">سجل المتابعات الميدانية السابقة ({activities.length})</h4>
         
         {loading ? (
-          <div className="text-center py-6 text-xs text-gray-400">جاري تحميل السجل الميداني...</div>
+          <div className="text-center py-6 text-xs text-slate-500">جاري تحميل السجل الميداني...</div>
         ) : activities.length === 0 ? (
-          <div className="text-center py-8 text-xs text-gray-400 italic border border-dashed border-gray-100 rounded-xl">
+          <div className="text-center py-8 text-xs text-slate-500 italic border border-dashed border-slate-800 rounded-xl bg-slate-900/10">
             لا توجد أي زيارات ميدانية أو تقارير متابعة مسجلة بعد.
           </div>
         ) : (
@@ -165,25 +165,25 @@ export function CaseActivityTab({ familyId, beneficiaryId }: CaseActivityTabProp
               const IconComp = config.icon
 
               return (
-                <div key={act.id} className="border border-gray-100 rounded-xl p-4 bg-white shadow-sm flex flex-col md:flex-row md:items-start justify-between gap-3 hover:border-emerald-100 transition-colors">
+                <div key={act.id} className="border border-slate-850 rounded-xl p-4 bg-slate-900/40 shadow-sm flex flex-col md:flex-row md:items-start justify-between gap-3 hover:border-slate-700 transition-colors">
                   <div className="space-y-2 text-right">
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge className={`${config.color} border font-bold text-[10px]`}>
                         <IconComp className="h-3 w-3 inline ml-1" />
                         {config.label}
                       </Badge>
-                      <h5 className="font-bold text-gray-800 text-xs">{act.title}</h5>
+                      <h5 className="font-bold text-white text-xs">{act.title}</h5>
                     </div>
                     
-                    <p className="text-xs text-gray-600 leading-relaxed font-medium whitespace-pre-wrap">{act.description}</p>
+                    <p className="text-xs text-slate-350 leading-relaxed font-medium whitespace-pre-wrap">{act.description}</p>
                     
-                    <div className="flex flex-wrap items-center gap-3 text-[10px] text-gray-400 font-semibold mt-2 pt-1 border-t border-gray-50">
+                    <div className="flex flex-wrap items-center gap-3 text-[10px] text-slate-500 font-semibold mt-2 pt-1 border-t border-slate-850">
                       <span className="flex items-center gap-1">
-                        <User className="h-3 w-3 text-gray-300" />
+                        <User className="h-3 w-3 text-slate-650" />
                         بواسطة: {act.recordedByName || "الباحث الميداني"}
                       </span>
                       <span className="flex items-center gap-1 font-mono">
-                        <Calendar className="h-3 w-3 text-gray-300" />
+                        <Calendar className="h-3 w-3 text-slate-650" />
                         تاريخ الحركة: {new Date(act.createdAt).toLocaleDateString("ar-YE")}
                       </span>
                     </div>
@@ -194,7 +194,7 @@ export function CaseActivityTab({ familyId, beneficiaryId }: CaseActivityTabProp
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDelete(act.id)}
-                      className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg h-8 w-8 p-0"
+                      className="text-red-400 hover:text-red-300 hover:bg-red-950/30 rounded-lg h-8 w-8 p-0"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
