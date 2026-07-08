@@ -20,6 +20,7 @@ async function getOrphans() {
     },
     include: {
       family: true,
+      attachments: true,
       sponsorships: {
         include: {
           sponsor: true,

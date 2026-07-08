@@ -462,3 +462,62 @@ export async function sendBulkOrphanWhatsApp(orphanIds: string[], messageTemplat
   }
 }
 
+export async function approveOrphansBulk(ids: string[], adminUserId?: string) {
+  try {
+    const adminUser = await prisma.user.findFirst({
+      where: { role: "ADMIN" },
+    })
+    
+    await prisma.beneficiary.updateMany({
+      where: { id: { in: ids } },
+      data: {
+        verificationStatus: "APPROVED",
+        rejectionReason: null,
+        verifiedBy: adminUserId || "مشرف النظام"
+      }
+    })
+
+    await createNotification({
+      title: "اعتماد جماعي للأيتام",
+      message: `تم اعتماد وقبول عدد ${ids.length} أيتام في النظام بنجاح.`,
+      type: "SUCCESS"
+    })
+
+    revalidatePath("/dashboard/orphans")
+    return { success: true }
+  } catch (error: any) {
+    console.error("Error bulk approving orphans:", error)
+    return { success: false, error: "حدث خطأ أثناء الاعتماد الجماعي" }
+  }
+}
+
+export async function deleteOrphansBulk(ids: string[]) {
+  try {
+    const adminUser = await prisma.user.findFirst({
+      where: { role: "ADMIN" },
+    })
+
+    await prisma.beneficiary.updateMany({
+      where: { id: { in: ids } },
+      data: {
+        deletedAt: new Date(),
+        isActive: false,
+      }
+    })
+
+    await createNotification({
+      title: "حذف جماعي للأيتام",
+      message: `تم نقل عدد ${ids.length} أيتام إلى سلة المهملات بنجاح.`,
+      type: "WARNING"
+    })
+
+    revalidatePath("/dashboard/orphans")
+    revalidatePath("/dashboard/families")
+    return { success: true }
+  } catch (error: any) {
+    console.error("Error bulk deleting orphans:", error)
+    return { success: false, error: "حدث خطأ أثناء الحذف الجماعي" }
+  }
+}
+
+

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import {
   Baby,
@@ -16,7 +16,11 @@ import {
   XCircle,
   AlertTriangle,
   Copy,
-  AlertCircle
+  AlertCircle,
+  Paperclip,
+  ChevronLeft,
+  ChevronRight,
+  Check
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -33,7 +37,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { AddOrphanSheet } from "@/components/orphans/add-orphan-sheet"
 import { TagBadge, TagFilterPills, TagSelector } from "@/components/tags/tag-components"
 import type { TagData } from "@/components/tags/tag-components"
-import { approveOrphan, rejectOrphan, deleteOrphan, sendBulkOrphanWhatsApp } from "@/app/actions/orphan-actions"
+import { approveOrphan, rejectOrphan, deleteOrphan, sendBulkOrphanWhatsApp, approveOrphansBulk, deleteOrphansBulk } from "@/app/actions/orphan-actions"
 import { exportToExcel } from "@/lib/excel-export"
 import {
   Sheet,
@@ -490,6 +494,57 @@ export function OrphansClient({
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
+  // Pagination & Bulk Actions States
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(25)
+  const [isBulkApproving, setIsBulkApproving] = useState(false)
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false)
+
+  // Reset page when any filter changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm, selectedGender, selectedStatus, selectedTagId, selectedFundingTagId])
+
+  const handleBulkApprove = async () => {
+    if (selectedIds.length === 0) return
+    if (!confirm(`هل أنت متأكد من اعتماد وقبول جميع الأيتام المحددين (${selectedIds.length} يتيم) دفعة واحدة؟`)) return
+    setIsBulkApproving(true)
+    try {
+      const res = await approveOrphansBulk(selectedIds, currentUserId)
+      if (res.success) {
+        setSelectedIds([])
+        router.refresh()
+      } else {
+        alert(res.error || "فشل الاعتماد الجماعي.")
+      }
+    } catch (err) {
+      console.error(err)
+      alert("حدث خطأ غير متوقع.")
+    } finally {
+      setIsBulkApproving(false)
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return
+    if (!confirm(`🚨 تحذير هام: هل أنت متأكد من نقل جميع الأيتام المحددين (${selectedIds.length} يتيم) إلى سلة المهملات دفعة واحدة؟`)) return
+    setIsBulkDeleting(true)
+    try {
+      const res = await deleteOrphansBulk(selectedIds)
+      if (res.success) {
+        setSelectedIds([])
+        router.refresh()
+      } else {
+        alert(res.error || "فشل الحذف الجماعي.")
+      }
+    } catch (err) {
+      console.error(err)
+      alert("حدث خطأ غير متوقع.")
+    } finally {
+      setIsBulkDeleting(false)
+    }
+  }
+
   const handleDeleteOrphan = async (id: string, name: string) => {
     if (!confirm(`هل أنت متأكد من حذف اليتيم (${name}) ونقل ملفه إلى سلة المهملات؟`)) return
     setDeletingId(id)
@@ -538,6 +593,13 @@ export function OrphansClient({
 
     return matchesSearch && matchesGender && matchesStatus && matchesStatusTag && matchesFundingTag
   })
+
+  // Paginated visible orphans
+  const totalPages = Math.ceil(filteredOrphans.length / pageSize)
+  const paginatedOrphans = filteredOrphans.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  )
 
   const handleApprove = async (id: string) => {
     const res = await approveOrphan(id)
@@ -739,6 +801,38 @@ export function OrphansClient({
                 </Button>
               )}
 
+              {/* Bulk Approve Button */}
+              {selectedIds.length > 0 && currentUserRole !== "MARKETER" && (
+                <Button
+                  onClick={handleBulkApprove}
+                  disabled={isBulkApproving}
+                  className="rounded-xl px-4 text-xs font-bold bg-teal-600 hover:bg-teal-700 text-white gap-2 transition-all duration-300 h-9 active:scale-[0.98] border border-teal-500/30"
+                >
+                  {isBulkApproving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Check className="h-4 w-4" />
+                  )}
+                  <span>اعتماد وقبول ({selectedIds.length})</span>
+                </Button>
+              )}
+
+              {/* Bulk Delete Button */}
+              {selectedIds.length > 0 && currentUserRole !== "MARKETER" && (
+                <Button
+                  onClick={handleBulkDelete}
+                  disabled={isBulkDeleting}
+                  className="rounded-xl px-4 text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white gap-2 transition-all duration-300 h-9 active:scale-[0.98] border border-rose-500/30"
+                >
+                  {isBulkDeleting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                  <span>حذف جماعي ({selectedIds.length})</span>
+                </Button>
+              )}
+
               {/* Export Button */}
               <Button
                 onClick={handleExportSelected}
@@ -805,6 +899,7 @@ export function OrphansClient({
                 <TableHead className="text-right font-bold text-slate-200 py-3.5">الجنس</TableHead>
                 <TableHead className="text-right font-bold text-slate-200 py-3.5">العمر</TableHead>
                 <TableHead className="text-right font-bold text-slate-200 py-3.5">التصنيفات</TableHead>
+                <TableHead className="text-right font-bold text-slate-200 py-3.5">المرفقات</TableHead>
                 <TableHead className="text-right font-bold text-slate-200 py-3.5">الحالة</TableHead>
                 <TableHead className="text-center font-bold text-slate-200 py-3.5 pl-6">الإجراءات</TableHead>
               </TableRow>
@@ -812,12 +907,12 @@ export function OrphansClient({
             <TableBody>
               {filteredOrphans.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="h-32 text-center text-slate-400">
+                  <TableCell colSpan={9} className="h-32 text-center text-slate-400">
                     لا توجد نتائج تطابق خيارات البحث والتصفية.
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredOrphans.map((orphan) => (
+                paginatedOrphans.map((orphan) => (
                   <TableRow
                     key={orphan.id}
                     className="hover:bg-slate-800/30 border-border/40 transition-colors duration-150"
@@ -834,7 +929,14 @@ export function OrphansClient({
                       {orphan.orphanCode || "—"}
                     </TableCell>
                     <TableCell className="font-bold text-white">{orphan.fullName}</TableCell>
-                    <TableCell className="text-slate-300 font-medium">{orphan.family.headFullName}</TableCell>
+                    <TableCell className="text-slate-300 font-medium">
+                      <a
+                        href={`/dashboard/families?search=${encodeURIComponent(orphan.family.headFullName)}`}
+                        className="hover:text-emerald-400 hover:underline transition-colors duration-200"
+                      >
+                        {orphan.family.headFullName}
+                      </a>
+                    </TableCell>
                     <TableCell>
                       {orphan.gender === "MALE" ? (
                         <Badge className="badge-premium-blue">
@@ -868,6 +970,20 @@ export function OrphansClient({
                           />
                         )}
                       </div>
+                    </TableCell>
+                    {/* Attachments Column */}
+                    <TableCell>
+                      {orphan.attachments && orphan.attachments.length > 0 ? (
+                        <Badge className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/15 transition-all duration-300 flex items-center gap-1 w-fit font-bold py-1 px-2 text-xs">
+                          <Paperclip className="h-3.5 w-3.5" />
+                          <span>{orphan.attachments.length.toLocaleString("ar-YE")} مرفقات</span>
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/15 transition-all duration-300 flex items-center gap-1 w-fit font-bold py-1 px-2 text-xs">
+                          <Paperclip className="h-3.5 w-3.5 text-rose-500/60" />
+                          <span>بدون مرفقات</span>
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell>
                       {orphan.verificationStatus === "APPROVED" && (
@@ -942,6 +1058,75 @@ export function OrphansClient({
             </TableBody>
           </Table>
         </div>
+
+        {/* ── Pagination controls ──────────────────────────────────── */}
+        {filteredOrphans.length > 0 && (
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-6 py-4 border-t border-white/5 bg-slate-900/10">
+            <div className="text-xs text-slate-400 font-medium">
+              عرض{" "}
+              <span className="text-white font-bold tabular-nums">
+                {Math.min((currentPage - 1) * pageSize + 1, filteredOrphans.length).toLocaleString("ar-YE")}
+              </span>{" "}
+              إلى{" "}
+              <span className="text-white font-bold tabular-nums">
+                {Math.min(currentPage * pageSize, filteredOrphans.length).toLocaleString("ar-YE")}
+              </span>{" "}
+              من أصل{" "}
+              <span className="text-white font-bold tabular-nums">
+                {filteredOrphans.length.toLocaleString("ar-YE")}
+              </span>{" "}
+              يتيم
+            </div>
+            
+            <div className="flex items-center gap-4 justify-between sm:justify-end">
+              {/* Page size selector */}
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-slate-400 whitespace-nowrap">الصفوف لكل صفحة:</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value))
+                    setCurrentPage(1)
+                  }}
+                  className="bg-slate-950 border border-white/10 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-emerald-500/50 cursor-pointer"
+                >
+                  <option value={10}>١٠</option>
+                  <option value={25}>٢٥</option>
+                  <option value={50}>٥٠</option>
+                  <option value={100}>١٠٠</option>
+                </select>
+              </div>
+
+              {/* Navigation buttons */}
+              <div className="flex items-center gap-1" dir="ltr">
+                <Button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-8 p-0 rounded-lg bg-slate-900/40 border-white/5 text-slate-300 hover:bg-slate-800 hover:text-white"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                
+                <span className="text-xs text-slate-400 px-2 tabular-nums" dir="rtl">
+                  الصفحة <span className="text-white font-bold">{currentPage.toLocaleString("ar-YE")}</span> من{" "}
+                  <span className="text-white font-bold">{totalPages.toLocaleString("ar-YE")}</span>
+                </span>
+
+                <Button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-8 p-0 rounded-lg bg-slate-900/40 border-white/5 text-slate-300 hover:bg-slate-800 hover:text-white"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* ── Bulk Messaging Sheet ──────────────────────────────────── */}
