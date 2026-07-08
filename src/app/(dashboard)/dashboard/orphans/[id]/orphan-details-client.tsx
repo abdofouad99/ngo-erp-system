@@ -814,9 +814,33 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
                         <p className="text-xs text-gray-400 font-semibold mb-1">صلة القرابة باليتيم</p>
                         <p className="text-sm font-bold text-white">{renderValue(orphan.family.guardianRelation)}</p>
                       </div>
-                      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
-                        <p className="text-xs text-gray-400 font-semibold mb-1">رقم هاتف الوصي</p>
-                        <p className="text-sm font-mono font-bold text-white tabular-nums">{renderValue(orphan.family.guardianPhone)}</p>
+                      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5 flex flex-col justify-between">
+                        <div>
+                          <p className="text-xs text-gray-400 font-semibold mb-1">رقم هاتف الوصي</p>
+                          <p className="text-sm font-mono font-bold text-white tabular-nums">
+                            {orphan.family.guardianPhone ? (
+                              <span className="flex items-center gap-1.5 justify-start">
+                                <a 
+                                  href={`tel:${orphan.family.guardianPhone}`}
+                                  className="hover:text-emerald-400 transition-colors duration-200"
+                                >
+                                  {orphan.family.guardianPhone}
+                                </a>
+                                <a 
+                                  href={`https://wa.me/967${orphan.family.guardianPhone.replace(/\D/g, "")}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-emerald-500 hover:text-emerald-400 transition-colors duration-200"
+                                  title="إرسال رسالة واتساب"
+                                >
+                                  <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current">
+                                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.625 1.451 5.432.002 9.851-4.415 9.854-9.853.002-2.63-1.023-5.102-2.884-6.963C16.38 1.93 13.905.908 11.274.908c-5.43 0-9.85 4.417-9.853 9.856 0 1.562.415 3.09 1.202 4.457l-1.02 3.732 3.825-.997zM17.487 14.39c-.314-.157-1.858-.917-2.134-1.017-.276-.1-.477-.15-.677.15-.2.3-.777.98-.952 1.18-.175.2-.35.225-.664.068-3.137-1.569-4.8-2.63-6.685-5.877-.314-.543.315-.504.902-1.68.1-.2.05-.375-.025-.526-.075-.15-.675-1.625-.925-2.225-.244-.589-.49-.51-.677-.51-.175-.008-.375-.01-.576-.01-.2 0-.527.075-.802.375-.276.3-.951.98-.951 2.388 0 1.41 1.028 2.77 1.171 2.96 1.41 1.83 3.08 2.83 5.44 3.71 1.41.53 2.11.47 2.92.35.81-.12 1.85-.75 2.11-1.45.26-.7.26-1.31.18-1.43-.08-.12-.28-.2-.59-.35z"/>
+                                  </svg>
+                                </a>
+                              </span>
+                            ) : renderValue(null)}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -874,8 +898,10 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
                       {/* حقل مضاف حديثاً */}
                       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                         <p className="text-xs text-gray-400 font-semibold mb-1">مؤشر الهشاشة والضعف (Score)</p>
-                        <p className="text-sm font-bold text-purple-400 font-mono tabular-nums">
-                          {orphan.family.vulnerabilityScore !== null ? `${orphan.family.vulnerabilityScore} / 100` : renderValue(null)}
+                        <p className="text-sm font-bold text-purple-400 font-mono">
+                          {orphan.family.vulnerabilityScore !== null ? (
+                            <span dir="ltr">{orphan.family.vulnerabilityScore} / 100</span>
+                          ) : renderValue(null)}
                         </p>
                       </div>
                       
@@ -909,12 +935,37 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
                               {g.isPrimary ? "المعيل الأساسي والقانوني" : `معيل احتياطي (${i + 1})`}
                             </p>
                             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                              {[["الاسم الكامل", g.fullName], ["رقم الهوية", g.nationalId], ["العلاقة", g.relation], ["المهنة", g.occupation], ["نوع الدخل", g.incomeType], ["كفاية الدخل", g.incomeSufficiency], ["هاتف 1", g.phone1], ["هاتف 2", g.phone2], ["هاتف 3", g.phone3], ["هاتف 4", g.phone4]].filter(([, v]) => v).map(([label, val]) => (
-                                <div key={label as string} className="rounded-lg bg-slate-950/45 p-2">
-                                  <p className="text-[10px] text-gray-400 mb-0.5">{label as string}</p>
-                                  <p className="text-xs font-semibold text-white font-mono">{val as string}</p>
-                                </div>
-                              ))}
+                              {[["الاسم الكامل", g.fullName], ["رقم الهوية", g.nationalId], ["العلاقة", g.relation], ["المهنة", g.occupation], ["نوع الدخل", g.incomeType], ["كفاية الدخل", g.incomeSufficiency], ["هاتف 1", g.phone1], ["هاتف 2", g.phone2], ["هاتف 3", g.phone3], ["هاتف 4", g.phone4]].filter(([, v]) => v).map(([label, val]) => {
+                                const isPhone = (label as string).startsWith("هاتف")
+                                return (
+                                  <div key={label as string} className="rounded-lg bg-slate-950/45 p-2 flex flex-col justify-between">
+                                    <p className="text-[10px] text-gray-400 mb-0.5">{label as string}</p>
+                                    {isPhone ? (
+                                      <div className="flex items-center gap-1.5 justify-start">
+                                        <a 
+                                          href={`tel:${val}`}
+                                          className="text-xs font-semibold text-white font-mono hover:text-emerald-400 transition-colors duration-200"
+                                        >
+                                          {val as string}
+                                        </a>
+                                        <a 
+                                          href={`https://wa.me/967${(val as string).replace(/\D/g, "")}`}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="text-emerald-500 hover:text-emerald-400 transition-colors duration-200"
+                                          title="إرسال رسالة واتساب"
+                                        >
+                                          <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current">
+                                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.625 1.451 5.432.002 9.851-4.415 9.854-9.853.002-2.63-1.023-5.102-2.884-6.963C16.38 1.93 13.905.908 11.274.908c-5.43 0-9.85 4.417-9.853 9.856 0 1.562.415 3.09 1.202 4.457l-1.02 3.732 3.825-.997zM17.487 14.39c-.314-.157-1.858-.917-2.134-1.017-.276-.1-.477-.15-.677.15-.2.3-.777.98-.952 1.18-.175.2-.35.225-.664.068-3.137-1.569-4.8-2.63-6.685-5.877-.314-.543.315-.504.902-1.68.1-.2.05-.375-.025-.526-.075-.15-.675-1.625-.925-2.225-.244-.589-.49-.51-.677-.51-.175-.008-.375-.01-.576-.01-.2 0-.527.075-.802.375-.276.3-.951.98-.951 2.388 0 1.41 1.028 2.77 1.171 2.96 1.41 1.83 3.08 2.83 5.44 3.71 1.41.53 2.11.47 2.92.35.81-.12 1.85-.75 2.11-1.45.26-.7.26-1.31.18-1.43-.08-.12-.28-.2-.59-.35z"/>
+                                          </svg>
+                                        </a>
+                                      </div>
+                                    ) : (
+                                      <p className="text-xs font-semibold text-white">{val as string}</p>
+                                    )}
+                                  </div>
+                                )
+                              })}
                             </div>
                           </div>
                         ))}
