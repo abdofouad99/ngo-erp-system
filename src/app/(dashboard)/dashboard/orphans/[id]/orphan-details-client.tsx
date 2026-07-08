@@ -32,6 +32,7 @@ import {
   Share2,
   Loader2,
   ArrowRight,
+  ImageOff,
 } from "lucide-react"
 import { AuditTimeline } from "@/components/dashboard/audit-timeline"
 import { CaseActivityTab } from "@/components/shared/case-activity-tab"
@@ -255,6 +256,7 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
   const [isSubmittingAction, setIsSubmittingAction] = useState(false)
   const [attachments, setAttachments] = useState<any[]>([])
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({})
 
   const [updateUrl, setUpdateUrl] = useState<string | null>(null)
   const [isGeneratingUrl, setIsGeneratingUrl] = useState(false)
@@ -486,10 +488,11 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
         <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner overflow-hidden border border-white/20">
-              {profilePhoto ? (
+              {profilePhoto && !imageErrors[profilePhoto.id] ? (
                 <img 
                   src={profilePhoto.fileUrl} 
                   alt={orphan.fullName}
+                  onError={() => setImageErrors(prev => ({ ...prev, [profilePhoto.id]: true }))}
                   className="h-full w-full object-cover"
                 />
               ) : (
@@ -1206,7 +1209,16 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
                       </div>
                       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                         <p className="text-xs text-gray-400 font-semibold mb-1">اسم صاحب حساب الكريمي</p>
-                        <p className="text-sm font-bold text-white truncate">{renderValue(orphan.kuraimiAccountHolder)}</p>
+                        <p className="text-sm font-bold text-white">
+                          {orphan.kuraimiAccountHolder ? orphan.kuraimiAccountHolder : (
+                            orphan.family.guardianName ? (
+                              <span className="flex items-center gap-1.5 flex-wrap">
+                                <span className="text-slate-350">{orphan.family.guardianName}</span>
+                                <span className="text-[8px] bg-slate-800 text-slate-400 border border-white/5 px-1.5 py-0.5 rounded font-bold">الوصي</span>
+                              </span>
+                            ) : renderValue(null)
+                          )}
+                        </p>
                       </div>
                       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                         <p className="text-xs text-gray-400 font-semibold mb-1">حساب الكريمي القديم</p>
@@ -1331,7 +1343,7 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
                               <div className="grid grid-cols-3 gap-3 text-center">
                                 <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-2.5">
                                   <p className="text-[10px] text-gray-400">حصة اليتيم الفعلية</p>
-                                  <p className="text-xs font-bold text-white font-mono mt-1">{spons.orphanShare ? Number(spons.orphanShare).toLocaleString("ar-YE") : "—"}</p>
+                                  <p className="text-xs font-bold text-white font-mono mt-1">{spons.orphanShare ? `${Number(spons.orphanShare).toLocaleString("ar-YE")} ر.س` : "—"}</p>
                                 </div>
                                 <div className="rounded-xl border border-slate-800 bg-slate-950 p-2.5">
                                   <p className="text-[10px] text-pink-400 font-bold">حصة اليتيم بالتقريب</p>
@@ -1383,7 +1395,7 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
                         return (
                           <div key={att.id} className="rounded-xl border border-slate-850 bg-slate-900/40 p-3.5 flex items-start gap-3.5">
                             {/* Preview */}
-                            {isImage ? (
+                            {isImage && !imageErrors[att.id] ? (
                               <button
                                 onClick={() => setLightboxSrc(att.fileUrl)}
                                 className="flex-shrink-0 cursor-pointer overflow-hidden rounded-lg border border-slate-800 hover:border-emerald-500 transition-colors"
@@ -1391,12 +1403,17 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
                                 <img
                                   src={att.fileUrl}
                                   alt={att.fileName}
+                                  onError={() => setImageErrors(prev => ({ ...prev, [att.id]: true }))}
                                   className="h-16 w-16 object-cover hover:scale-105 transition-transform duration-300"
                                 />
                               </button>
                             ) : (
                               <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-lg bg-slate-900 border border-slate-850">
-                                <FileText className="h-8 w-8 text-slate-500" />
+                                {isImage ? (
+                                  <ImageOff className="h-6 w-6 text-slate-650" />
+                                ) : (
+                                  <FileText className="h-8 w-8 text-slate-500" />
+                                )}
                               </div>
                             )}
 
