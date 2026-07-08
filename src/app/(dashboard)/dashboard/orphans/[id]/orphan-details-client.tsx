@@ -388,6 +388,29 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
     att.fileName?.toLowerCase().endsWith(".png")
   )
 
+  const getAutoShortName = (fullName: string) => {
+    if (!fullName) return ""
+    const parts = fullName.trim().split(/\s+/)
+    if (parts.length <= 3) return fullName
+    return `${parts[0]} ${parts[1]} ${parts[parts.length - 1]}`
+  }
+
+  const birthCert = attachments.find(att => 
+    att.documentType === "BIRTH_CERTIFICATE" ||
+    att.fileName?.includes("شهادة ميلاد") ||
+    att.fileName?.includes("شهاده ميلاد") ||
+    att.fileName?.toLowerCase().includes("birth")
+  )
+
+  const idCert = attachments.find(att => 
+    att.documentType === "NATIONAL_ID" ||
+    att.fileName?.includes("بطاقة شخصية") ||
+    att.fileName?.includes("بطاقه شخصيه") ||
+    att.fileName?.includes("الهوية") ||
+    att.fileName?.toLowerCase().includes("national") ||
+    att.fileName?.toLowerCase().includes("id_card")
+  )
+
   return (
     <div className="space-y-6 text-right" dir="rtl">
       {/* ── Page Header / Go Back ─────────────────────────────────────────── */}
@@ -519,9 +542,33 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
                       <User className="h-4 w-4" /> البيانات الشخصية الأساسية
                     </h3>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
-                        <p className="text-xs text-gray-400 font-semibold mb-1">الرقم الوطني / شهادة الميلاد</p>
-                        <p className="text-sm font-mono font-bold text-white tabular-nums">{renderValue(orphan.nationalId)}</p>
+                      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5 flex flex-col justify-between">
+                        <div>
+                          <p className="text-xs text-gray-400 font-semibold mb-1">الرقم الوطني / شهادة الميلاد</p>
+                          <p className="text-sm font-mono font-bold text-white tabular-nums">{renderValue(orphan.nationalId)}</p>
+                        </div>
+                        {(birthCert || idCert) && (
+                          <div className="flex flex-wrap gap-1.5 mt-2">
+                            {birthCert && (
+                              <button
+                                onClick={() => setLightboxSrc(birthCert.fileUrl)}
+                                className="text-[10px] bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 hover:border-emerald-500/40 text-emerald-400 font-bold px-2 py-0.5 rounded transition-all duration-200 flex items-center gap-1 w-fit"
+                              >
+                                <Paperclip className="h-3 w-3" />
+                                <span>شهادة الميلاد</span>
+                              </button>
+                            )}
+                            {idCert && (
+                              <button
+                                onClick={() => setLightboxSrc(idCert.fileUrl)}
+                                className="text-[10px] bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 hover:border-blue-500/40 text-blue-400 font-bold px-2 py-0.5 rounded transition-all duration-200 flex items-center gap-1 w-fit"
+                              >
+                                <Paperclip className="h-3 w-3" />
+                                <span>الهوية الوطنية</span>
+                              </button>
+                            )}
+                          </div>
+                        )}
                       </div>
                       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                         <p className="text-xs text-gray-400 font-semibold mb-1">تاريخ الميلاد</p>
@@ -529,7 +576,14 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
                       </div>
                       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                         <p className="text-xs text-gray-400 font-semibold mb-1">الاسم المختصر للكشوفات</p>
-                        <p className="text-sm font-bold text-white">{renderValue(orphan.shortName)}</p>
+                        <p className="text-sm font-bold text-white">
+                          {orphan.shortName ? renderValue(orphan.shortName) : (
+                            <span className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-slate-350">{getAutoShortName(orphan.fullName)}</span>
+                              <span className="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-bold">توليد تلقائي</span>
+                            </span>
+                          )}
+                        </p>
                       </div>
                       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                         <p className="text-xs text-gray-400 font-semibold mb-1">الديانة</p>
