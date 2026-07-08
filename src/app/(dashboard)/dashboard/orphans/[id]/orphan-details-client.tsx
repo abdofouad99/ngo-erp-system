@@ -395,6 +395,51 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
     return `${parts[0]} ${parts[1]} ${parts[parts.length - 1]}`
   }
 
+  const getAltPhoneFallback = () => {
+    if (orphan.family.headAltPhone) return orphan.family.headAltPhone
+    const primaryGuardian = orphan.guardians?.find((g: any) => g.isPrimary)
+    if (primaryGuardian?.phone2) return primaryGuardian.phone2
+    if (primaryGuardian?.phone3) return primaryGuardian.phone3
+    const anyGuardian = orphan.guardians?.find((g: any) => g.phone2)
+    if (anyGuardian?.phone2) return anyGuardian.phone2
+    return null
+  }
+
+  const getFamilyMembersFallback = () => {
+    if (orphan.family.familyMembersCount !== null) {
+      return `${orphan.family.familyMembersCount.toLocaleString("ar-YE")} أفراد`
+    }
+    const count = (orphan.siblings?.length || 0) + 2
+    return (
+      <span className="flex items-center gap-1.5 flex-wrap">
+        <span>{count.toLocaleString("ar-YE")} أفراد</span>
+        <span className="text-[9px] bg-emerald-500/10 text-emerald-450 border border-emerald-500/20 px-1.5 py-0.5 rounded font-bold">تقديري من الملف</span>
+      </span>
+    )
+  }
+
+  const getMonthlyIncomeFallback = () => {
+    if (orphan.family.monthlyIncome !== null) return formatCurrency(orphan.family.monthlyIncome)
+    const primaryGuardian = orphan.guardians?.find((g: any) => g.isPrimary)
+    if (primaryGuardian?.incomeType || primaryGuardian?.incomeSufficiency) {
+      return `${primaryGuardian.incomeType || "متغير"} (${primaryGuardian.incomeSufficiency || "لا يكفي"})`
+    }
+    return null
+  }
+
+  const getHousingTypeFallback = () => {
+    if (orphan.family.housingType) return orphan.family.housingType
+    if (orphan.housingStatus) return orphan.housingStatus
+    return null
+  }
+
+  const getAddressDetailFallback = () => {
+    if (orphan.family.addressDetail) return orphan.family.addressDetail
+    const parts = [orphan.currentGovernorate, orphan.currentDistrict, orphan.currentArea].filter(Boolean)
+    if (parts.length > 0) return parts.join(" - ")
+    return null
+  }
+
   const birthCert = attachments.find(att => 
     att.documentType === "BIRTH_CERTIFICATE" ||
     att.fileName?.includes("شهادة ميلاد") ||
@@ -861,16 +906,63 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
                         <p className="text-xs text-gray-400 font-semibold mb-1">الرقم الوطني لرب الأسرة</p>
                         <p className="text-sm font-mono font-bold text-white">{renderValue(orphan.family.headNationalId)}</p>
                       </div>
-                      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
-                        <p className="text-xs text-gray-400 font-semibold mb-1">هاتف رب الأسرة البديل</p>
-                        <p className="text-sm font-mono font-bold text-white">{renderValue(orphan.family.headAltPhone)}</p>
+                      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5 flex flex-col justify-between">
+                        <div>
+                          <p className="text-xs text-gray-400 font-semibold mb-1">هاتف رب الأسرة البديل</p>
+                          <p className="text-sm font-mono font-bold text-white">
+                            {orphan.family.headAltPhone ? (
+                              <span className="flex items-center gap-1.5 justify-start">
+                                <a 
+                                  href={`tel:${orphan.family.headAltPhone}`}
+                                  className="hover:text-emerald-400 transition-colors duration-200"
+                                >
+                                  {orphan.family.headAltPhone}
+                                </a>
+                                <a 
+                                  href={`https://wa.me/967${orphan.family.headAltPhone.replace(/\D/g, "")}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-emerald-500 hover:text-emerald-400 transition-colors duration-200"
+                                  title="إرسال رسالة واتساب"
+                                >
+                                  <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current">
+                                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.625 1.451 5.432.002 9.851-4.415 9.854-9.853.002-2.63-1.023-5.102-2.884-6.963C16.38 1.93 13.905.908 11.274.908c-5.43 0-9.85 4.417-9.853 9.856 0 1.562.415 3.09 1.202 4.457l-1.02 3.732 3.825-.997zM17.487 14.39c-.314-.157-1.858-.917-2.134-1.017-.276-.1-.477-.15-.677.15-.2.3-.777.98-.952 1.18-.175.2-.35.225-.664.068-3.137-1.569-4.8-2.63-6.685-5.877-.314-.543.315-.504.902-1.68.1-.2.05-.375-.025-.526-.075-.15-.675-1.625-.925-2.225-.244-.589-.49-.51-.677-.51-.175-.008-.375-.01-.576-.01-.2 0-.527.075-.802.375-.276.3-.951.98-.951 2.388 0 1.41 1.028 2.77 1.171 2.96 1.41 1.83 3.08 2.83 5.44 3.71 1.41.53 2.11.47 2.92.35.81-.12 1.85-.75 2.11-1.45.26-.7.26-1.31.18-1.43-.08-.12-.28-.2-.59-.35z"/>
+                                  </svg>
+                                </a>
+                              </span>
+                            ) : (() => {
+                              const fallbackPhone = getAltPhoneFallback()
+                              return fallbackPhone ? (
+                                <span className="flex items-center gap-1.5 justify-start">
+                                  <a 
+                                    href={`tel:${fallbackPhone}`}
+                                    className="hover:text-emerald-400 transition-colors duration-200"
+                                  >
+                                    {fallbackPhone}
+                                  </a>
+                                  <a 
+                                    href={`https://wa.me/967${fallbackPhone.replace(/\D/g, "")}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-emerald-500 hover:text-emerald-400 transition-colors duration-200"
+                                    title="إرسال رسالة واتساب"
+                                  >
+                                    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current">
+                                      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.625 1.451 5.432.002 9.851-4.415 9.854-9.853.002-2.63-1.023-5.102-2.884-6.963C16.38 1.93 13.905.908 11.274.908c-5.43 0-9.85 4.417-9.853 9.856 0 1.562.415 3.09 1.202 4.457l-1.02 3.732 3.825-.997zM17.487 14.39c-.314-.157-1.858-.917-2.134-1.017-.276-.1-.477-.15-.677.15-.2.3-.777.98-.952 1.18-.175.2-.35.225-.664.068-3.137-1.569-4.8-2.63-6.685-5.877-.314-.543.315-.504.902-1.68.1-.2.05-.375-.025-.526-.075-.15-.675-1.625-.925-2.225-.244-.589-.49-.51-.677-.51-.175-.008-.375-.01-.576-.01-.2 0-.527.075-.802.375-.276.3-.951.98-.951 2.388 0 1.41 1.028 2.77 1.171 2.96 1.41 1.83 3.08 2.83 5.44 3.71 1.41.53 2.11.47 2.92.35.81-.12 1.85-.75 2.11-1.45.26-.7.26-1.31.18-1.43-.08-.12-.28-.2-.59-.35z"/>
+                                    </svg>
+                                  </a>
+                                  <span className="text-[8px] bg-slate-800 text-slate-400 border border-white/5 px-1.5 py-0.5 rounded font-bold">بديل</span>
+                                </span>
+                              ) : renderValue(null)
+                            })()}
+                          </p>
+                        </div>
                       </div>
-
 
                       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                         <p className="text-xs text-gray-400 font-semibold mb-1">عدد أفراد الأسرة</p>
                         <p className="text-sm tabular-nums font-bold text-white">
-                          {orphan.family.familyMembersCount !== null ? `${orphan.family.familyMembersCount.toLocaleString("ar-YE")} أفراد` : renderValue(null)}
+                          {getFamilyMembersFallback()}
                         </p>
                       </div>
                       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
@@ -884,38 +976,56 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
                             ) : (
                               <Badge className="bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/20 px-2 py-0.5 rounded-md text-xs">فقر منخفض</Badge>
                             )
-                          ) : (
-                            renderValue(null)
-                          )}
+                          ) : (() => {
+                            const primaryGuardian = orphan.guardians?.find((g: any) => g.isPrimary)
+                            if (primaryGuardian?.incomeSufficiency === "لا يكفي" || primaryGuardian?.incomeSufficiency === "لايكفي") {
+                              return (
+                                <Badge className="bg-red-500/5 text-red-400/80 border border-red-500/10 px-2 py-0.5 rounded-md text-[10px] font-bold">
+                                  تقديري: فقر (الدخل لا يكفي)
+                                </Badge>
+                              )
+                            }
+                            return renderValue(null)
+                          })()}
                         </p>
                       </div>
                       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                         <p className="text-xs text-gray-400 font-semibold mb-1">الدخل الشهري للأسرة</p>
                         <p className="text-sm font-bold text-emerald-400 font-mono tabular-nums">
-                          {orphan.family.monthlyIncome !== null ? formatCurrency(orphan.family.monthlyIncome) : renderValue(null)}
+                          {getMonthlyIncomeFallback() || renderValue(null)}
                         </p>
                       </div>
-                      {/* حقل مضاف حديثاً */}
+                      {/* حقل مؤشر الهشاشة والضعف */}
                       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                         <p className="text-xs text-gray-400 font-semibold mb-1">مؤشر الهشاشة والضعف (Score)</p>
                         <p className="text-sm font-bold text-purple-400 font-mono">
                           {orphan.family.vulnerabilityScore !== null ? (
                             <span dir="ltr">{orphan.family.vulnerabilityScore} / 100</span>
-                          ) : renderValue(null)}
+                          ) : (() => {
+                            const primaryGuardian = orphan.guardians?.find((g: any) => g.isPrimary)
+                            const isPoor = primaryGuardian?.incomeSufficiency === "لا يكفي" || primaryGuardian?.incomeSufficiency === "لايكفي"
+                            const score = isPoor ? 75 : 0
+                            return (
+                              <span className="flex items-center gap-1.5 flex-wrap">
+                                <span dir="ltr" className="text-purple-450">{score} / 100</span>
+                                <span className="text-[9px] bg-purple-500/10 text-purple-400 border border-purple-500/20 px-1.5 py-0.5 rounded font-bold">حساب تلقائي</span>
+                              </span>
+                            )
+                          })()}
                         </p>
                       </div>
                       
                       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                         <p className="text-xs text-gray-400 font-semibold mb-1">نوع السكن</p>
-                        <p className="text-sm font-bold text-white">{renderValue(orphan.family.housingType)}</p>
+                        <p className="text-sm font-bold text-white">{renderValue(getHousingTypeFallback())}</p>
                       </div>
                       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                         <p className="text-xs text-gray-400 font-semibold mb-1">حالة السكن</p>
-                        <p className="text-sm font-bold text-white">{renderValue(orphan.family.housingCondition)}</p>
+                        <p className="text-sm font-bold text-white">{renderValue(orphan.family.housingCondition || (orphan.housingStatus === "مشترك" ? "عادية" : null))}</p>
                       </div>
                       <div className="col-span-1 sm:col-span-2 rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                         <p className="text-xs text-gray-400 font-semibold mb-1">تفاصيل عنوان السكن والحي</p>
-                        <p className="text-sm font-bold text-white">{renderValue(orphan.family.addressDetail)}</p>
+                        <p className="text-sm font-bold text-white">{renderValue(getAddressDetailFallback())}</p>
                       </div>
                     </div>
                   </div>
