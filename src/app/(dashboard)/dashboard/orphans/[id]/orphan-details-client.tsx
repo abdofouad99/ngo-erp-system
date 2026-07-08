@@ -373,6 +373,21 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
     }
   }
 
+  const profilePhoto = attachments.find(att => 
+    att.documentType?.includes("PHOTO") || 
+    att.documentType === "ORPHAN_PHOTO" ||
+    att.documentType === "ORPHAN_PHOTO_4X6" ||
+    att.documentType === "ORPHAN_PHOTO_10X15" ||
+    att.fileName?.includes("صورة شخصية") ||
+    att.fileName?.includes("صوره شخصيه") ||
+    att.fileName?.toLowerCase().includes("photo")
+  ) || attachments.find(att => 
+    att.fileType?.startsWith("image/") || 
+    att.fileName?.toLowerCase().endsWith(".jpg") || 
+    att.fileName?.toLowerCase().endsWith(".jpeg") || 
+    att.fileName?.toLowerCase().endsWith(".png")
+  )
+
   return (
     <div className="space-y-6 text-right" dir="rtl">
       {/* ── Page Header / Go Back ─────────────────────────────────────────── */}
@@ -402,8 +417,16 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
 
         <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner">
-              <Baby className="h-9 w-9 text-white" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner overflow-hidden border border-white/20">
+              {profilePhoto ? (
+                <img 
+                  src={profilePhoto.fileUrl} 
+                  alt={orphan.fullName}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <Baby className="h-9 w-9 text-white" />
+              )}
             </div>
             <div>
               <h1 className="text-xl font-extrabold md:text-2xl">{orphan.fullName}</h1>
