@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import { Bell, ChevronDown, LogOut, Menu, Settings, User } from "lucide-react"
+import { logoutAction } from "@/app/actions/auth-actions"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -23,6 +24,15 @@ interface AppHeaderProps {
 
 export function AppHeader({ isMarketer }: AppHeaderProps) {
   const pathname = usePathname()
+
+  const handleLogout = async () => {
+    const res = await logoutAction()
+    if (res.success) {
+      window.location.href = "/login"
+    } else {
+      alert("حدث خطأ أثناء تسجيل الخروج")
+    }
+  }
 
   const getPageTitle = (path: string) => {
     if (path === "/dashboard") return "الرئيسية"
@@ -131,7 +141,10 @@ export function AppHeader({ isMarketer }: AppHeaderProps) {
               الإعدادات
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="gap-2 cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50">
+            <DropdownMenuItem
+              onClick={handleLogout}
+              className="gap-2 cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+            >
               <LogOut className="h-4 w-4" />
               تسجيل الخروج
             </DropdownMenuItem>
