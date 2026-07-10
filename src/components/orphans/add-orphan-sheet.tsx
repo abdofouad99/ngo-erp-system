@@ -961,7 +961,9 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, userRol
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-5 py-4">
-          {renderStep()}
+          <fieldset disabled={userRole === "VIEWER"} className="w-full space-y-4">
+            {renderStep()}
+          </fieldset>
         </div>
 
         {/* Footer Navigation */}
@@ -979,7 +981,7 @@ export function AddOrphanSheet({ families = [], createdById, isMarketer, userRol
               <ChevronLeft className="h-4 w-4" />
             </Button>
           ) : (
-            <Button type="button" onClick={handleSubmit} disabled={loading} className="gap-1 btn-premium px-6">
+            <Button type="button" onClick={handleSubmit} disabled={loading || userRole === "VIEWER"} className="gap-1 btn-premium px-6">
               {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> جاري الحفظ...</> : <><Check className="h-4 w-4" /> {isEditMode ? "إعادة إرسال الطلب" : "حفظ البيانات"}</>}
             </Button>
           )}

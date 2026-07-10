@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { Currency, PaymentCycle, SponsorshipStatus } from "@prisma/client"
 import { diffObjects, createAuditLog } from "@/lib/audit-utils"
+import { getCurrentUser } from "@/app/actions/auth-actions"
 
 // =============================================================================
 // SPONSOR VALIDATION SCHEMA
@@ -53,6 +54,10 @@ const sponsorshipSchema = z.object({
 
 export async function createSponsor(rawInput: any) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const validatedData = sponsorSchema.parse(rawInput)
 
     // Check unique email if provided
@@ -113,6 +118,10 @@ export async function createSponsor(rawInput: any) {
 
 export async function updateSponsor(id: string, rawInput: any) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const validatedData = sponsorSchema.parse(rawInput)
 
     const sponsorToUpdate = await prisma.sponsor.findFirst({
@@ -181,6 +190,10 @@ export async function updateSponsor(id: string, rawInput: any) {
 
 export async function deleteSponsor(id: string) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const sponsorToDelete = await prisma.sponsor.findFirst({
       where: { id, deletedAt: null },
     })
@@ -222,6 +235,10 @@ export async function deleteSponsor(id: string) {
 
 export async function createSponsorship(rawInput: any) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const validatedData = sponsorshipSchema.parse(rawInput)
 
     // Check sponsor exists
@@ -306,6 +323,10 @@ export async function createSponsorship(rawInput: any) {
 
 export async function updateSponsorshipStatus(id: string, status: SponsorshipStatus) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const adminUser = await prisma.user.findFirst({
       where: { role: "ADMIN", isActive: true },
     })
@@ -340,6 +361,10 @@ export async function updateSponsorshipStatus(id: string, status: SponsorshipSta
 
 export async function deleteSponsorship(id: string) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const sponsorshipToDelete = await prisma.sponsorship.findUnique({
       where: { id },
     })

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { OrphanDetailsClient } from "./orphan-details-client"
+import { getCurrentUser } from "@/app/actions/auth-actions"
 
 export const dynamic = "force-dynamic"
 
@@ -12,6 +13,7 @@ interface PageProps {
 
 export default async function OrphanDetailsPage({ params }: PageProps) {
   const { id } = await params
+  const currentUser = await getCurrentUser()
 
   const orphan = await prisma.beneficiary.findFirst({
     where: {
@@ -44,7 +46,7 @@ export default async function OrphanDetailsPage({ params }: PageProps) {
 
   return (
     <div className="py-2">
-      <OrphanDetailsClient initialOrphan={orphan as any} />
+      <OrphanDetailsClient initialOrphan={orphan as any} currentUserRole={currentUser?.role} />
     </div>
   )
 }

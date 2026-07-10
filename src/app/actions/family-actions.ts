@@ -6,6 +6,7 @@ import { z } from "zod"
 import { Gender, PovertyLevel } from "@prisma/client"
 import { diffObjects, createAuditLog } from "@/lib/audit-utils"
 import { createNotification } from "@/app/actions/notification-actions"
+import { getCurrentUser } from "@/app/actions/auth-actions"
 
 // =============================================================================
 // VALIDATION SCHEMA
@@ -56,6 +57,10 @@ const familySchema = z.object({
 
 export async function createFamily(rawInput: any) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     // Validate inputs
     const validatedData = familySchema.parse(rawInput)
 
@@ -130,6 +135,10 @@ export async function createFamily(rawInput: any) {
 
 export async function updateFamily(id: string, rawInput: any) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     // Validate inputs
     const validatedData = familySchema.parse(rawInput)
 
@@ -205,6 +214,10 @@ export async function updateFamily(id: string, rawInput: any) {
 
 export async function toggleFamilyActive(id: string, isActive: boolean) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const adminUser = await prisma.user.findFirst({
       where: { role: "ADMIN" },
     })
@@ -241,6 +254,10 @@ export async function toggleFamilyActive(id: string, isActive: boolean) {
 
 export async function deleteFamily(id: string) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const familyToDelete = await prisma.family.findUnique({
       where: { id },
     })

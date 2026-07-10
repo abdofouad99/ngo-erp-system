@@ -175,6 +175,7 @@ type Orphan = {
 
 interface OrphanDetailsClientProps {
   initialOrphan: Orphan
+  currentUserRole?: string
 }
 
 // =============================================================================
@@ -248,7 +249,7 @@ const sendWhatsAppLocal = async (phone: string, message: string) => {
   }
 }
 
-export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps) {
+export function OrphanDetailsClient({ initialOrphan, currentUserRole }: OrphanDetailsClientProps) {
   const router = useRouter()
   const [orphan, setOrphan] = useState<Orphan>(initialOrphan)
   const [rejectionReasonInput, setRejectionReasonInput] = useState("")
@@ -1371,7 +1372,7 @@ export function OrphanDetailsClient({ initialOrphan }: OrphanDetailsClientProps)
 
                 {/* TAB 5: Activities */}
                 <TabsContent value="activities" className="space-y-4 outline-none animate-fade-in">
-                  <CaseActivityTab beneficiaryId={orphan.id} />
+                  <CaseActivityTab beneficiaryId={orphan.id} userRole={currentUserRole} />
                 </TabsContent>
 
                 {/* TAB 6: Attachments */}

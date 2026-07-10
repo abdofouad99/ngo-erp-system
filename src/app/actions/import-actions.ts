@@ -5,9 +5,14 @@ import { revalidatePath } from "next/cache"
 import { createAuditLog, diffObjects } from "@/lib/audit-utils"
 import { createNotification } from "@/app/actions/notification-actions"
 import { Gender, PovertyLevel, OrphanType, VerificationStatus, BeneficiaryCategory } from "@prisma/client"
+import { getCurrentUser } from "@/app/actions/auth-actions"
 
 export async function importFamiliesBulk(families: any[]) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const adminUser = await prisma.user.findFirst({
       where: { role: "ADMIN" },
     })
@@ -120,6 +125,10 @@ export async function importFamiliesBulk(families: any[]) {
 
 export async function importOrphansBulk(orphans: any[]) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const adminUser = await prisma.user.findFirst({
       where: { role: "ADMIN" },
     })

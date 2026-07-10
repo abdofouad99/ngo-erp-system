@@ -5,6 +5,7 @@ import { Users, ShieldAlert, Award, Activity } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { FamiliesClient } from "./families-client"
 import { FamilyFormSheet } from "@/components/families/family-form-sheet"
+import { getCurrentUser } from "@/app/actions/auth-actions"
 
 // =============================================================================
 // DATA FETCHING
@@ -64,6 +65,7 @@ async function getGeography() {
 // =============================================================================
 
 export default async function FamiliesPage() {
+  const currentUser = await getCurrentUser()
   const [families, geography] = await Promise.all([
     getFamilies(),
     getGeography(),
@@ -87,7 +89,7 @@ export default async function FamiliesPage() {
             استعراض ملفات الأسر، والتقييمات الاجتماعية، والتوزيع الجغرافي، وإضافة وتعديل بيانات الأسر.
           </p>
         </div>
-        <FamilyFormSheet geography={geography} />
+        <FamilyFormSheet geography={geography} userRole={currentUser?.role} />
       </div>
 
       {/* ── Stats Summary Cards ─────────────────────────────────── */}
@@ -174,7 +176,7 @@ export default async function FamiliesPage() {
       </div>
 
       {/* ── Interactive Families Table & Filters ────────────────── */}
-      <FamiliesClient initialFamilies={families} geography={geography} />
+      <FamiliesClient initialFamilies={families} geography={geography} currentUserRole={currentUser?.role} />
     </div>
   )
 }

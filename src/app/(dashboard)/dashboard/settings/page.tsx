@@ -833,6 +833,7 @@ export default function SettingsPage() {
                       <option className="bg-slate-950 text-white" value="DATA_ENTRY">مدخل بيانات (DATA_ENTRY)</option>
                       <option className="bg-slate-950 text-white" value="MANAGER">مدير عمليات (MANAGER)</option>
                       <option className="bg-slate-950 text-white" value="ADMIN">مشرف نظام كامل (ADMIN)</option>
+                      <option className="bg-slate-950 text-white" value="VIEWER">متصفح فقط (VIEWER)</option>
                     </select>
                   </div>
                   <Button

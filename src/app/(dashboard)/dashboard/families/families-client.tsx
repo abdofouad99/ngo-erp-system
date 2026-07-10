@@ -31,9 +31,10 @@ import { toggleFamilyActive } from "@/app/actions/family-actions"
 interface FamiliesClientProps {
   initialFamilies: any[]
   geography: any[]
+  currentUserRole?: string
 }
 
-export function FamiliesClient({ initialFamilies, geography }: FamiliesClientProps) {
+export function FamiliesClient({ initialFamilies, geography, currentUserRole }: FamiliesClientProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedGov, setSelectedGov] = useState<string>("ALL")
   const [selectedPoverty, setSelectedPoverty] = useState<string>("ALL")
@@ -79,6 +80,10 @@ export function FamiliesClient({ initialFamilies, geography }: FamiliesClientPro
 
   // Toggle active action handler
   const handleToggleActive = async (id: string, currentStatus: boolean) => {
+    if (currentUserRole === "VIEWER") {
+      alert("عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بتعديل حالة النشاط.")
+      return
+    }
     setTogglingId(id)
     const result = await toggleFamilyActive(id, !currentStatus)
     if (!result.success) {
@@ -164,7 +169,13 @@ export function FamiliesClient({ initialFamilies, geography }: FamiliesClientPro
           تم العثور على <span className="font-extrabold text-white text-base">{filteredFamilies.length}</span> أسرة
         </div>
         <Button
-          onClick={() => exportFamiliesToExcel(filteredFamilies)}
+          onClick={() => {
+            if (currentUserRole === "VIEWER") {
+              alert("عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بتصدير البيانات.")
+              return
+            }
+            exportFamiliesToExcel(filteredFamilies)
+          }}
           disabled={filteredFamilies.length === 0}
           className="rounded-xl px-4 text-xs font-bold bg-indigo-650 hover:bg-indigo-700 text-white gap-2 transition-all duration-300 h-9 active:scale-[0.98]"
         >
@@ -258,6 +269,7 @@ export function FamiliesClient({ initialFamilies, geography }: FamiliesClientPro
                             <FamilyFormSheet
                               family={family}
                               geography={geography}
+                              userRole={currentUserRole}
                               trigger={
                                 <Button
                                   variant="outline"

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { ProjectCategory, ProjectStatus, Currency } from "@prisma/client"
 import { diffObjects, createAuditLog } from "@/lib/audit-utils"
+import { getCurrentUser } from "@/app/actions/auth-actions"
 
 // =============================================================================
 // PROJECT VALIDATION SCHEMA
@@ -69,6 +70,10 @@ const distributionSchema = z.object({
 
 export async function createProject(rawInput: any) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const validatedData = projectSchema.parse(rawInput)
 
     // Get Admin user for audit log
@@ -116,6 +121,10 @@ export async function createProject(rawInput: any) {
 
 export async function updateProject(id: string, rawInput: any) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const validatedData = projectSchema.parse(rawInput)
 
     const projectExists = await prisma.project.findFirst({
@@ -166,6 +175,10 @@ export async function updateProject(id: string, rawInput: any) {
 
 export async function deleteProject(id: string) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const projectToDelete = await prisma.project.findFirst({
       where: { id, deletedAt: null },
     })
@@ -208,6 +221,10 @@ export async function deleteProject(id: string) {
 
 export async function createDistribution(rawInput: any) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const validatedData = distributionSchema.parse(rawInput)
 
     // Check project exists
@@ -298,6 +315,10 @@ export async function createDistribution(rawInput: any) {
 
 export async function updateDistributionStatus(id: string, isDelivered: boolean, deliveryDateInput?: string) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const adminUser = await prisma.user.findFirst({
       where: { role: "ADMIN" },
     })
@@ -338,6 +359,10 @@ export async function updateDistributionStatus(id: string, isDelivered: boolean,
 
 export async function deleteDistribution(id: string) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const distributionToDelete = await prisma.projectBeneficiary.findFirst({
       where: { id, deletedAt: null },
     })

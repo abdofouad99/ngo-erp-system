@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
+import { getCurrentUser } from "@/app/actions/auth-actions"
 
 // =============================================================================
 // HELPER: Get or create a default SubDistrict for auto-created families
@@ -178,6 +179,10 @@ export async function createFullOrphan(data: {
   siblings?:         any[]
 }) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const { guardians = [], siblings = [], ...orphanData } = data
 
     // ── تحديد أو إنشاء الأسرة تلقائياً ─────────────────────────────────────
@@ -323,6 +328,10 @@ export async function updateFullOrphan(
   resetStatus = false   // عند التعديل من المسوق، يُعاد الوضع لـ PENDING
 ) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const { guardians = [], siblings = [], familyId, ...orphanData } = data
 
     const updateData: any = {

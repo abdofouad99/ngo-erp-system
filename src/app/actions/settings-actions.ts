@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { createNotification } from "@/app/actions/notification-actions"
 import { sendWhatsAppNotification } from "@/lib/whatsapp-notify"
+import { getCurrentUser } from "@/app/actions/auth-actions"
 
 export async function getGeoStructure() {
   try {
@@ -31,6 +32,10 @@ export async function getGeoStructure() {
 
 export async function createGovernorate(data: { nameAr: string; nameEn?: string }) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const existing = await prisma.governorate.findFirst({
       where: { nameAr: data.nameAr }
     })
@@ -61,6 +66,10 @@ export async function createGovernorate(data: { nameAr: string; nameEn?: string 
 
 export async function createDistrict(data: { nameAr: string; nameEn?: string; governorateId: number }) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const existing = await prisma.district.findFirst({
       where: { nameAr: data.nameAr, governorateId: data.governorateId }
     })
@@ -92,6 +101,10 @@ export async function createDistrict(data: { nameAr: string; nameEn?: string; go
 
 export async function createSubDistrict(data: { nameAr: string; nameEn?: string; districtId: number }) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const existing = await prisma.subDistrict.findFirst({
       where: { nameAr: data.nameAr, districtId: data.districtId }
     })
@@ -193,6 +206,10 @@ export async function createSystemUser(data: {
   phone?: string
 }) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const existing = await prisma.user.findUnique({
       where: { email: data.email }
     })
@@ -252,6 +269,10 @@ export async function createSystemUser(data: {
 
 export async function toggleUserStatus(id: string) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const user = await prisma.user.findUnique({ where: { id } })
     if (!user) return { success: false, error: "المستخدم غير موجود" }
 

@@ -11,6 +11,7 @@ import { Calendar, User, Trash2, Phone, Home, HeartPulse, GraduationCap, Coins, 
 interface CaseActivityTabProps {
   familyId?: string | null
   beneficiaryId?: string | null
+  userRole?: string
 }
 
 const ACTIVITY_TYPES = [
@@ -22,7 +23,7 @@ const ACTIVITY_TYPES = [
   { value: "OTHER", label: "أخرى / ملاحظة حالة", icon: Info, color: "text-slate-400 bg-slate-500/10 border-slate-500/20" },
 ]
 
-export function CaseActivityTab({ familyId, beneficiaryId }: CaseActivityTabProps) {
+export function CaseActivityTab({ familyId, beneficiaryId, userRole }: CaseActivityTabProps) {
   const [activities, setActivities] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -48,6 +49,10 @@ export function CaseActivityTab({ familyId, beneficiaryId }: CaseActivityTabProp
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (userRole === "VIEWER") {
+      alert("عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل.")
+      return
+    }
     if (!title.trim() || !description.trim()) {
       setError("يرجى ملء جميع الحقول المطلوبة.")
       return
@@ -75,6 +80,10 @@ export function CaseActivityTab({ familyId, beneficiaryId }: CaseActivityTabProp
   }
 
   const handleDelete = async (id: string) => {
+    if (userRole === "VIEWER") {
+      alert("عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل.")
+      return
+    }
     if (!confirm("هل أنت متأكد من حذف سجل هذه الحركة الميدانية؟")) return
     const result = await deleteCaseActivity(id)
     if (result.success) {
@@ -94,6 +103,7 @@ export function CaseActivityTab({ familyId, beneficiaryId }: CaseActivityTabProp
           </div>
         )}
 
+        <fieldset disabled={userRole === "VIEWER"} className="w-full space-y-4">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {/* Type Select */}
           <div className="space-y-1">
@@ -135,6 +145,7 @@ export function CaseActivityTab({ familyId, beneficiaryId }: CaseActivityTabProp
             required
           />
         </div>
+        </fieldset>
 
         {/* Submit */}
         <div className="flex justify-end">

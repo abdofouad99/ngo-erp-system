@@ -77,9 +77,10 @@ interface FamilyFormSheetProps {
     }[]
   }[]
   trigger?: React.ReactNode
+  userRole?: string
 }
 
-export function FamilyFormSheet({ family, geography, trigger }: FamilyFormSheetProps) {
+export function FamilyFormSheet({ family, geography, trigger, userRole }: FamilyFormSheetProps) {
   const isEditMode = !!family
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -299,6 +300,7 @@ export function FamilyFormSheet({ family, geography, trigger }: FamilyFormSheetP
                 </TabsTrigger>
               </TabsList>
 
+              <fieldset disabled={userRole === "VIEWER"} className="w-full space-y-4">
               {/* === TAB 1: IDENTITY & CONTACT === */}
               <TabsContent value="identity" className="space-y-4 outline-none">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -548,6 +550,7 @@ export function FamilyFormSheet({ family, geography, trigger }: FamilyFormSheetP
                   </div>
                 </div>
               </TabsContent>
+              </fieldset>
             </Tabs>
           </div>
 
@@ -564,7 +567,7 @@ export function FamilyFormSheet({ family, geography, trigger }: FamilyFormSheetP
             </Button>
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || userRole === "VIEWER"}
               className="btn-premium px-6 font-semibold"
             >
               {loading ? (

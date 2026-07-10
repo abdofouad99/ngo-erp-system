@@ -22,6 +22,7 @@ enum Role {
   MANAGER    // Read + approve operations
   DATA_ENTRY // Create & update records only
   MARKETER   // Field marketer / referrer
+  VIEWER     // Read-only access
 }
 
 enum Gender {

@@ -7,6 +7,7 @@ import { Gender, OrphanType, VerificationStatus, BeneficiaryCategory } from "@pr
 import { diffObjects, createAuditLog } from "@/lib/audit-utils"
 import { createNotification } from "@/app/actions/notification-actions"
 import { sendWhatsAppNotification } from "@/lib/whatsapp-notify"
+import { getCurrentUser } from "@/app/actions/auth-actions"
 
 
 // =============================================================================
@@ -47,6 +48,10 @@ const orphanSchema = z.object({
 
 export async function createOrphan(rawInput: any) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     // Validate inputs
     const validatedData = orphanSchema.parse(rawInput)
 
@@ -147,6 +152,10 @@ export async function createOrphan(rawInput: any) {
 
 export async function updateOrphan(id: string, rawInput: any) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const validatedData = orphanSchema.parse(rawInput)
 
     const orphanToUpdate = await prisma.beneficiary.findFirst({
@@ -222,6 +231,10 @@ export async function updateOrphan(id: string, rawInput: any) {
 
 export async function deleteOrphan(id: string) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const orphanToDelete = await prisma.beneficiary.findUnique({
       where: { id },
     })
@@ -267,6 +280,10 @@ export async function deleteOrphan(id: string) {
 
 export async function approveOrphan(id: string, adminUserId?: string) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const updated = await prisma.beneficiary.update({
       where: { id },
       data: {
@@ -310,6 +327,10 @@ export async function approveOrphan(id: string, adminUserId?: string) {
 
 export async function rejectOrphan(id: string, reason: string, adminUserId?: string) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const updated = await prisma.beneficiary.update({
       where: { id },
       data: {
@@ -354,6 +375,10 @@ export async function rejectOrphan(id: string, reason: string, adminUserId?: str
 
 export async function sendBulkOrphanWhatsApp(orphanIds: string[], messageTemplate: string, skipSend = false) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     if (!orphanIds || orphanIds.length === 0) {
       return { success: false, error: "لم يتم تحديد أي يتيم" }
     }
@@ -464,6 +489,10 @@ export async function sendBulkOrphanWhatsApp(orphanIds: string[], messageTemplat
 
 export async function approveOrphansBulk(ids: string[], adminUserId?: string) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const adminUser = await prisma.user.findFirst({
       where: { role: "ADMIN" },
     })
@@ -493,6 +522,10 @@ export async function approveOrphansBulk(ids: string[], adminUserId?: string) {
 
 export async function deleteOrphansBulk(ids: string[]) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     const adminUser = await prisma.user.findFirst({
       where: { role: "ADMIN" },
     })

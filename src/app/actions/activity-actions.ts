@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { getCurrentUser } from "@/app/actions/auth-actions"
 
 export async function createCaseActivity(data: {
   type: string
@@ -11,6 +12,10 @@ export async function createCaseActivity(data: {
   beneficiaryId?: string | null
 }) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     // Resolve mock recordedBy details for simulation
     const adminUser = await prisma.user.findFirst({
       where: { role: "ADMIN", isActive: true },
@@ -67,6 +72,10 @@ export async function getCaseActivitiesForEntity({
 
 export async function deleteCaseActivity(id: string, path?: string) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     await prisma.caseActivity.delete({
       where: { id },
     })

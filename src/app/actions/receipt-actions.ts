@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { Currency } from "@prisma/client"
 import { createNotification } from "@/app/actions/notification-actions"
+import { getCurrentUser } from "@/app/actions/auth-actions"
 
 export async function createPaymentReceipt(data: {
   amount: number
@@ -13,6 +14,10 @@ export async function createPaymentReceipt(data: {
   sponsorshipId: string
 }) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     // Generate sequential auto-incrementing receipt number
     const count = await prisma.paymentReceipt.count()
     const year = new Date().getFullYear()
@@ -107,6 +112,10 @@ export async function getReceiptsForSponsorship(sponsorshipId: string) {
 
 export async function deletePaymentReceipt(id: string) {
   try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
     await prisma.paymentReceipt.delete({
       where: { id },
     })
