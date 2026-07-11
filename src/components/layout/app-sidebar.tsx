@@ -16,6 +16,8 @@ import {
   ArrowLeftRight,
   FileSpreadsheet,
   RefreshCw,
+  ClipboardList,
+  Bell,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -82,6 +84,18 @@ const mainNavItems = [
     href: "/dashboard/trash",
     label: "سلة المهملات",
     icon: Trash2,
+    exact: false,
+  },
+  {
+    href: "/dashboard/alerts",
+    label: "التنبيهات الذكية",
+    icon: Bell,
+    exact: false,
+  },
+  {
+    href: "/dashboard/my-activity",
+    label: "نشاطي",
+    icon: ClipboardList,
     exact: false,
   },
 ]

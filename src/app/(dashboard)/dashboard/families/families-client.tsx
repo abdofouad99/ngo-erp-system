@@ -10,7 +10,9 @@ import {
   MapPin,
   Loader2,
   Download,
+  Printer,
 } from "lucide-react"
+import { PrintProfile } from "@/components/print-profile"
 import { Button } from "@/components/ui/button"
 import { exportFamiliesToExcel } from "@/lib/excel-export"
 import { Input } from "@/components/ui/input"
@@ -43,6 +45,9 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
   // Selected Family state for viewing details
   const [selectedFamily, setSelectedFamily] = useState<any | null>(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
+
+  // Print Family state
+  const [printFamilyData, setPrintFamilyData] = useState<any | null>(null)
 
   // Loading state for toggling active status
   const [togglingId, setTogglingId] = useState<string | null>(null)
@@ -270,6 +275,17 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
                               <span>التفاصيل</span>
                             </Button>
 
+                            {/* Print Profile */}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setPrintFamilyData(family)}
+                              className="h-8 rounded-lg px-2.5 text-xs bg-violet-500/10 border-violet-500/20 text-violet-400 hover:bg-violet-500 hover:text-white hover:border-violet-500 transition-all duration-300 hover:scale-[1.05] active:scale-[0.95] flex items-center gap-1 font-semibold"
+                            >
+                              <Printer className="h-3.5 w-3.5" />
+                              <span>طباعة</span>
+                            </Button>
+
                             {/* Edit form */}
                             <FamilyFormSheet
                               family={family}
@@ -337,6 +353,25 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
           family={selectedFamily}
           open={isDetailsOpen}
           onOpenChange={setIsDetailsOpen}
+        />
+      )}
+
+      {/* Print Profile Modal */}
+      {printFamilyData && (
+        <PrintProfile
+          type="family"
+          data={{
+            headOfFamily: printFamilyData.headFullName,
+            phone: printFamilyData.headPhoneNumber,
+            povertyLevel: printFamilyData.povertyLevel,
+            membersCount: printFamilyData.members?.length || 0,
+            socialStatus: printFamilyData.socialStatus || "—",
+            governorateName: printFamilyData.subDistrict?.district?.governorate?.nameAr || "—",
+            orphansCount: printFamilyData.beneficiaries?.filter((b: any) => b.category === "ORPHAN")?.length || 0,
+            sequentialNumber: printFamilyData.familyCode || printFamilyData.id,
+            notes: printFamilyData.notes,
+          }}
+          onClose={() => setPrintFamilyData(null)}
         />
       )}
     </div>

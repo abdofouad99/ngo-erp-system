@@ -1,12 +1,16 @@
 import { AppHeader } from "@/components/layout/app-header"
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { getCurrentUser } from "@/app/actions/auth-actions"
+import { checkAndCreateAlerts } from "@/app/actions/alert-actions"
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  // Trigger smart alerts asynchronously on load
+  checkAndCreateAlerts().catch((err) => console.error("Alert check error:", err))
+
   const user = await getCurrentUser()
   const isMarketer = user?.role === "MARKETER"
 

@@ -231,6 +231,68 @@ export default async function DashboardPage() {
         activeProjectsCount={stats.projects}
       />
 
+      {/* ── Month-over-Month Comparison ──────────────────────────── */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {(() => {
+          const now = new Date()
+          const thisMonth = { year: now.getFullYear(), month: now.getMonth() }
+          const lastMonth = now.getMonth() === 0
+            ? { year: now.getFullYear() - 1, month: 11 }
+            : { year: now.getFullYear(), month: now.getMonth() - 1 }
+
+          const countThisMonth = (arr: any[]) => arr.filter(x => {
+            const d = new Date(x.createdAt)
+            return d.getFullYear() === thisMonth.year && d.getMonth() === thisMonth.month
+          }).length
+          const countLastMonth = (arr: any[]) => arr.filter(x => {
+            const d = new Date(x.createdAt)
+            return d.getFullYear() === lastMonth.year && d.getMonth() === lastMonth.month
+          }).length
+
+          const allBenefs = rawData.beneficiaries
+          const orphansThis = countThisMonth(allBenefs.filter(b => b.category === "ORPHAN"))
+          const orphansLast = countLastMonth(allBenefs.filter(b => b.category === "ORPHAN"))
+          const familiesThis = countThisMonth(rawData.families)
+          const familiesLast = countLastMonth(rawData.families)
+          const studentsThis = countThisMonth(allBenefs.filter(b => b.category === "STUDENT"))
+          const studentsLast = countLastMonth(allBenefs.filter(b => b.category === "STUDENT"))
+
+          const items = [
+            { label: "أيتام جدد هذا الشهر", current: orphansThis, prev: orphansLast, color: "emerald" },
+            { label: "أسر جديدة هذا الشهر", current: familiesThis, prev: familiesLast, color: "blue" },
+            { label: "طلاب جدد هذا الشهر", current: studentsThis, prev: studentsLast, color: "violet" },
+            { label: "كفالات نشطة", current: stats.sponsorships, prev: stats.sponsorships, color: "rose" },
+          ]
+
+          return items.map(item => {
+            const diff = item.current - item.prev
+            const pct = item.prev > 0 ? Math.abs(Math.round((diff / item.prev) * 100)) : 0
+            const up = diff >= 0
+            return (
+              <Card key={item.label} className={`glass-card border-${item.color}-500/10`}>
+                <CardContent className="p-4">
+                  <p className="text-xs text-muted-foreground mb-1">{item.label}</p>
+                  <p className={`text-2xl font-bold text-${item.color}-400 tabular-nums`}>{item.current}</p>
+                  <div className="flex items-center gap-1 mt-1.5">
+                    {item.prev !== item.current ? (
+                      <>
+                        <span className={`text-xs font-bold flex items-center gap-0.5 ${up ? "text-emerald-400" : "text-rose-400"}`}>
+                          {up ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                          {pct}%
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">مقارنة بالشهر الماضي ({item.prev})</span>
+                      </>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground">لا تغيير عن الشهر الماضي</span>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })
+        })()}
+      </div>
+
       {/* ── Quick Actions + System Status ───────────────────────── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 

@@ -20,7 +20,9 @@ import {
   Paperclip,
   ChevronLeft,
   ChevronRight,
-  Check
+  Check,
+  Printer,
+  ChevronDown,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -47,6 +49,7 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
+import { PrintProfile } from "@/components/print-profile"
 
 
 // =============================================================================
@@ -493,6 +496,9 @@ export function OrphansClient({
   const [selectedOrphan, setSelectedOrphan] = useState<any | null>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [selectedSponsorshipFilter, setSelectedSponsorshipFilter] = useState("ALL")
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
+  const [printOrphanData, setPrintOrphanData] = useState<any | null>(null)
 
   // Pagination & Bulk Actions States
   const [currentPage, setCurrentPage] = useState(1)
@@ -503,7 +509,7 @@ export function OrphansClient({
   // Reset page when any filter changes
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchTerm, selectedGender, selectedStatus, selectedTagId, selectedFundingTagId])
+  }, [searchTerm, selectedGender, selectedStatus, selectedTagId, selectedFundingTagId, selectedSponsorshipFilter])
 
   const handleBulkApprove = async () => {
     if (selectedIds.length === 0) return
@@ -590,8 +596,13 @@ export function OrphansClient({
     const orphanTagIds = (orphan.tags || []).map((bt: any) => bt.tagId)
     const matchesStatusTag = !selectedTagId || orphanTagIds.includes(selectedTagId)
     const matchesFundingTag = !selectedFundingTagId || orphanTagIds.includes(selectedFundingTagId)
+    const isSponsored = (orphan.sponsorships || []).some((s: any) => s.status === "ACTIVE")
+    const matchesSponsorship =
+      selectedSponsorshipFilter === "ALL" ||
+      (selectedSponsorshipFilter === "SPONSORED" && isSponsored) ||
+      (selectedSponsorshipFilter === "UNSPONSORED" && !isSponsored)
 
-    return matchesSearch && matchesGender && matchesStatus && matchesStatusTag && matchesFundingTag
+    return matchesSearch && matchesGender && matchesStatus && matchesStatusTag && matchesFundingTag && matchesSponsorship
   })
 
   // Paginated visible orphans
@@ -1037,6 +1048,17 @@ export function OrphansClient({
                           }
                         />
 
+                        {/* طباعة ملف */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setPrintOrphanData(orphan)}
+                          className="h-8 rounded-lg px-2.5 text-xs bg-violet-500/10 border-violet-500/20 text-violet-400 hover:bg-violet-500 hover:text-white hover:border-violet-500 transition-all duration-300 hover:scale-[1.05] active:scale-[0.95] flex items-center gap-1 font-semibold"
+                        >
+                          <Printer className="h-3.5 w-3.5" />
+                          <span>طباعة</span>
+                        </Button>
+
                         {/* حذف/تعطيل */}
                         <Button
                           variant="outline"
@@ -1352,6 +1374,27 @@ export function OrphansClient({
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Print Profile Modal */}
+      {printOrphanData && (
+        <PrintProfile
+          type="orphan"
+          data={{
+            fullName: printOrphanData.fullName,
+            birthDate: printOrphanData.birthdate
+              ? new Date(printOrphanData.birthdate).toLocaleDateString("en-GB")
+              : "—",
+            gender: printOrphanData.gender,
+            orphanStatus: printOrphanData.orphanType,
+            healthStatus: printOrphanData.healthStatus,
+            educationLevel: printOrphanData.educationLevel,
+            governorateName: printOrphanData.family?.governorateName || "—",
+            sequentialNumber: printOrphanData.orphanCode,
+            notes: printOrphanData.notes,
+          }}
+          onClose={() => setPrintOrphanData(null)}
+        />
+      )}
 
     </div>
   )

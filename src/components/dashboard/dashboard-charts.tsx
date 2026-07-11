@@ -330,10 +330,33 @@ export function DashboardCharts({
 
       {/* ── Main Charts Grid ────────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {/* ── Chart 0: Monthly Growth Timeline ───────────────────── */}
+        {/* ── Chart 0: Monthly Bar Chart ─────────────────────────── */}
         <Card className="glass-card md:col-span-2">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold text-gradient">معدل نمو التسجيل السنوي (شهرياً)</CardTitle>
+            <CardTitle className="text-sm font-bold text-gradient">التسجيلات الشهرية — أعمدة مقارنة</CardTitle>
+            <CardDescription className="text-xs">مقارنة عدد الأسر والأيتام المسجلين في كل شهر (آخر 6 أشهر).</CardDescription>
+          </CardHeader>
+          <CardContent className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={growthData.slice(-6)}
+                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+              >
+                <XAxis dataKey="name" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
+                <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
+                <Legend verticalAlign="top" height={36} />
+                <Bar dataKey="الأيتام" fill="#10b981" radius={[6, 6, 0, 0]} maxBarSize={32} />
+                <Bar dataKey="الأسر" fill="#3b82f6" radius={[6, 6, 0, 0]} maxBarSize={32} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* ── Chart 0b: Monthly Line/Area Chart ──────────────────── */}
+        <Card className="glass-card md:col-span-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-bold text-gradient">معدل نمو التسجيل السنوي (خطي)</CardTitle>
             <CardDescription className="text-xs">رصد زيادة تسجيل الأيتام والأسر شهرياً على مدار الـ 12 شهراً الأخيرة.</CardDescription>
           </CardHeader>
           <CardContent className="h-72">
