@@ -152,7 +152,7 @@ function calculateAge(birthdate: Date | string): number {
 
 function formatDate(date: Date | string | null): string {
   if (!date) return "غير محدد"
-  return new Intl.DateTimeFormat("ar-YE", {
+  return new Intl.DateTimeFormat("ar-YE-u-nu-latn", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -161,7 +161,7 @@ function formatDate(date: Date | string | null): string {
 
 function formatCurrency(amount: number | null): string {
   if (amount === null || amount === undefined) return "غير محدد"
-  return new Intl.NumberFormat("ar-YE", {
+  return new Intl.NumberFormat("ar-YE-u-nu-latn", {
     style: "currency",
     currency: "YER",
     maximumFractionDigits: 0,
@@ -415,7 +415,7 @@ export function OrphansClient({
         "الاسم الكامل": o.fullName || "",
         "الاسم المختصر للكشوفات": o.shortName || "",
         "الجنس": o.gender === "MALE" ? "ذكر" : "أنثى",
-        "تاريخ الميلاد": o.birthdate ? new Date(o.birthdate).toLocaleDateString("ar-YE") : "",
+        "تاريخ الميلاد": o.birthdate ? new Date(o.birthdate).toLocaleDateString("ar-YE-u-nu-latn") : "",
         "الرقم الوطني / شهادة الميلاد": o.nationalId || "",
         "الديانة": o.religion || "",
         "اسم الوالد رباعياً": o.fatherFullName || "",
@@ -449,9 +449,9 @@ export function OrphansClient({
         "نوع الإعاقة": o.disabilityType || "",
         "تفاصيل الإعاقة": o.disabilityDetails || "",
         "نوع اليتيم": o.orphanType === "FATHER" ? "يتيم الأب" : o.orphanType === "MOTHER" ? "يتيم الأم" : o.orphanType === "BOTH" ? "يتيم الأبوين" : "",
-        "تاريخ وفاة الأب": o.fatherDeathDate ? new Date(o.fatherDeathDate).toLocaleDateString("ar-YE") : "",
+        "تاريخ وفاة الأب": o.fatherDeathDate ? new Date(o.fatherDeathDate).toLocaleDateString("ar-YE-u-nu-latn") : "",
         "سبب وفاة الأب": o.fatherDeathCause || "",
-        "تاريخ وفاة الأم": o.motherDeathDate ? new Date(o.motherDeathDate).toLocaleDateString("ar-YE") : "",
+        "تاريخ وفاة الأم": o.motherDeathDate ? new Date(o.motherDeathDate).toLocaleDateString("ar-YE-u-nu-latn") : "",
         "محافظة الميلاد": o.birthGovernorate || "",
         "مديرية الميلاد": o.birthDistrict || "",
         "عزلة الميلاد": o.birthVillage || "",
@@ -476,7 +476,7 @@ export function OrphansClient({
         row[`اسم الأخ ${i + 1}`] = sib.fullName || "";
         row[`جنس الأخ ${i + 1}`] = sib.gender === "MALE" ? "ذكر" : sib.gender === "FEMALE" ? "أنثى" : "";
         row[`مؤهل الأخ ${i + 1}`] = sib.qualification || "";
-        row[`تاريخ ميلاد الأخ ${i + 1}`] = sib.birthdate ? new Date(sib.birthdate).toLocaleDateString("ar-YE") : "";
+        row[`تاريخ ميلاد الأخ ${i + 1}`] = sib.birthdate ? new Date(sib.birthdate).toLocaleDateString("ar-YE-u-nu-latn") : "";
         row[`الحالة الاجتماعية للأخ ${i + 1}`] = sib.socialStatus || "";
       }
 
@@ -893,6 +893,7 @@ export function OrphansClient({
                     className="h-4 w-4 rounded border-slate-700 bg-slate-900/40 text-emerald-500 focus:ring-emerald-500 cursor-pointer"
                   />
                 </TableHead>
+                <TableHead className="w-12 text-center font-bold text-slate-200 py-3.5">م</TableHead>
                 <TableHead className="text-right font-bold text-slate-200 py-3.5 pr-2">كود اليتيم</TableHead>
                 <TableHead className="text-right font-bold text-slate-200 py-3.5">الاسم الكامل</TableHead>
                 <TableHead className="text-right font-bold text-slate-200 py-3.5">اسم رب الأسرة</TableHead>
@@ -907,12 +908,12 @@ export function OrphansClient({
             <TableBody>
               {filteredOrphans.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="h-32 text-center text-slate-400">
+                  <TableCell colSpan={10} className="h-32 text-center text-slate-400">
                     لا توجد نتائج تطابق خيارات البحث والتصفية.
                   </TableCell>
                 </TableRow>
               ) : (
-                paginatedOrphans.map((orphan) => (
+                paginatedOrphans.map((orphan, i) => (
                   <TableRow
                     key={orphan.id}
                     className="hover:bg-slate-800/30 border-border/40 transition-colors duration-150"
@@ -924,6 +925,9 @@ export function OrphansClient({
                         onChange={() => handleSelectRow(orphan.id)}
                         className="h-4 w-4 rounded border-slate-700 bg-slate-900/40 text-emerald-500 focus:ring-emerald-500 cursor-pointer"
                       />
+                    </TableCell>
+                    <TableCell className="text-center text-slate-400 font-mono font-semibold text-xs tabular-nums py-3.5">
+                      {(currentPage - 1) * pageSize + i + 1}
                     </TableCell>
                     <TableCell className="font-mono text-xs font-semibold text-emerald-400 tabular-nums pr-2">
                       {orphan.orphanCode || "—"}
@@ -949,7 +953,7 @@ export function OrphansClient({
                       )}
                     </TableCell>
                     <TableCell className="text-slate-300 tabular-nums font-semibold">
-                      {calculateAge(orphan.birthdate).toLocaleString("ar-SA")} سنة
+                      {calculateAge(orphan.birthdate).toLocaleString("ar-SA-u-nu-latn")} سنة
                     </TableCell>
                     {/* Tags Column */}
                     <TableCell>
@@ -976,7 +980,7 @@ export function OrphansClient({
                       {orphan.attachments && orphan.attachments.length > 0 ? (
                         <Badge className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/15 transition-all duration-300 flex items-center gap-1 w-fit font-bold py-1 px-2 text-xs">
                           <Paperclip className="h-3.5 w-3.5" />
-                          <span>{orphan.attachments.length.toLocaleString("ar-YE")} مرفقات</span>
+                          <span>{orphan.attachments.length.toLocaleString("ar-YE-u-nu-latn")} مرفقات</span>
                         </Badge>
                       ) : (
                         <Badge className="bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/15 transition-all duration-300 flex items-center gap-1 w-fit font-bold py-1 px-2 text-xs">
@@ -1065,15 +1069,15 @@ export function OrphansClient({
             <div className="text-xs text-slate-400 font-medium">
               عرض{" "}
               <span className="text-white font-bold tabular-nums">
-                {Math.min((currentPage - 1) * pageSize + 1, filteredOrphans.length).toLocaleString("ar-YE")}
+                {Math.min((currentPage - 1) * pageSize + 1, filteredOrphans.length).toLocaleString("ar-YE-u-nu-latn")}
               </span>{" "}
               إلى{" "}
               <span className="text-white font-bold tabular-nums">
-                {Math.min(currentPage * pageSize, filteredOrphans.length).toLocaleString("ar-YE")}
+                {Math.min(currentPage * pageSize, filteredOrphans.length).toLocaleString("ar-YE-u-nu-latn")}
               </span>{" "}
               من أصل{" "}
               <span className="text-white font-bold tabular-nums">
-                {filteredOrphans.length.toLocaleString("ar-YE")}
+                {filteredOrphans.length.toLocaleString("ar-YE-u-nu-latn")}
               </span>{" "}
               يتيم
             </div>
@@ -1110,8 +1114,8 @@ export function OrphansClient({
                 </Button>
                 
                 <span className="text-xs text-slate-400 px-2 tabular-nums" dir="rtl">
-                  الصفحة <span className="text-white font-bold">{currentPage.toLocaleString("ar-YE")}</span> من{" "}
-                  <span className="text-white font-bold">{totalPages.toLocaleString("ar-YE")}</span>
+                  الصفحة <span className="text-white font-bold">{currentPage.toLocaleString("ar-YE-u-nu-latn")}</span> من{" "}
+                  <span className="text-white font-bold">{totalPages.toLocaleString("ar-YE-u-nu-latn")}</span>
                 </span>
 
                 <Button

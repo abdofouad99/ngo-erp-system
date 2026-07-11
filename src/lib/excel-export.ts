@@ -20,7 +20,7 @@ export function exportToExcel(data: any[], filename: string, sheetName = "الب
   const workbook = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(workbook, worksheet, sheetName)
 
-  XLSX.writeFile(workbook, `${filename}_${new Date().toLocaleDateString("ar-YE").replace(/\//g, "-")}.xlsx`)
+  XLSX.writeFile(workbook, `${filename}_${new Date().toLocaleDateString("ar-YE-u-nu-latn").replace(/\//g, "-")}.xlsx`)
 }
 
 // ============================================================
@@ -32,7 +32,7 @@ export function exportOrphansToExcel(orphans: any[]) {
     "كود الملف": o.orphanCode || "-",
     "اسم اليتيم": o.fullName || "-",
     "الجنس": o.gender === "MALE" ? "ذكر" : "أنثى",
-    "تاريخ الميلاد": o.birthdate ? new Date(o.birthdate).toLocaleDateString("ar-YE") : "-",
+    "تاريخ الميلاد": o.birthdate ? new Date(o.birthdate).toLocaleDateString("ar-YE-u-nu-latn") : "-",
     "نوع اليتيم": o.orphanType === "FATHER" ? "يتيم الأب" : o.orphanType === "MOTHER" ? "يتيم الأم" : o.orphanType === "BOTH" ? "يتيم الأبوين" : "-",
     "الأسرة": o.family?.headFullName || "-",
     "المرحلة الدراسية": o.educationalStage || o.educationLevel || "-",
@@ -43,7 +43,7 @@ export function exportOrphansToExcel(orphans: any[]) {
     "حالة التحقق": o.verificationStatus === "APPROVED" ? "معتمد" : o.verificationStatus === "REJECTED" ? "مرفوض" : "قيد المراجعة",
     "سبب الرفض": o.rejectionReason || "-",
     "ملاحظات": o.notes || "-",
-    "تاريخ التسجيل": o.createdAt ? new Date(o.createdAt).toLocaleDateString("ar-YE") : "-",
+    "تاريخ التسجيل": o.createdAt ? new Date(o.createdAt).toLocaleDateString("ar-YE-u-nu-latn") : "-",
   }))
 
   exportToExcel(data, "قائمة_الأيتام", "الأيتام")
@@ -73,7 +73,7 @@ export function exportFamiliesToExcel(families: any[]) {
     "عدد الأيتام": f.members?.length || 0,
     "الحالة": f.isActive ? "نشطة" : "غير نشطة",
     "ملاحظات": f.notes || "-",
-    "تاريخ التسجيل": f.createdAt ? new Date(f.createdAt).toLocaleDateString("ar-YE") : "-",
+    "تاريخ التسجيل": f.createdAt ? new Date(f.createdAt).toLocaleDateString("ar-YE-u-nu-latn") : "-",
   }))
 
   exportToExcel(data, "قائمة_الأسر", "الأسر")
@@ -93,7 +93,7 @@ export function exportSponsorsToExcel(sponsors: any[]) {
     "الدولة": s.country || "-",
     "عدد الكفالات": s.sponsorships?.length || 0,
     "ملاحظات": s.notes || "-",
-    "تاريخ التسجيل": s.createdAt ? new Date(s.createdAt).toLocaleDateString("ar-YE") : "-",
+    "تاريخ التسجيل": s.createdAt ? new Date(s.createdAt).toLocaleDateString("ar-YE-u-nu-latn") : "-",
   }))
 
   exportToExcel(data, "قائمة_الرعاة", "الرعاة")
@@ -112,8 +112,8 @@ export function exportSponsorshipsToExcel(sponsorships: any[]) {
     "العملة": s.currency || "-",
     "دورة الدفع": s.paymentCycle === "MONTHLY" ? "شهري" : s.paymentCycle === "QUARTERLY" ? "ربع سنوي" : s.paymentCycle === "ANNUAL" ? "سنوي" : s.paymentCycle === "SEMI_ANNUAL" ? "نصف سنوي" : "مرة واحدة",
     "الحالة": s.status === "ACTIVE" ? "نشطة" : s.status === "PAUSED" ? "موقوفة" : "منتهية",
-    "تاريخ البدء": s.startDate ? new Date(s.startDate).toLocaleDateString("ar-YE") : "-",
-    "تاريخ الانتهاء": s.endDate ? new Date(s.endDate).toLocaleDateString("ar-YE") : "مفتوحة",
+    "تاريخ البدء": s.startDate ? new Date(s.startDate).toLocaleDateString("ar-YE-u-nu-latn") : "-",
+    "تاريخ الانتهاء": s.endDate ? new Date(s.endDate).toLocaleDateString("ar-YE-u-nu-latn") : "مفتوحة",
     "دولة الراعي": s.sponsorCountry || s.sponsor?.country || "-",
     "ملاحظات": s.notes || "-",
   }))
@@ -134,10 +134,10 @@ export function exportProjectsToExcel(projects: any[]) {
     "الميزانية": p.budget || "-",
     "العملة": p.currency || "-",
     "العدد المستهدف": p.targetCount || "-",
-    "تاريخ البدء": p.startDate ? new Date(p.startDate).toLocaleDateString("ar-YE") : "-",
-    "تاريخ الانتهاء": p.endDate ? new Date(p.endDate).toLocaleDateString("ar-YE") : "-",
+    "تاريخ البدء": p.startDate ? new Date(p.startDate).toLocaleDateString("ar-YE-u-nu-latn") : "-",
+    "تاريخ الانتهاء": p.endDate ? new Date(p.endDate).toLocaleDateString("ar-YE-u-nu-latn") : "-",
     "عدد المستفيدين": p.beneficiaryLinks?.length || 0,
-    "تاريخ الإنشاء": p.createdAt ? new Date(p.createdAt).toLocaleDateString("ar-YE") : "-",
+    "تاريخ الإنشاء": p.createdAt ? new Date(p.createdAt).toLocaleDateString("ar-YE-u-nu-latn") : "-",
   }))
 
   exportToExcel(data, "قائمة_المشاريع", "المشاريع")
@@ -158,7 +158,7 @@ export function exportDistributionsToExcel(distributions: any[]) {
     "القيمة الإجمالية": (d.quantity || 0) * (d.unitValue || 0),
     "العملة": d.currency || "-",
     "تم الاستلام": d.isDelivered ? "نعم" : "لا",
-    "تاريخ الاستلام": d.deliveryDate ? new Date(d.deliveryDate).toLocaleDateString("ar-YE") : "-",
+    "تاريخ الاستلام": d.deliveryDate ? new Date(d.deliveryDate).toLocaleDateString("ar-YE-u-nu-latn") : "-",
   }))
 
   exportToExcel(data, "سجل_التوزيع_والمسح_الميداني", "التوزيع")

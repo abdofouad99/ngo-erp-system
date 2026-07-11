@@ -289,7 +289,7 @@ export function DashboardCharts({
                   <div className="flex items-end justify-between mt-4">
                     <div>
                       <p className="text-2xl font-bold tabular-nums text-foreground md:text-3xl">
-                        {card.value.toLocaleString("ar-SA")}
+                        {card.value.toLocaleString("ar-SA-u-nu-latn")}
                       </p>
                       <p className="mt-1 text-sm font-semibold text-foreground/90">
                         {card.title}

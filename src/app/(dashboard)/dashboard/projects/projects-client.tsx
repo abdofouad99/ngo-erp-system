@@ -278,7 +278,7 @@ export function ProjectsClient({
                             {/* Budget */}
                             <td className="py-4 font-mono font-bold text-emerald-400 text-sm tabular-nums">
                               {project.budget !== null ? (
-                                `${project.budget.toLocaleString()} ${project.currency}`
+                                `${project.budget.toLocaleString("en-US")} ${project.currency}`
                               ) : (
                                 "-"
                               )}
@@ -451,7 +451,7 @@ export function ProjectsClient({
                           <td className="py-4 font-mono text-xs text-slate-400">
                             {dist.isDelivered ? (
                               dist.deliveryDate ? (
-                                new Date(dist.deliveryDate).toLocaleDateString("ar-YE")
+                                new Date(dist.deliveryDate).toLocaleDateString("ar-YE-u-nu-latn")
                               ) : (
                                 "تم التسليم"
                               )

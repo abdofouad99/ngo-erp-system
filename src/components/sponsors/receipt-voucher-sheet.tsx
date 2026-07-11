@@ -177,7 +177,7 @@ export function ReceiptVoucherSheet({ sponsor }: ReceiptVoucherSheetProps) {
               <div className="text-left">
                 <h2 className="text-lg font-bold bg-slate-100 px-3 py-1 rounded-lg">سند قبض رسمي</h2>
                 <p className="text-xs text-mono font-bold mt-1">رقم السند: {activePrintReceipt.receiptNumber}</p>
-                <p className="text-xs text-gray-500">التاريخ: {new Date(activePrintReceipt.paymentDate).toLocaleDateString("ar-YE")}</p>
+                <p className="text-xs text-gray-500">التاريخ: {new Date(activePrintReceipt.paymentDate).toLocaleDateString("ar-YE-u-nu-latn")}</p>
               </div>
             </div>
 

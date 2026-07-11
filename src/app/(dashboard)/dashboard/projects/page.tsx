@@ -107,7 +107,7 @@ export default async function ProjectsPage() {
               <div>
                 <p className="text-sm font-semibold text-blue-600">المشاريع النشطة</p>
                 <p className="mt-2 text-2xl font-bold text-blue-900 tabular-nums">
-                  {activeProjectsCount.toLocaleString("ar-SA")}
+                  {activeProjectsCount.toLocaleString("ar-SA-u-nu-latn")}
                 </p>
               </div>
               <div className="rounded-xl bg-blue-500/10 p-2.5 text-blue-600">
@@ -127,7 +127,7 @@ export default async function ProjectsPage() {
               <div>
                 <p className="text-sm font-semibold text-amber-600">المستهدفون الإجمالي</p>
                 <p className="mt-2 text-2xl font-bold text-amber-900 tabular-nums">
-                  {totalTarget.toLocaleString("ar-SA")}
+                  {totalTarget.toLocaleString("ar-SA-u-nu-latn")}
                 </p>
               </div>
               <div className="rounded-xl bg-amber-500/10 p-2.5 text-amber-600">
@@ -147,7 +147,7 @@ export default async function ProjectsPage() {
               <div>
                 <p className="text-sm font-semibold text-emerald-600">التسليمات الميدانية</p>
                 <p className="mt-2 text-2xl font-bold text-emerald-900 tabular-nums">
-                  {deliveredCount.toLocaleString("ar-SA")}
+                  {deliveredCount.toLocaleString("ar-SA-u-nu-latn")}
                 </p>
               </div>
               <div className="rounded-xl bg-emerald-500/10 p-2.5 text-emerald-600">
@@ -167,7 +167,7 @@ export default async function ProjectsPage() {
               <div>
                 <p className="text-sm font-semibold text-purple-600">نسبة الإنجاز الإجمالية</p>
                 <p className="mt-2 text-2xl font-bold text-purple-900 tabular-nums">
-                  {deliveryProgress.toLocaleString("ar-SA")}%
+                  {deliveryProgress.toLocaleString("ar-SA-u-nu-latn")}%
                 </p>
               </div>
               <div className="rounded-xl bg-purple-500/10 p-2.5 text-purple-600">

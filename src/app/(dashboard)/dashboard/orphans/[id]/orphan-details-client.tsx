@@ -196,7 +196,7 @@ function calculateAge(birthdate: Date | string): number {
 
 function formatDate(date: Date | string | null): string {
   if (!date) return "غير محدد"
-  return new Intl.DateTimeFormat("ar-YE", {
+  return new Intl.DateTimeFormat("ar-YE-u-nu-latn", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -205,7 +205,7 @@ function formatDate(date: Date | string | null): string {
 
 function formatCurrency(amount: number | null): string {
   if (amount === null || amount === undefined) return "غير محدد"
-  return new Intl.NumberFormat("ar-YE", {
+  return new Intl.NumberFormat("ar-YE-u-nu-latn", {
     style: "currency",
     currency: "YER",
     maximumFractionDigits: 0,
@@ -410,12 +410,12 @@ export function OrphanDetailsClient({ initialOrphan, currentUserRole }: OrphanDe
 
   const getFamilyMembersFallback = () => {
     if (orphan.family.familyMembersCount !== null) {
-      return `${orphan.family.familyMembersCount.toLocaleString("ar-YE")} أفراد`
+      return `${orphan.family.familyMembersCount.toLocaleString("ar-YE-u-nu-latn")} أفراد`
     }
     const count = (orphan.siblings?.length || 0) + 2
     return (
       <span className="flex items-center gap-1.5 flex-wrap">
-        <span>{count.toLocaleString("ar-YE")} أفراد</span>
+        <span>{count.toLocaleString("ar-YE-u-nu-latn")} أفراد</span>
         <span className="text-[9px] bg-emerald-500/10 text-emerald-450 border border-emerald-500/20 px-1.5 py-0.5 rounded font-bold">تقديري من الملف</span>
       </span>
     )
@@ -510,7 +510,7 @@ export function OrphanDetailsClient({ initialOrphan, currentUserRole }: OrphanDe
                   </span>
                 </span>
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-350"></span>
-                <span>العمر: {calculateAge(orphan.birthdate).toLocaleString("ar-SA")} سنة</span>
+                <span>العمر: {calculateAge(orphan.birthdate).toLocaleString("ar-SA-u-nu-latn")} سنة</span>
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-350"></span>
                 <span>الجنس: {orphan.gender === "MALE" ? "ذكر" : "أنثى"}</span>
               </div>
@@ -682,7 +682,7 @@ export function OrphanDetailsClient({ initialOrphan, currentUserRole }: OrphanDe
                       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
                         <p className="text-xs text-gray-400 font-semibold mb-1">المعدل الدراسي (%)</p>
                         <p className="text-sm font-bold text-emerald-400 font-mono tabular-nums">
-                          {orphan.averageGrade !== null ? `${orphan.averageGrade.toLocaleString("ar-YE")}%` : renderValue(null)}
+                          {orphan.averageGrade !== null ? `${orphan.averageGrade.toLocaleString("ar-YE-u-nu-latn")}%` : renderValue(null)}
                         </p>
                       </div>
                       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
@@ -1112,7 +1112,7 @@ export function OrphanDetailsClient({ initialOrphan, currentUserRole }: OrphanDe
                                 </div>
                                 <div>
                                   <p className="text-[10px] text-gray-400">تاريخ الميلاد</p>
-                                  <p className="text-xs font-mono text-white">{s.birthdate ? new Date(s.birthdate).toLocaleDateString("ar-YE") : "-"}</p>
+                                  <p className="text-xs font-mono text-white">{s.birthdate ? new Date(s.birthdate).toLocaleDateString("ar-YE-u-nu-latn") : "-"}</p>
                                 </div>
                                 <div>
                                   <p className="text-[10px] text-gray-400">المؤهل</p>
@@ -1264,7 +1264,7 @@ export function OrphanDetailsClient({ initialOrphan, currentUserRole }: OrphanDe
                               <div>
                                 <p className="text-xs text-gray-400 font-semibold">قيمة الكفالة الشهرية</p>
                                 <p className="text-sm font-bold text-emerald-400 font-mono tabular-nums">
-                                  {Number(spons.amount).toLocaleString("ar-YE")} {spons.currency}
+                                  {Number(spons.amount).toLocaleString("ar-YE-u-nu-latn")} {spons.currency}
                                 </p>
                               </div>
                               <div>
@@ -1300,15 +1300,15 @@ export function OrphanDetailsClient({ initialOrphan, currentUserRole }: OrphanDe
                                   <div className="grid grid-cols-3 gap-2 text-center">
                                     <div>
                                       <p className="text-[10px] text-gray-400">لليتيم</p>
-                                      <p className="text-xs font-bold text-white font-mono">{spons.shareOrphanKWD ? `${Number(spons.shareOrphanKWD).toLocaleString("ar-YE")} د.ك` : "—"}</p>
+                                      <p className="text-xs font-bold text-white font-mono">{spons.shareOrphanKWD ? `${Number(spons.shareOrphanKWD).toLocaleString("ar-YE-u-nu-latn")} د.ك` : "—"}</p>
                                     </div>
                                     <div>
                                       <p className="text-[10px] text-gray-400">للجهة</p>
-                                      <p className="text-xs font-bold text-white font-mono">{spons.shareOrgKWD ? `${Number(spons.shareOrgKWD).toLocaleString("ar-YE")} د.ك` : "—"}</p>
+                                      <p className="text-xs font-bold text-white font-mono">{spons.shareOrgKWD ? `${Number(spons.shareOrgKWD).toLocaleString("ar-YE-u-nu-latn")} د.ك` : "—"}</p>
                                     </div>
                                     <div>
                                       <p className="text-[10px] text-gray-400">الإجمالي</p>
-                                      <p className="text-xs font-bold text-emerald-400 font-mono">{spons.totalAmountKWD ? `${Number(spons.totalAmountKWD).toLocaleString("ar-YE")} د.ك` : "—"}</p>
+                                      <p className="text-xs font-bold text-emerald-400 font-mono">{spons.totalAmountKWD ? `${Number(spons.totalAmountKWD).toLocaleString("ar-YE-u-nu-latn")} د.ك` : "—"}</p>
                                     </div>
                                   </div>
                                 </div>
@@ -1322,15 +1322,15 @@ export function OrphanDetailsClient({ initialOrphan, currentUserRole }: OrphanDe
                                   <div className="grid grid-cols-3 gap-2 text-center">
                                     <div>
                                       <p className="text-[10px] text-gray-400">لليتيم</p>
-                                      <p className="text-xs font-bold text-white font-mono">{spons.shareOrphanSAR ? `${Number(spons.shareOrphanSAR).toLocaleString("ar-YE")} ر.س` : "—"}</p>
+                                      <p className="text-xs font-bold text-white font-mono">{spons.shareOrphanSAR ? `${Number(spons.shareOrphanSAR).toLocaleString("ar-YE-u-nu-latn")} ر.س` : "—"}</p>
                                     </div>
                                     <div>
                                       <p className="text-[10px] text-gray-400">للجهة</p>
-                                      <p className="text-xs font-bold text-white font-mono">{spons.shareOrgSAR ? `${Number(spons.shareOrgSAR).toLocaleString("ar-YE")} ر.س` : "—"}</p>
+                                      <p className="text-xs font-bold text-white font-mono">{spons.shareOrgSAR ? `${Number(spons.shareOrgSAR).toLocaleString("ar-YE-u-nu-latn")} ر.س` : "—"}</p>
                                     </div>
                                     <div>
                                       <p className="text-[10px] text-gray-400">الإجمالي</p>
-                                      <p className="text-xs font-bold text-emerald-400 font-mono">{spons.totalAmountSAR ? `${Number(spons.totalAmountSAR).toLocaleString("ar-YE")} ر.س` : "—"}</p>
+                                      <p className="text-xs font-bold text-emerald-400 font-mono">{spons.totalAmountSAR ? `${Number(spons.totalAmountSAR).toLocaleString("ar-YE-u-nu-latn")} ر.س` : "—"}</p>
                                     </div>
                                   </div>
                                 </div>
@@ -1344,15 +1344,15 @@ export function OrphanDetailsClient({ initialOrphan, currentUserRole }: OrphanDe
                               <div className="grid grid-cols-3 gap-3 text-center">
                                 <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-2.5">
                                   <p className="text-[10px] text-gray-400">حصة اليتيم الفعلية</p>
-                                  <p className="text-xs font-bold text-white font-mono mt-1">{spons.orphanShare ? `${Number(spons.orphanShare).toLocaleString("ar-YE")} ر.س` : "—"}</p>
+                                  <p className="text-xs font-bold text-white font-mono mt-1">{spons.orphanShare ? `${Number(spons.orphanShare).toLocaleString("ar-YE-u-nu-latn")} ر.س` : "—"}</p>
                                 </div>
                                 <div className="rounded-xl border border-slate-800 bg-slate-950 p-2.5">
                                   <p className="text-[10px] text-pink-400 font-bold">حصة اليتيم بالتقريب</p>
-                                  <p className="text-sm font-black text-white font-mono mt-1">{spons.orphanShareRounded ? `${Number(spons.orphanShareRounded).toLocaleString("ar-YE")} ر.س` : "—"}</p>
+                                  <p className="text-sm font-black text-white font-mono mt-1">{spons.orphanShareRounded ? `${Number(spons.orphanShareRounded).toLocaleString("ar-YE-u-nu-latn")} ر.س` : "—"}</p>
                                 </div>
                                 <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-2.5">
                                   <p className="text-[10px] text-gray-400">حصة الدار</p>
-                                  <p className="text-xs font-bold text-white font-mono mt-1">{spons.houseShare ? `${Number(spons.houseShare).toLocaleString("ar-YE")} ر.س` : "—"}</p>
+                                  <p className="text-xs font-bold text-white font-mono mt-1">{spons.houseShare ? `${Number(spons.houseShare).toLocaleString("ar-YE-u-nu-latn")} ر.س` : "—"}</p>
                                 </div>
                               </div>
                             </div>
@@ -1426,7 +1426,7 @@ export function OrphanDetailsClient({ initialOrphan, currentUserRole }: OrphanDe
                               <p className="text-xs font-bold text-white truncate" title={att.fileName}>{att.fileName}</p>
                               {att.description && <p className="text-[10px] text-slate-400 truncate">{att.description}</p>}
                               <p className="text-[10px] text-slate-650 font-mono">
-                                {att.createdAt ? new Date(att.createdAt).toLocaleDateString("ar-YE") : ""}
+                                {att.createdAt ? new Date(att.createdAt).toLocaleDateString("ar-YE-u-nu-latn") : ""}
                                 {att.sizeBytes ? ` · ${(att.sizeBytes / 1024).toFixed(0)} KB` : ""}
                               </p>
                             </div>
@@ -1516,7 +1516,7 @@ export function OrphanDetailsClient({ initialOrphan, currentUserRole }: OrphanDe
               </div>
               <div className="flex justify-between py-1.5 border-b border-slate-900/60">
                 <span className="text-slate-450">تاريخ التسجيل:</span>
-                <span className="font-bold text-white">{new Date(orphan.birthdate).toLocaleDateString("ar-YE")}</span>
+                <span className="font-bold text-white">{new Date(orphan.birthdate).toLocaleDateString("ar-YE-u-nu-latn")}</span>
               </div>
               <div className="flex justify-between py-1.5">
                 <span className="text-slate-450">تاريخ الإنشاء بالنظام:</span>

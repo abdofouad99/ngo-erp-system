@@ -43,7 +43,7 @@ function calculateAge(birthdate: Date | string | null): number | null {
 
 function formatDate(date: Date | string | null): string {
   if (!date) return "-"
-  return new Date(date).toLocaleDateString("ar-YE", {
+  return new Date(date).toLocaleDateString("ar-YE-u-nu-latn", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -276,7 +276,7 @@ export function FamilyDetailsSheet({ family, open, onOpenChange }: FamilyDetails
                       <span className="text-[11px] font-semibold text-slate-400 block mb-0.5">الدخل الشهري التقريبي</span>
                       <span className="text-sm font-bold text-white tabular-nums">
                         {family.monthlyIncome !== null ? (
-                          `${family.monthlyIncome.toLocaleString("ar-YE")} ريال`
+                          `${family.monthlyIncome.toLocaleString("ar-YE-u-nu-latn")} ريال`
                         ) : (
                           <span className="text-slate-500 text-xs italic">غير مدخل</span>
                         )}

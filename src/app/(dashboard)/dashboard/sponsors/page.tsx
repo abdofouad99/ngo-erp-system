@@ -140,7 +140,7 @@ export default async function SponsorsPage() {
               <div>
                 <p className="text-sm font-semibold text-blue-600">إجمالي الكفلاء</p>
                 <p className="mt-2 text-2xl font-bold text-blue-900 tabular-nums">
-                  {totalSponsors.toLocaleString("ar-SA")}
+                  {totalSponsors.toLocaleString("ar-SA-u-nu-latn")}
                 </p>
               </div>
               <div className="rounded-xl bg-blue-500/10 p-2.5 text-blue-600">
@@ -160,7 +160,7 @@ export default async function SponsorsPage() {
               <div>
                 <p className="text-sm font-semibold text-emerald-600">الكفالات الفعّالة</p>
                 <p className="mt-2 text-2xl font-bold text-emerald-900 tabular-nums">
-                  {activeSponsorshipsCount.toLocaleString("ar-SA")}
+                  {activeSponsorshipsCount.toLocaleString("ar-SA-u-nu-latn")}
                 </p>
               </div>
               <div className="rounded-xl bg-emerald-500/10 p-2.5 text-emerald-600">
@@ -180,7 +180,7 @@ export default async function SponsorsPage() {
               <div>
                 <p className="text-sm font-semibold text-rose-600">التزامات الدولار (USD)</p>
                 <p className="mt-2 text-2xl font-bold text-rose-900 tabular-nums">
-                  ${usdMonthly.toLocaleString("ar-SA")}
+                  ${usdMonthly.toLocaleString("ar-SA-u-nu-latn")}
                 </p>
               </div>
               <div className="rounded-xl bg-rose-500/10 p-2.5 text-rose-600">
@@ -200,8 +200,8 @@ export default async function SponsorsPage() {
               <div>
                 <p className="text-sm font-semibold text-amber-600">الريال السعودي واليمني</p>
                 <div className="mt-2 text-sm font-bold text-amber-900 flex flex-col gap-0.5 leading-none">
-                  <span>{sarMonthly.toLocaleString("ar-SA")} ر.س</span>
-                  <span className="text-[10px] text-amber-600 font-semibold">{yerMonthly.toLocaleString("ar-SA")} ر.ي</span>
+                  <span>{sarMonthly.toLocaleString("ar-SA-u-nu-latn")} ر.س</span>
+                  <span className="text-[10px] text-amber-600 font-semibold">{yerMonthly.toLocaleString("ar-SA-u-nu-latn")} ر.ي</span>
                 </div>
               </div>
               <div className="rounded-xl bg-amber-500/10 p-2.5 text-amber-600">

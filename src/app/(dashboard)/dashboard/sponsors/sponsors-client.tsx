@@ -232,7 +232,8 @@ export function SponsorsClient({
                 <Table className="w-full text-right">
                   <TableHeader className="bg-slate-900/80 border-b border-slate-800">
                     <TableRow className="hover:bg-slate-900 border-b border-slate-800">
-                      <TableHead className="text-right text-slate-200 font-bold py-4 pr-6">الاسم الكامل</TableHead>
+                      <TableHead className="w-12 text-center text-slate-200 font-bold py-4 pr-6">م</TableHead>
+                      <TableHead className="text-right text-slate-200 font-bold py-4 pr-2">الاسم الكامل</TableHead>
                       <TableHead className="text-right text-slate-200 font-bold py-4">الجهة / المنظمة</TableHead>
                       <TableHead className="text-right text-slate-200 font-bold py-4">معلومات الاتصال</TableHead>
                       <TableHead className="text-right text-slate-200 font-bold py-4">الدولة</TableHead>
@@ -242,10 +243,14 @@ export function SponsorsClient({
                   </TableHeader>
                   <TableBody className="divide-y divide-slate-800/50 text-slate-300">
                     {filteredSponsors.length > 0 ? (
-                      filteredSponsors.map((sponsor) => (
+                      filteredSponsors.map((sponsor, i) => (
                         <TableRow key={sponsor.id} className="hover:bg-slate-900/40 border-b border-slate-900/50 transition-all duration-200">
+                          {/* Serial number */}
+                          <td className="text-center py-4 pr-6 text-slate-400 font-mono font-semibold text-xs tabular-nums">
+                            {i + 1}
+                          </td>
                           {/* Name */}
-                          <td className="py-4 pr-6 font-bold text-white text-sm">
+                          <td className="py-4 pr-2 font-bold text-white text-sm">
                             {sponsor.fullName}
                           </td>
                           {/* Organization */}
@@ -324,7 +329,7 @@ export function SponsorsClient({
                       ))
                     ) : (
                       <TableRow>
-                        <td colSpan={6} className="text-center py-12 text-sm text-slate-500 font-medium">
+                        <td colSpan={7} className="text-center py-12 text-sm text-slate-500 font-medium">
                           لا توجد نتائج تطابق خيارات بحث الكفلاء.
                         </td>
                       </TableRow>
@@ -440,7 +445,7 @@ export function SponsorsClient({
                             </td>
                             {/* Amount & Currency */}
                             <td className="py-4 font-mono font-bold text-emerald-400 tabular-nums">
-                              {s.amount.toLocaleString()} {s.currency}
+                              {s.amount.toLocaleString("en-US")} {s.currency}
                             </td>
                             {/* Payment Cycle */}
                             <td className="py-4 text-xs font-semibold text-slate-400">
@@ -448,7 +453,7 @@ export function SponsorsClient({
                             </td>
                             {/* Start date */}
                             <td className="py-4 font-mono text-xs text-slate-400">
-                              {new Date(s.startDate).toLocaleDateString("ar-YE")}
+                              {new Date(s.startDate).toLocaleDateString("ar-YE-u-nu-latn")}
                             </td>
                             {/* Status */}
                             <td className="py-4 text-center">

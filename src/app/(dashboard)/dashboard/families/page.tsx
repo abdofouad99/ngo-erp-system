@@ -101,7 +101,7 @@ export default async function FamiliesPage() {
               <div>
                 <p className="text-sm font-semibold text-blue-600">إجمالي الأسر</p>
                 <p className="mt-2 text-2xl font-bold text-blue-900 tabular-nums">
-                  {totalCount.toLocaleString("ar-SA")}
+                  {totalCount.toLocaleString("ar-SA-u-nu-latn")}
                 </p>
               </div>
               <div className="rounded-xl bg-blue-500/10 p-2.5 text-blue-600">
@@ -121,7 +121,7 @@ export default async function FamiliesPage() {
               <div>
                 <p className="text-sm font-semibold text-emerald-600">الأسر النشطة</p>
                 <p className="mt-2 text-2xl font-bold text-emerald-900 tabular-nums">
-                  {activeCount.toLocaleString("ar-SA")}
+                  {activeCount.toLocaleString("ar-SA-u-nu-latn")}
                 </p>
               </div>
               <div className="rounded-xl bg-emerald-500/10 p-2.5 text-emerald-600">
@@ -141,7 +141,7 @@ export default async function FamiliesPage() {
               <div>
                 <p className="text-sm font-semibold text-red-600">تحت خط الفقر الشديد</p>
                 <p className="mt-2 text-2xl font-bold text-red-900 tabular-nums">
-                  {severePovertyCount.toLocaleString("ar-SA")}
+                  {severePovertyCount.toLocaleString("ar-SA-u-nu-latn")}
                 </p>
               </div>
               <div className="rounded-xl bg-red-500/10 p-2.5 text-red-600">
@@ -161,7 +161,7 @@ export default async function FamiliesPage() {
               <div>
                 <p className="text-sm font-semibold text-amber-600">متوسط الهشاشة</p>
                 <p className="mt-2 text-2xl font-bold text-amber-900 tabular-nums">
-                  {avgVulnerability.toLocaleString("ar-SA")}%
+                  {avgVulnerability.toLocaleString("ar-SA-u-nu-latn")}%
                 </p>
               </div>
               <div className="rounded-xl bg-amber-500/10 p-2.5 text-amber-600">

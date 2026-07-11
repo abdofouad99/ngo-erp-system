@@ -192,7 +192,7 @@ export function UpdateRequestsClient({ requests, reviewerId }: Props) {
                   <p className="text-xs text-slate-500 mt-0.5">
                     أرسل بواسطة: <span className="text-slate-300">{req.submitterName || "—"}</span>
                     {" · "}
-                    {new Date(req.createdAt).toLocaleDateString("ar-YE", { day: "numeric", month: "long", year: "numeric" })}
+                    {new Date(req.createdAt).toLocaleDateString("ar-YE-u-nu-latn", { day: "numeric", month: "long", year: "numeric" })}
                   </p>
                   {req.status === "REJECTED" && req.rejectionReason && (
                     <p className="text-xs text-red-400 mt-1">سبب الرفض: {req.rejectionReason}</p>

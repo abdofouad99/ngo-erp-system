@@ -82,7 +82,7 @@ export default function TrashPage() {
   )
 
   const formatDate = (d: any) => {
-    return d ? new Date(d).toLocaleDateString("ar-YE") : "-"
+    return d ? new Date(d).toLocaleDateString("ar-YE-u-nu-latn") : "-"
   }
 
   return (

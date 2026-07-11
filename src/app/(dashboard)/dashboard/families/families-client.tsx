@@ -191,7 +191,8 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
             <Table className="w-full text-right">
               <TableHeader className="bg-slate-900/40 border-b border-border/80">
                 <TableRow className="hover:bg-transparent border-border/60">
-                  <TableHead className="text-right text-slate-200 font-bold py-3.5 pr-6">رب الأسرة</TableHead>
+                  <TableHead className="w-12 text-center text-slate-200 font-bold py-3.5 pr-6">م</TableHead>
+                  <TableHead className="text-right text-slate-200 font-bold py-3.5 pr-2">رب الأسرة</TableHead>
                   <TableHead className="text-right text-slate-200 font-bold py-3.5">الرقم الوطني</TableHead>
                   <TableHead className="text-right text-slate-200 font-bold py-3.5">رقم الهاتف</TableHead>
                   <TableHead className="text-right text-slate-200 font-bold py-3.5">الموقع الجغرافي</TableHead>
@@ -204,12 +205,16 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
               </TableHeader>
               <TableBody>
                 {filteredFamilies.length > 0 ? (
-                  filteredFamilies.map((family) => {
+                  filteredFamilies.map((family, i) => {
                     const addressStr = `${family.subDistrict?.district?.governorate?.nameAr} - ${family.subDistrict?.district?.nameAr}`
                     return (
                       <TableRow key={family.id} className="hover:bg-slate-800/30 border-border/40 transition-colors duration-150">
+                        {/* Serial number */}
+                        <TableCell className="text-center py-3.5 pr-6 text-slate-400 font-mono font-semibold text-xs tabular-nums">
+                          {i + 1}
+                        </TableCell>
                         {/* Name */}
-                        <TableCell className="py-3.5 pr-6 font-bold text-white text-sm">
+                        <TableCell className="py-3.5 pr-2 font-bold text-white text-sm">
                           {family.headFullName}
                         </TableCell>
                         {/* National ID */}
@@ -315,7 +320,7 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
                   })
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-12 text-sm text-slate-400 font-medium">
+                    <TableCell colSpan={10} className="text-center py-12 text-sm text-slate-400 font-medium">
                       لا توجد نتائج تطابق خيارات البحث والتصفية المحددة.
                     </TableCell>
                   </TableRow>

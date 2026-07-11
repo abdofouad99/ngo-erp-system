@@ -154,7 +154,7 @@ export function NotificationBell() {
                         </p>
                         <div className="flex items-center gap-1 text-[9px] text-muted-foreground/60 font-mono">
                           <Clock className="h-3 w-3" />
-                          <span>{new Date(n.createdAt).toLocaleString("ar-YE")}</span>
+                          <span>{new Date(n.createdAt).toLocaleString("ar-YE-u-nu-latn")}</span>
                         </div>
                       </div>
                     </div>

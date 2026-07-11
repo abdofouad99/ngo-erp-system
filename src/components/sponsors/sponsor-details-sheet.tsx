@@ -30,7 +30,7 @@ import { ReceiptVoucherSheet } from "./receipt-voucher-sheet"
 
 function formatDate(date: Date | string | null): string {
   if (!date) return "مستمر"
-  return new Date(date).toLocaleDateString("ar-YE", {
+  return new Date(date).toLocaleDateString("ar-YE-u-nu-latn", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -258,10 +258,10 @@ export function SponsorDetailsSheet({ sponsor, open, onOpenChange }: SponsorDeta
                             </td>
                             <td className="p-3 font-bold text-white">{targetName || "-"}</td>
                             <td className="p-3 font-mono font-bold text-emerald-400 tabular-nums">
-                              {s.amount.toLocaleString()} {s.currency}
+                              {s.amount.toLocaleString("en-US")} {s.currency}
                             </td>
                             <td className="p-3 font-semibold">{translatePaymentCycle(s.paymentCycle)}</td>
-                            <td className="p-3 font-mono text-slate-400">{new Date(s.startDate).toLocaleDateString("ar-YE")}</td>
+                            <td className="p-3 font-mono text-slate-400">{new Date(s.startDate).toLocaleDateString("ar-YE-u-nu-latn")}</td>
                             <td className="p-3 text-center">{getStatusBadge(s.status)}</td>
                           </tr>
                         )

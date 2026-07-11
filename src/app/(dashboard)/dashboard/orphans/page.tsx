@@ -92,7 +92,7 @@ export default async function OrphansPage() {
               <div>
                 <p className="text-sm font-bold text-blue-400">إجمالي الأيتام</p>
                 <p className="mt-2 text-2xl font-extrabold text-white tabular-nums">
-                  {orphans.length.toLocaleString("ar-SA")}
+                  {orphans.length.toLocaleString("ar-SA-u-nu-latn")}
                 </p>
               </div>
               <div className="rounded-xl bg-blue-500/10 p-2.5 text-blue-400">
@@ -108,7 +108,7 @@ export default async function OrphansPage() {
               <div>
                 <p className="text-sm font-bold text-emerald-400">الأيتام الذكور</p>
                 <p className="mt-2 text-2xl font-extrabold text-white tabular-nums">
-                  {orphans.filter(o => o.gender === "MALE").length.toLocaleString("ar-SA")}
+                  {orphans.filter(o => o.gender === "MALE").length.toLocaleString("ar-SA-u-nu-latn")}
                 </p>
               </div>
               <div className="rounded-xl bg-emerald-500/10 p-2.5 text-emerald-400">
@@ -124,7 +124,7 @@ export default async function OrphansPage() {
               <div>
                 <p className="text-sm font-bold text-rose-400">الأيتام الإناث</p>
                 <p className="mt-2 text-2xl font-extrabold text-white tabular-nums">
-                  {orphans.filter(o => o.gender === "FEMALE").length.toLocaleString("ar-SA")}
+                  {orphans.filter(o => o.gender === "FEMALE").length.toLocaleString("ar-SA-u-nu-latn")}
                 </p>
               </div>
               <div className="rounded-xl bg-rose-500/10 p-2.5 text-rose-400">

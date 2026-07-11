@@ -141,7 +141,7 @@ export function AuditTimeline({ entityType, entityId }: AuditTimelineProps) {
                     </div>
                     <span className="text-[10px] text-slate-500 font-mono flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      {new Date(log.createdAt).toLocaleString("ar-YE")}
+                      {new Date(log.createdAt).toLocaleString("ar-YE-u-nu-latn")}
                     </span>
                   </div>
 

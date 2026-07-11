@@ -143,7 +143,7 @@ export function ReportsClient({ initialBeneficiaries, geography, sponsors }: Rep
       "#": i + 1,
       "الاسم الكامل": b.fullName,
       "الجنس": b.gender === "MALE" ? "ذكر" : "أنثى",
-      "تاريخ الميلاد": b.birthdate ? new Date(b.birthdate).toLocaleDateString("ar-YE") : "-",
+      "تاريخ الميلاد": b.birthdate ? new Date(b.birthdate).toLocaleDateString("ar-YE-u-nu-latn") : "-",
       "الفئة": b.category === "ORPHAN" ? "يتيم" : b.category === "STUDENT" ? "طالب علم" : b.category === "PATIENT" ? "مريض" : "عام",
       "اسم رب الأسرة": b.family?.headFullName || "-",
       "المحافظة": b.family?.subDistrict?.district?.governorate?.nameAr || "-",
@@ -224,7 +224,7 @@ export function ReportsClient({ initialBeneficiaries, geography, sponsors }: Rep
       {/* ── Official Document Header for Print (Hidden on screen) ── */}
       <div className="hidden print-header text-center space-y-2">
         <h1 className="text-xl font-bold text-gray-800">التقرير الرسمي للمستفيدين والأسر الراعية</h1>
-        <p className="text-xs text-gray-500">صادر عن نظام إدارة المنظمة - تاريخ التقرير: {new Date().toLocaleDateString("ar-YE")}</p>
+        <p className="text-xs text-gray-500">صادر عن نظام إدارة المنظمة - تاريخ التقرير: {new Date().toLocaleDateString("ar-YE-u-nu-latn")}</p>
         <div className="grid grid-cols-4 gap-4 w-full max-w-xl mx-auto text-xs border border-gray-200 p-2 rounded-lg bg-gray-50/50 mt-4">
           <div>إجمالي الحالات: <span className="font-bold">{totalCount}</span></div>
           <div>متوسط الهشاشة: <span className="font-bold">{avgVulnerability}%</span></div>

@@ -195,7 +195,7 @@ export function CaseActivityTab({ familyId, beneficiaryId, userRole }: CaseActiv
                       </span>
                       <span className="flex items-center gap-1 font-mono">
                         <Calendar className="h-3 w-3 text-slate-650" />
-                        تاريخ الحركة: {new Date(act.createdAt).toLocaleDateString("ar-YE")}
+                        تاريخ الحركة: {new Date(act.createdAt).toLocaleDateString("ar-YE-u-nu-latn")}
                       </span>
                     </div>
                   </div>

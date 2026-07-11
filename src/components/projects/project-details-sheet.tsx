@@ -28,7 +28,7 @@ import {
 
 function formatDate(date: Date | string | null): string {
   if (!date) return "-"
-  return new Date(date).toLocaleDateString("ar-YE", {
+  return new Date(date).toLocaleDateString("ar-YE-u-nu-latn", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -173,7 +173,7 @@ export function ProjectDetailsSheet({ project, open, onOpenChange }: ProjectDeta
                     <span className="text-[11px] font-semibold text-slate-400 block mb-0.5">ميزانية المشروع</span>
                     <span className="text-sm font-bold text-white tabular-nums">
                       {project.budget !== null ? (
-                        `${project.budget.toLocaleString()} ${project.currency}`
+                        `${project.budget.toLocaleString("en-US")} ${project.currency}`
                       ) : (
                         <span className="text-slate-500 text-xs italic">غير مدخل</span>
                       )}
