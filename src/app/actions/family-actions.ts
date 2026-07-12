@@ -49,6 +49,122 @@ const familySchema = z.object({
     (val) => (val === "" || val === null ? null : val),
     z.nativeEnum(PovertyLevel).optional().nullable()
   ),
+  socialStatus: z.string().optional().nullable().or(z.literal("")),
+
+  // New fields
+  headLastName: z.string().optional().nullable().or(z.literal("")),
+  headIdType: z.string().optional().nullable().or(z.literal("")),
+  headIdIssueDate: z.string().optional().nullable().or(z.literal("")),
+  headIdIssuePlace: z.string().optional().nullable().or(z.literal("")),
+  headAge: z.preprocess(
+    (val) => (val === "" || val === null ? null : Number(val)),
+    z.number().optional().nullable()
+  ),
+  headWhatsApp: z.string().optional().nullable().or(z.literal("")),
+  headEducationLevel: z.string().optional().nullable().or(z.literal("")),
+  headOccupation: z.string().optional().nullable().or(z.literal("")),
+
+  spouseName: z.string().optional().nullable().or(z.literal("")),
+  spouseIdNumber: z.string().optional().nullable().or(z.literal("")),
+  spouseIdType: z.string().optional().nullable().or(z.literal("")),
+  spouseBirthdate: z.preprocess(
+    (val) => (val === "" ? null : val),
+    z.string().optional().nullable().transform((str) => (str ? new Date(str) : null))
+  ),
+  spouseAge: z.preprocess(
+    (val) => (val === "" || val === null ? null : Number(val)),
+    z.number().optional().nullable()
+  ),
+  spouseEducationLevel: z.string().optional().nullable().or(z.literal("")),
+  hasAnotherSpouse: z.preprocess(
+    (val) => val === "true" || val === true,
+    z.boolean().optional().nullable()
+  ),
+
+  manualMembersCount: z.preprocess(
+    (val) => (val === "" || val === null ? null : Number(val)),
+    z.number().optional().nullable()
+  ),
+  manualMalesCount: z.preprocess(
+    (val) => (val === "" || val === null ? null : Number(val)),
+    z.number().optional().nullable()
+  ),
+  manualFemalesCount: z.preprocess(
+    (val) => (val === "" || val === null ? null : Number(val)),
+    z.number().optional().nullable()
+  ),
+  kidsUnder5Count: z.preprocess(
+    (val) => (val === "" || val === null ? null : Number(val)),
+    z.number().optional().nullable()
+  ),
+  kids5To17Count: z.preprocess(
+    (val) => (val === "" || val === null ? null : Number(val)),
+    z.number().optional().nullable()
+  ),
+  adults18To59Count: z.preprocess(
+    (val) => (val === "" || val === null ? null : Number(val)),
+    z.number().optional().nullable()
+  ),
+  elderlyAbove60Count: z.preprocess(
+    (val) => (val === "" || val === null ? null : Number(val)),
+    z.number().optional().nullable()
+  ),
+  specialNeedsCount: z.preprocess(
+    (val) => (val === "" || val === null ? null : Number(val)),
+    z.number().optional().nullable()
+  ),
+  disabilityType: z.string().optional().nullable().or(z.literal("")),
+
+  nearestLandmark: z.string().optional().nullable().or(z.literal("")),
+  rentAmount: z.preprocess(
+    (val) => (val === "" || val === null ? null : Number(val)),
+    z.number().optional().nullable()
+  ),
+  waterSource: z.string().optional().nullable().or(z.literal("")),
+  electricitySource: z.string().optional().nullable().or(z.literal("")),
+  housingNotes: z.string().optional().nullable().or(z.literal("")),
+
+  hasOrphans: z.preprocess(
+    (val) => val === "true" || val === true,
+    z.boolean().optional().nullable()
+  ),
+  orphansCount: z.preprocess(
+    (val) => (val === "" || val === null ? 0 : Number(val)),
+    z.number().optional().nullable()
+  ),
+  hasWidow: z.preprocess(
+    (val) => val === "true" || val === true,
+    z.boolean().optional().nullable()
+  ),
+  hasUnemployed: z.preprocess(
+    (val) => val === "true" || val === true,
+    z.boolean().optional().nullable()
+  ),
+  urgentNeeds: z.string().optional().nullable().or(z.literal("")),
+
+  isDisplaced: z.preprocess(
+    (val) => val === "true" || val === true,
+    z.boolean().optional().nullable()
+  ),
+  displacementGov: z.string().optional().nullable().or(z.literal("")),
+  displacementDist: z.string().optional().nullable().or(z.literal("")),
+  displacementDate: z.string().optional().nullable().or(z.literal("")),
+  displacementReason: z.string().optional().nullable().or(z.literal("")),
+
+  receivedAidBefore: z.preprocess(
+    (val) => val === "true" || val === true,
+    z.boolean().optional().nullable()
+  ),
+  aidType: z.string().optional().nullable().or(z.literal("")),
+  aidDonor: z.string().optional().nullable().or(z.literal("")),
+  lastAidDate: z.string().optional().nullable().or(z.literal("")),
+
+  deliveryMethod: z.string().optional().nullable().or(z.literal("")),
+  kuraimiAccountYemeni: z.string().optional().nullable().or(z.literal("")),
+  kuraimiAccountSaudi: z.string().optional().nullable().or(z.literal("")),
+
+  referrerName: z.string().optional().nullable().or(z.literal("")),
+  referrerRelation: z.string().optional().nullable().or(z.literal("")),
 })
 
 // =============================================================================
@@ -89,6 +205,7 @@ export async function createFamily(rawInput: any) {
         headPhoneNumber: validatedData.headPhoneNumber || null,
         headAltPhone: validatedData.headAltPhone || null,
         headBirthdate: validatedData.headBirthdate,
+        socialStatus: validatedData.socialStatus || null,
         addressDetail: validatedData.addressDetail || null,
         subDistrictId: validatedData.subDistrictId,
         vulnerabilityScore: validatedData.vulnerabilityScore,
@@ -103,6 +220,64 @@ export async function createFamily(rawInput: any) {
         povertyLevel: validatedData.povertyLevel,
         isActive: true,
         createdById: adminUser.id,
+
+        // New fields
+        headLastName: validatedData.headLastName || null,
+        headIdType: validatedData.headIdType || null,
+        headIdIssueDate: validatedData.headIdIssueDate || null,
+        headIdIssuePlace: validatedData.headIdIssuePlace || null,
+        headAge: validatedData.headAge,
+        headWhatsApp: validatedData.headWhatsApp || null,
+        headEducationLevel: validatedData.headEducationLevel || null,
+        headOccupation: validatedData.headOccupation || null,
+
+        spouseName: validatedData.spouseName || null,
+        spouseIdNumber: validatedData.spouseIdNumber || null,
+        spouseIdType: validatedData.spouseIdType || null,
+        spouseBirthdate: validatedData.spouseBirthdate,
+        spouseAge: validatedData.spouseAge,
+        spouseEducationLevel: validatedData.spouseEducationLevel || null,
+        hasAnotherSpouse: validatedData.hasAnotherSpouse,
+
+        manualMembersCount: validatedData.manualMembersCount,
+        manualMalesCount: validatedData.manualMalesCount,
+        manualFemalesCount: validatedData.manualFemalesCount,
+        kidsUnder5Count: validatedData.kidsUnder5Count,
+        kids5To17Count: validatedData.kids5To17Count,
+        adults18To59Count: validatedData.adults18To59Count,
+        elderlyAbove60Count: validatedData.elderlyAbove60Count,
+        specialNeedsCount: validatedData.specialNeedsCount,
+        disabilityType: validatedData.disabilityType || null,
+
+        nearestLandmark: validatedData.nearestLandmark || null,
+        rentAmount: validatedData.rentAmount,
+        waterSource: validatedData.waterSource || null,
+        electricitySource: validatedData.electricitySource || null,
+        housingNotes: validatedData.housingNotes || null,
+
+        hasOrphans: validatedData.hasOrphans,
+        orphansCount: validatedData.orphansCount,
+        hasWidow: validatedData.hasWidow,
+        hasUnemployed: validatedData.hasUnemployed,
+        urgentNeeds: validatedData.urgentNeeds || null,
+
+        isDisplaced: validatedData.isDisplaced,
+        displacementGov: validatedData.displacementGov || null,
+        displacementDist: validatedData.displacementDist || null,
+        displacementDate: validatedData.displacementDate || null,
+        displacementReason: validatedData.displacementReason || null,
+
+        receivedAidBefore: validatedData.receivedAidBefore,
+        aidType: validatedData.aidType || null,
+        aidDonor: validatedData.aidDonor || null,
+        lastAidDate: validatedData.lastAidDate || null,
+
+        deliveryMethod: validatedData.deliveryMethod || null,
+        kuraimiAccountYemeni: validatedData.kuraimiAccountYemeni || null,
+        kuraimiAccountSaudi: validatedData.kuraimiAccountSaudi || null,
+
+        referrerName: validatedData.referrerName || null,
+        referrerRelation: validatedData.referrerRelation || null,
       },
     })
 
@@ -175,6 +350,7 @@ export async function updateFamily(id: string, rawInput: any) {
         headPhoneNumber: validatedData.headPhoneNumber || null,
         headAltPhone: validatedData.headAltPhone || null,
         headBirthdate: validatedData.headBirthdate,
+        socialStatus: validatedData.socialStatus || null,
         addressDetail: validatedData.addressDetail || null,
         subDistrictId: validatedData.subDistrictId,
         vulnerabilityScore: validatedData.vulnerabilityScore,
@@ -188,6 +364,64 @@ export async function updateFamily(id: string, rawInput: any) {
         housingCondition: validatedData.housingCondition || null,
         povertyLevel: validatedData.povertyLevel,
         updatedById: adminUser?.id || null,
+
+        // New fields
+        headLastName: validatedData.headLastName || null,
+        headIdType: validatedData.headIdType || null,
+        headIdIssueDate: validatedData.headIdIssueDate || null,
+        headIdIssuePlace: validatedData.headIdIssuePlace || null,
+        headAge: validatedData.headAge,
+        headWhatsApp: validatedData.headWhatsApp || null,
+        headEducationLevel: validatedData.headEducationLevel || null,
+        headOccupation: validatedData.headOccupation || null,
+
+        spouseName: validatedData.spouseName || null,
+        spouseIdNumber: validatedData.spouseIdNumber || null,
+        spouseIdType: validatedData.spouseIdType || null,
+        spouseBirthdate: validatedData.spouseBirthdate,
+        spouseAge: validatedData.spouseAge,
+        spouseEducationLevel: validatedData.spouseEducationLevel || null,
+        hasAnotherSpouse: validatedData.hasAnotherSpouse,
+
+        manualMembersCount: validatedData.manualMembersCount,
+        manualMalesCount: validatedData.manualMalesCount,
+        manualFemalesCount: validatedData.manualFemalesCount,
+        kidsUnder5Count: validatedData.kidsUnder5Count,
+        kids5To17Count: validatedData.kids5To17Count,
+        adults18To59Count: validatedData.adults18To59Count,
+        elderlyAbove60Count: validatedData.elderlyAbove60Count,
+        specialNeedsCount: validatedData.specialNeedsCount,
+        disabilityType: validatedData.disabilityType || null,
+
+        nearestLandmark: validatedData.nearestLandmark || null,
+        rentAmount: validatedData.rentAmount,
+        waterSource: validatedData.waterSource || null,
+        electricitySource: validatedData.electricitySource || null,
+        housingNotes: validatedData.housingNotes || null,
+
+        hasOrphans: validatedData.hasOrphans,
+        orphansCount: validatedData.orphansCount,
+        hasWidow: validatedData.hasWidow,
+        hasUnemployed: validatedData.hasUnemployed,
+        urgentNeeds: validatedData.urgentNeeds || null,
+
+        isDisplaced: validatedData.isDisplaced,
+        displacementGov: validatedData.displacementGov || null,
+        displacementDist: validatedData.displacementDist || null,
+        displacementDate: validatedData.displacementDate || null,
+        displacementReason: validatedData.displacementReason || null,
+
+        receivedAidBefore: validatedData.receivedAidBefore,
+        aidType: validatedData.aidType || null,
+        aidDonor: validatedData.aidDonor || null,
+        lastAidDate: validatedData.lastAidDate || null,
+
+        deliveryMethod: validatedData.deliveryMethod || null,
+        kuraimiAccountYemeni: validatedData.kuraimiAccountYemeni || null,
+        kuraimiAccountSaudi: validatedData.kuraimiAccountSaudi || null,
+
+        referrerName: validatedData.referrerName || null,
+        referrerRelation: validatedData.referrerRelation || null,
       },
     })
 

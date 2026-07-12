@@ -20,7 +20,9 @@ import {
   FileText,
   Users,
   CreditCard,
-  Heart,
+  Briefcase,
+  DollarSign,
+  Info,
 } from "lucide-react"
 import { AuditTimeline } from "@/components/dashboard/audit-timeline"
 import { CaseActivityTab } from "@/components/shared/case-activity-tab"
@@ -43,11 +45,7 @@ function calculateAge(birthdate: Date | string | null): number | null {
 
 function formatDate(date: Date | string | null): string {
   if (!date) return "-"
-  return new Date(date).toLocaleDateString("ar-YE-u-nu-latn", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  })
+  return new Date(date).toLocaleDateString("en-GB")
 }
 
 function getPovertyBadge(level: string | null) {
@@ -85,16 +83,16 @@ interface FamilyDetailsSheetProps {
 export function FamilyDetailsSheet({ family, open, onOpenChange }: FamilyDetailsSheetProps) {
   if (!family) return null
 
-  const headAge = calculateAge(family.headBirthdate)
+  const headAge = family.headAge || calculateAge(family.headBirthdate)
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="sm:max-w-2xl w-full p-0 flex flex-col h-full bg-slate-950 text-right border-l border-border shadow-2xl"
+        className="sm:max-w-3xl w-full p-0 flex flex-col h-full bg-slate-950 text-right border-l border-border shadow-2xl"
       >
         {/* --- Top Decorative Header --- */}
-        <div className="relative overflow-hidden bg-gradient-to-l from-emerald-600 to-teal-700 p-6 text-white flex-shrink-0">
+        <div className="relative overflow-hidden bg-gradient-to-l from-emerald-600 to-teal-700 p-5 text-white flex-shrink-0">
           <div className="absolute -left-10 -top-10 h-32 w-32 rounded-full bg-white/5" />
           <div className="absolute -bottom-8 left-20 h-24 w-24 rounded-full bg-white/5" />
 
@@ -105,10 +103,10 @@ export function FamilyDetailsSheet({ family, open, onOpenChange }: FamilyDetails
               </div>
               <div>
                 <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-100 bg-white/10 px-2 py-0.5 rounded">
-                  ملف الأسرة
+                  ملف الأسرة المستفيدة الشامل
                 </span>
-                <SheetTitle className="text-white text-lg font-bold md:text-xl mt-1">
-                  {family.headFullName}
+                <SheetTitle className="text-white text-base font-bold md:text-lg mt-1">
+                  {family.headFullName} {family.headLastName || ""}
                 </SheetTitle>
               </div>
             </div>
@@ -121,316 +119,453 @@ export function FamilyDetailsSheet({ family, open, onOpenChange }: FamilyDetails
         {/* --- Tab Contents (Scrollable Container) --- */}
         <div className="flex-1 overflow-y-auto px-6 py-4">
           <Tabs defaultValue="head" className="w-full flex flex-col h-full">
-            <TabsList className="bg-slate-900/60 border border-border/60 rounded-xl p-1 mb-6 flex-shrink-0 gap-1 w-full justify-between flex-wrap h-auto">
-              <TabsTrigger value="head" className="text-xs py-1.5 px-2.5 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
-                <User className="h-3.5 w-3.5 ml-1.5" />
-                رب الأسرة والعنوان
+            <TabsList className="bg-slate-900/60 border border-border/60 rounded-xl p-1 mb-6 flex-shrink-0 grid grid-cols-6 gap-1 w-full justify-between h-auto">
+              <TabsTrigger value="head" className="text-[10px] py-1.5 px-2 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
+                رب الأسرة
               </TabsTrigger>
-              <TabsTrigger value="assessment" className="text-xs py-1.5 px-2.5 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
-                <HomeIcon className="h-3.5 w-3.5 ml-1.5" />
-                التقييم المعيشي
+              <TabsTrigger value="spouse" className="text-[10px] py-1.5 px-2 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
+                الزوجة والأفراد
               </TabsTrigger>
-              <TabsTrigger value="guardian" className="text-xs py-1.5 px-2.5 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
-                <ShieldAlert className="h-3.5 w-3.5 ml-1.5" />
-                الوصي وملاحظات
+              <TabsTrigger value="housing" className="text-[10px] py-1.5 px-2 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
+                السكن والنزوح
               </TabsTrigger>
-              <TabsTrigger value="members" className="text-xs py-1.5 px-2.5 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
-                <Users className="h-3.5 w-3.5 ml-1.5" />
-                الأفراد ({family.members?.length || 0})
+              <TabsTrigger value="financial" className="text-[10px] py-1.5 px-2 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
+                المالية والمعيشة
               </TabsTrigger>
-              <TabsTrigger value="activities" className="text-xs py-1.5 px-2.5 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
-                <Calendar className="h-3.5 w-3.5 ml-1.5" />
-                الزيارات الميدانية
+              <TabsTrigger value="referrer" className="text-[10px] py-1.5 px-2 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
+                المعرف والوصي
               </TabsTrigger>
-              <TabsTrigger value="audit" className="text-xs py-1.5 px-2.5 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
-                <FileText className="h-3.5 w-3.5 ml-1.5" />
-                سجل الحركة
+              <TabsTrigger value="timeline" className="text-[10px] py-1.5 px-2 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
+                الزيارات والحركة
               </TabsTrigger>
             </TabsList>
 
             <div className="flex-1">
-              {/* === TAB 1: HEAD OF HOUSEHOLD & ADDRESS === */}
+              
+              {/* === TAB 1: HEAD OF HOUSEHOLD === */}
               <TabsContent value="head" className="space-y-6 outline-none">
-                {/* Personal Info Grid */}
                 <div className="space-y-4">
-                  <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5">
-                    <User className="h-4.5 w-4.5 text-emerald-400" />
-                    بيانات الهوية والاتصال
+                  <h4 className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                    <User className="h-4 w-4 text-emerald-400" />
+                    بيانات الهوية والاتصال الشخصية
                   </h4>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-3 bg-slate-900/40 p-4 rounded-xl border border-border/60">
                     <div>
-                      <span className="text-[11px] font-semibold text-slate-400 block mb-0.5">اسم رب الأسرة</span>
-                      <span className="text-sm font-bold text-white">{family.headFullName}</span>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">اسم رب الأسرة الكامل</span>
+                      <span className="text-xs font-bold text-white">{family.headFullName}</span>
                     </div>
                     <div>
-                      <span className="text-[11px] font-semibold text-slate-400 block mb-0.5">الرقم الوطني للرب</span>
-                      <span className="text-sm font-bold text-white font-mono">{family.headNationalId}</span>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">اللقب</span>
+                      <span className="text-xs font-bold text-white">{family.headLastName || "—"}</span>
                     </div>
                     <div>
-                      <span className="text-[11px] font-semibold text-slate-400 block mb-0.5">الجنس</span>
-                      <span className="text-sm font-bold text-white">
-                        {family.headGender === "MALE" ? "ذكر" : "أنثى"}
-                      </span>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">رقم الهوية / الجواز</span>
+                      <span className="text-xs font-bold text-white font-mono">{family.headNationalId}</span>
                     </div>
                     <div>
-                      <span className="text-[11px] font-semibold text-slate-400 block mb-0.5">العمر</span>
-                      <span className="text-sm font-bold text-white">
-                        {headAge !== null ? `${headAge} سنة` : <span className="text-slate-500 text-xs italic">غير مدخل</span>}
-                      </span>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">نوع الهوية</span>
+                      <span className="text-xs font-bold text-white">{family.headIdType || "—"}</span>
                     </div>
                     <div>
-                      <span className="text-[11px] font-semibold text-slate-400 block mb-0.5">تاريخ الميلاد</span>
-                      <span className="text-sm font-bold text-white">{formatDate(family.headBirthdate)}</span>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">مكان الإصدار</span>
+                      <span className="text-xs font-bold text-white">{family.headIdIssuePlace || "—"}</span>
                     </div>
                     <div>
-                      <span className="text-[11px] font-semibold text-slate-400 block mb-0.5">رقم الهاتف</span>
-                      <span className="text-sm font-bold text-white font-mono">
-                        {family.headPhoneNumber || <span className="text-slate-500 text-xs italic">غير مدخل</span>}
-                      </span>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">تاريخ الإصدار</span>
+                      <span className="text-xs font-bold text-white">{family.headIdIssueDate || "—"}</span>
                     </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">تاريخ الميلاد</span>
+                      <span className="text-xs font-bold text-white">{formatDate(family.headBirthdate)}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">العمر</span>
+                      <span className="text-xs font-bold text-white">{headAge ? `${headAge} سنة` : "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">الجنس</span>
+                      <span className="text-xs font-bold text-white">{family.headGender === "MALE" ? "ذكر" : "أنثى"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">الحالة الاجتماعية</span>
+                      <span className="text-xs font-bold text-white">{family.socialStatus || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">المستوى التعليمي</span>
+                      <span className="text-xs font-bold text-white">{family.headEducationLevel || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">المهنة الحالية</span>
+                      <span className="text-xs font-bold text-white">{family.headOccupation || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">رقم الجوال الأساسي</span>
+                      <span className="text-xs font-bold text-white font-mono">{family.headPhoneNumber || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">رقم الجوال البديل</span>
+                      <span className="text-xs font-bold text-white font-mono">{family.headAltPhone || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">رقم الواتساب</span>
+                      <span className="text-xs font-bold text-white font-mono">{family.headWhatsApp || "—"}</span>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+
+              {/* === TAB 2: SPOUSE AND MEMBERS === */}
+              <TabsContent value="spouse" className="space-y-6 outline-none">
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                    <User className="h-4 w-4 text-emerald-400" />
+                    بيانات الزوجة الرئيسية
+                  </h4>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-3 bg-slate-900/40 p-4 rounded-xl border border-border/60">
                     <div className="col-span-2">
-                      <span className="text-[11px] font-semibold text-slate-400 block mb-0.5">رقم هاتف بديل</span>
-                      <span className="text-sm font-bold text-white font-mono">
-                        {family.headAltPhone || <span className="text-slate-500 text-xs italic">غير مدخل</span>}
-                      </span>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">اسم الزوجة الرباعي</span>
+                      <span className="text-xs font-bold text-white">{family.spouseName || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">رقم هوية الزوجة</span>
+                      <span className="text-xs font-bold text-white font-mono">{family.spouseIdNumber || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">نوع هوية الزوجة</span>
+                      <span className="text-xs font-bold text-white">{family.spouseIdType || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">تاريخ ميلاد الزوجة</span>
+                      <span className="text-xs font-bold text-white">{formatDate(family.spouseBirthdate)}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">عمر الزوجة</span>
+                      <span className="text-xs font-bold text-white">{family.spouseAge ? `${family.spouseAge} سنة` : "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">المستوى التعليمي للزوجة</span>
+                      <span className="text-xs font-bold text-white">{family.spouseEducationLevel || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">هل توجد زوجة أخرى؟</span>
+                      <span className="text-xs font-bold text-white">{family.hasAnotherSpouse ? "نعم" : "لا"}</span>
                     </div>
                   </div>
                 </div>
 
                 <Separator className="my-2 border-border/40" />
 
-                {/* Address Section */}
                 <div className="space-y-4">
-                  <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5">
-                    <MapPin className="h-4.5 w-4.5 text-emerald-400" />
-                    العنوان الجغرافي بالتفصيل
+                  <h4 className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                    <Users className="h-4 w-4 text-emerald-400" />
+                    بيانات وإحصائيات أفراد الأسرة
                   </h4>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-3 bg-slate-900/40 p-4 rounded-xl border border-border/60">
                     <div>
-                      <span className="text-[11px] font-semibold text-slate-400 block mb-0.5">المحافظة</span>
-                      <span className="text-sm font-bold text-white">
-                        {family.subDistrict?.district?.governorate?.nameAr || "-"}
-                      </span>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">إجمالي الأفراد (مع الزوجين)</span>
+                      <span className="text-xs font-bold text-white">{family.manualMembersCount || "—"}</span>
                     </div>
                     <div>
-                      <span className="text-[11px] font-semibold text-slate-400 block mb-0.5">المديرية</span>
-                      <span className="text-sm font-bold text-white">
-                        {family.subDistrict?.district?.nameAr || "-"}
-                      </span>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">عدد الذكور</span>
+                      <span className="text-xs font-bold text-white">{family.manualMalesCount || "—"}</span>
                     </div>
                     <div>
-                      <span className="text-[11px] font-semibold text-slate-400 block mb-0.5">العزلة / الحي السكني</span>
-                      <span className="text-sm font-bold text-white">
-                        {family.subDistrict?.nameAr || "-"}
-                      </span>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">عدد الإناث</span>
+                      <span className="text-xs font-bold text-white">{family.manualFemalesCount || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">أطفال (أقل من 5 سنوات)</span>
+                      <span className="text-xs font-bold text-white">{family.kidsUnder5Count || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">أطفال (5 - 17 سنة)</span>
+                      <span className="text-xs font-bold text-white">{family.kids5To17Count || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">بالغين (18 - 59 سنة)</span>
+                      <span className="text-xs font-bold text-white">{family.adults18To59Count || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">كبار السن (60 سنة فما فوق)</span>
+                      <span className="text-xs font-bold text-white">{family.elderlyAbove60Count || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">عدد ذوي الاحتياجات الخاصة</span>
+                      <span className="text-xs font-bold text-white">{family.specialNeedsCount || "—"}</span>
                     </div>
                     <div className="col-span-2">
-                      <span className="text-[11px] font-semibold text-slate-400 block mb-0.5">تفاصيل العنوان (القرية/الشارع)</span>
-                      <span className="text-sm font-bold text-white">
-                        {family.addressDetail || <span className="text-slate-500 text-xs italic">لا توجد تفاصيل إضافية</span>}
-                      </span>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">نوع الإعاقة / الأمراض المزمنة للأسرة</span>
+                      <span className="text-xs font-bold text-white">{family.disabilityType || "—"}</span>
                     </div>
                   </div>
                 </div>
               </TabsContent>
 
-              {/* === TAB 2: LIVING ASSESSMENT === */}
-              <TabsContent value="assessment" className="space-y-6 outline-none">
-                {/* Vulnerability Score Card */}
-                <div className="bg-slate-900 text-white rounded-xl p-5 relative overflow-hidden shadow-md border border-border/60">
-                  <div className="absolute -left-5 -top-5 h-20 w-20 rounded-full bg-white/5" />
-                  <div className="relative flex items-center justify-between">
-                    <div>
-                      <span className="text-xs font-semibold text-slate-300">درجة الهشاشة المعيشية</span>
-                      <p className="text-3xl font-extrabold text-white mt-1 tabular-nums">
-                        {family.vulnerabilityScore !== null ? `${family.vulnerabilityScore}/100` : "-"}
-                      </p>
-                    </div>
-                    <div className="w-24">
-                      {/* Radial progress simulator or simply standard visualization */}
-                      <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-emerald-400 rounded-full"
-                          style={{ width: `${family.vulnerabilityScore || 0}%` }}
-                        />
-                      </div>
-                      <span className="text-[10px] text-slate-400 block text-left mt-1">
-                        تقييم الباحث الميداني
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Living details */}
+              {/* === TAB 3: HOUSING & DISPLACEMENT === */}
+              <TabsContent value="housing" className="space-y-6 outline-none">
                 <div className="space-y-4">
-                  <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5">
-                    <HomeIcon className="h-4.5 w-4.5 text-emerald-400" />
-                    تفاصيل الحالة المعيشية
+                  <h4 className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                    <MapPin className="h-4 w-4 text-emerald-400" />
+                    تفاصيل السكن والخدمات
                   </h4>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-3 bg-slate-900/40 p-4 rounded-xl border border-border/60">
                     <div>
-                      <span className="text-[11px] font-semibold text-slate-400 block mb-0.5">مستوى الفقر المعيشي</span>
-                      <div className="mt-1">{getPovertyBadge(family.povertyLevel)}</div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">المحافظة</span>
+                      <span className="text-xs font-bold text-white">{family.subDistrict?.district?.governorate?.nameAr || "—"}</span>
                     </div>
                     <div>
-                      <span className="text-[11px] font-semibold text-slate-400 block mb-0.5">الدخل الشهري التقريبي</span>
-                      <span className="text-sm font-bold text-white tabular-nums">
-                        {family.monthlyIncome !== null ? (
-                          `${family.monthlyIncome.toLocaleString("ar-YE-u-nu-latn")} ريال`
-                        ) : (
-                          <span className="text-slate-500 text-xs italic">غير مدخل</span>
-                        )}
-                      </span>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">المديرية</span>
+                      <span className="text-xs font-bold text-white">{family.subDistrict?.district?.nameAr || "—"}</span>
                     </div>
                     <div>
-                      <span className="text-[11px] font-semibold text-slate-400 block mb-0.5">نوع السكن</span>
-                      <span className="text-sm font-bold text-white">
-                        {family.housingType || <span className="text-slate-500 text-xs italic">غير مدخل</span>}
-                      </span>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">العزلة / المنطقة</span>
+                      <span className="text-xs font-bold text-white">{family.subDistrict?.nameAr || "—"}</span>
                     </div>
                     <div>
-                      <span className="text-[11px] font-semibold text-slate-400 block mb-0.5">حالة السكن البنائية</span>
-                      <span className="text-sm font-bold text-white">
-                        {family.housingCondition || <span className="text-slate-500 text-xs italic">غير مدخل</span>}
-                      </span>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">القرية / الحارة</span>
+                      <span className="text-xs font-bold text-white">{family.addressDetail || "—"}</span>
                     </div>
                     <div className="col-span-2">
-                      <span className="text-[11px] font-semibold text-slate-400 block mb-0.5">عدد أفراد الأسرة</span>
-                      <span className="text-sm font-bold text-white tabular-nums">
-                        {family.familyMembersCount !== null ? (
-                          `${family.familyMembersCount} أفراد`
-                        ) : (
-                          <span className="text-slate-500 text-xs italic">غير مدخل</span>
-                        )}
-                      </span>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">أقرب معلم بارز للعنوان</span>
+                      <span className="text-xs font-bold text-white">{family.nearestLandmark || "—"}</span>
                     </div>
-                  </div>
-                </div>
-              </TabsContent>
-
-              {/* === TAB 3: GUARDIAN & SOCIAL NOTES === */}
-              <TabsContent value="guardian" className="space-y-6 outline-none">
-                {/* Guardian Info */}
-                <div className="space-y-4">
-                  <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5">
-                    <ShieldAlert className="h-4.5 w-4.5 text-emerald-400" />
-                    بيانات الوصي (في حال تعذر تواصل رب الأسرة)
-                  </h4>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-3 bg-slate-900/40 p-4 rounded-xl border border-border/60">
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">نوع السكن</span>
+                      <span className="text-xs font-bold text-white">{family.housingType || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">حالة السكن</span>
+                      <span className="text-xs font-bold text-white">{family.housingCondition || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">الإيجار الشهري</span>
+                      <span className="text-xs font-bold text-white font-mono">{family.rentAmount ? `${family.rentAmount} ريال` : "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">مصدر المياه الرئيسي</span>
+                      <span className="text-xs font-bold text-white">{family.waterSource || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">مصدر الإضاءة الرئيسي</span>
+                      <span className="text-xs font-bold text-white">{family.electricitySource || "—"}</span>
+                    </div>
                     <div className="col-span-2">
-                      <span className="text-[11px] font-semibold text-slate-400 block mb-0.5">اسم الوصي الكامل</span>
-                      <span className="text-sm font-bold text-white">
-                        {family.guardianName || <span className="text-slate-500 text-xs italic">لا يوجد وصي مضاف</span>}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-[11px] font-semibold text-slate-400 block mb-0.5">صلة القرابة برب الأسرة</span>
-                      <span className="text-sm font-bold text-white">
-                        {family.guardianRelation || <span className="text-slate-500 text-xs italic">غير مدخل</span>}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-[11px] font-semibold text-slate-400 block mb-0.5">رقم هاتف الوصي</span>
-                      <span className="text-sm font-bold text-white font-mono">
-                        {family.guardianPhone || <span className="text-slate-500 text-xs italic">غير مدخل</span>}
-                      </span>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">ملاحظات سكنية</span>
+                      <span className="text-xs font-bold text-white">{family.housingNotes || "—"}</span>
                     </div>
                   </div>
                 </div>
 
                 <Separator className="my-2 border-border/40" />
 
-                {/* Research Notes */}
-                <div className="space-y-3">
-                  <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5">
-                    <FileText className="h-4.5 w-4.5 text-emerald-400" />
-                    ملاحظات البحث الاجتماعي الميداني
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                    <Info className="h-4 w-4 text-emerald-400" />
+                    بيانات النزوح
                   </h4>
-                  <div className="bg-slate-900/40 p-4 rounded-xl border border-border/60 text-slate-300 text-xs leading-relaxed whitespace-pre-wrap">
-                    {family.notes || "لا توجد أي ملاحظات اجتماعية مسجلة لهذه الأسرة حتى الآن."}
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-3 bg-slate-900/40 p-4 rounded-xl border border-border/60">
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">هل الأسرة نازحة؟</span>
+                      <span className="text-xs font-bold text-white">{family.isDisplaced ? "نعم" : "لا"}</span>
+                    </div>
+                    {family.isDisplaced && (
+                      <>
+                        <div>
+                          <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">محافظة النزوح الأصلية</span>
+                          <span className="text-xs font-bold text-white">{family.displacementGov || "—"}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">مديرية النزوح الأصلية</span>
+                          <span className="text-xs font-bold text-white">{family.displacementDist || "—"}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">تاريخ النزوح</span>
+                          <span className="text-xs font-bold text-white">{family.displacementDate || "—"}</span>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">سبب النزوح الرئيسي</span>
+                          <span className="text-xs font-bold text-white">{family.displacementReason || "—"}</span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </TabsContent>
 
-              {/* === TAB 4: FAMILY MEMBERS LIST === */}
-              <TabsContent value="members" className="space-y-4 outline-none">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5">
-                    <Users className="h-4.5 w-4.5 text-emerald-400" />
-                    أفراد الأسرة المسجلين كمستفيدين
+              {/* === TAB 4: FINANCIAL === */}
+              <TabsContent value="financial" className="space-y-6 outline-none">
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                    <Briefcase className="h-4 w-4 text-emerald-400" />
+                    الوضع الاقتصادي ومستوى الفقر
                   </h4>
-                  <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
-                    إجمالي الأفراد: {family.members?.length || 0}
-                  </Badge>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-3 bg-slate-900/40 p-4 rounded-xl border border-border/60">
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">تصنيف فقر الأسرة</span>
+                      <div>{getPovertyBadge(family.povertyLevel)}</div>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">درجة الهشاشة (التقييم التلقائي)</span>
+                      <span className="text-xs font-bold text-white font-mono">{family.vulnerabilityScore}/100</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">مصدر الدخل الرئيسي</span>
+                      <span className="text-xs font-bold text-white">{family.notes || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">متوسط الدخل الشهري للأسرة</span>
+                      <span className="text-xs font-bold text-white font-mono">{family.monthlyIncome ? `${family.monthlyIncome.toLocaleString()} ريال` : "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">هل الأسرة تعول أيتام؟</span>
+                      <span className="text-xs font-bold text-white">{family.hasOrphans ? `نعم (${family.orphansCount} أيتام)` : "لا"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">هل تعول الأسرة أرملة؟</span>
+                      <span className="text-xs font-bold text-white">{family.hasWidow ? "نعم" : "لا"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">هل يوجد بالأسرة شخص بلا عمل؟</span>
+                      <span className="text-xs font-bold text-white">{family.hasUnemployed ? "نعم" : "لا"}</span>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">أهم الاحتياجات العاجلة حالياً</span>
+                      <span className="text-xs font-bold text-white text-emerald-400">{family.urgentNeeds || "—"}</span>
+                    </div>
+                  </div>
                 </div>
 
-                {family.members && family.members.length > 0 ? (
-                  <div className="overflow-hidden border border-border/60 rounded-xl bg-slate-900/20">
-                    <table className="w-full text-right text-xs">
-                      <thead className="bg-slate-900/40 text-slate-300 font-bold border-b border-border/60">
-                        <tr>
-                          <th className="p-3">الاسم الكامل</th>
-                          <th className="p-3">الجنس</th>
-                          <th className="p-3">العمر</th>
-                          <th className="p-3">الفئة والتصنيف</th>
-                          <th className="p-3 text-center">الحالة</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border/40 text-slate-300">
-                        {family.members.map((member: any) => {
-                          const age = calculateAge(member.birthdate)
-                          return (
-                            <tr key={member.id} className="hover:bg-slate-800/30">
-                              <td className="p-3 font-semibold text-white">{member.fullName}</td>
-                              <td className="p-3">{member.gender === "MALE" ? "ذكر" : "أنثى"}</td>
-                              <td className="p-3 tabular-nums">{age !== null ? `${age} سنة` : "-"}</td>
-                              <td className="p-3">{getCategoryBadge(member.category)}</td>
-                              <td className="p-3 text-center">
-                                <span
-                                  className={`inline-flex h-2 w-2 rounded-full ${
-                                    member.isActive ? "bg-emerald-500" : "bg-red-400"
-                                  }`}
-                                />
-                              </td>
-                            </tr>
-                          )
-                        })}
-                      </tbody>
-                    </table>
+                <Separator className="my-2 border-border/40" />
+
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                    <DollarSign className="h-4 w-4 text-emerald-400" />
+                    بيانات الاستلام المالي والصرافين
+                  </h4>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-3 bg-slate-900/40 p-4 rounded-xl border border-border/60">
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">طريقة الاستلام المفضلة</span>
+                      <span className="text-xs font-bold text-white">{family.deliveryMethod || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">رقم حساب الكريمي (يمني)</span>
+                      <span className="text-xs font-bold text-white font-mono">{family.kuraimiAccountYemeni || "—"}</span>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">رقم حساب الكريمي (سعودي)</span>
+                      <span className="text-xs font-bold text-white font-mono">{family.kuraimiAccountSaudi || "—"}</span>
+                    </div>
                   </div>
-                ) : (
-                  <div className="text-center py-12 bg-slate-900/40 rounded-xl border border-dashed border-border/60">
-                    <Users className="h-8 w-8 text-slate-500 mx-auto mb-2" />
-                    <p className="text-slate-400 text-xs">لا يوجد مستفيدين (أيتام أو طلاب) مرتبطين بملف الأسرة حالياً.</p>
+                </div>
+
+                <Separator className="my-2 border-border/40" />
+
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                    <Info className="h-4 w-4 text-emerald-400" />
+                    المساعدات السابقة
+                  </h4>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-3 bg-slate-900/40 p-4 rounded-xl border border-border/60">
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">هل استلمت مساعدات سابقاً؟</span>
+                      <span className="text-xs font-bold text-white">{family.receivedAidBefore ? "نعم" : "لا"}</span>
+                    </div>
+                    {family.receivedAidBefore && (
+                      <>
+                        <div>
+                          <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">الجهة المانحة</span>
+                          <span className="text-xs font-bold text-white">{family.aidDonor || "—"}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">نوع المساعدة</span>
+                          <span className="text-xs font-bold text-white">{family.aidType || "—"}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">تاريخ آخر مساعدة</span>
+                          <span className="text-xs font-bold text-white">{family.lastAidDate || "—"}</span>
+                        </div>
+                      </>
+                    )}
                   </div>
-                )}
+                </div>
               </TabsContent>
 
-              {/* === TAB 5: CASE ACTIVITIES === */}
-              <TabsContent value="activities" className="space-y-4 outline-none">
-                <CaseActivityTab familyId={family.id} />
+              {/* === TAB 5: REFERRER AND GUARDIAN === */}
+              <TabsContent value="referrer" className="space-y-6 outline-none">
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                    <Info className="h-4 w-4 text-emerald-400" />
+                    بيانات المعرّف الاجتماعي
+                  </h4>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-3 bg-slate-900/40 p-4 rounded-xl border border-border/60">
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">اسم المعرّف الرباعي</span>
+                      <span className="text-xs font-bold text-white">{family.referrerName || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">صلة القرابة / العلاقة</span>
+                      <span className="text-xs font-bold text-white">{family.referrerRelation || "—"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <Separator className="my-2 border-border/40" />
+
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                    <ShieldAlert className="h-4 w-4 text-emerald-400" />
+                    بيانات الوصي الاجتماعي للأسرة (البديل)
+                  </h4>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-3 bg-slate-900/40 p-4 rounded-xl border border-border/60">
+                    <div className="col-span-2">
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">اسم الوصي الكامل</span>
+                      <span className="text-xs font-bold text-white">{family.guardianName || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">صلة القرابة برب الأسرة</span>
+                      <span className="text-xs font-bold text-white">{family.guardianRelation || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">رقم هاتف الوصي</span>
+                      <span className="text-xs font-bold text-white font-mono">{family.guardianPhone || "—"}</span>
+                    </div>
+                  </div>
+                </div>
               </TabsContent>
 
-              {/* === TAB 6: AUDIT LOGS === */}
-              <TabsContent value="audit" className="space-y-4 outline-none">
-                <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5 mb-2">
-                  <FileText className="h-4.5 w-4.5 text-emerald-400" />
-                  سجل التغييرات وتدقيق البيانات التاريخي
-                </h4>
-                <AuditTimeline entityType="FAMILY" entityId={family.id} />
+              {/* === TAB 6: TIMELINE & AUDITS === */}
+              <TabsContent value="timeline" className="space-y-6 outline-none">
+                <Tabs defaultValue="actions-log" className="w-full">
+                  <TabsList className="bg-slate-900/40 p-1 mb-4 flex gap-1 rounded-lg w-fit border border-border/40">
+                    <TabsTrigger value="actions-log" className="text-[11px] py-1 px-3 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-400">
+                      الزيارات الميدانية
+                    </TabsTrigger>
+                    <TabsTrigger value="audit-log" className="text-[11px] py-1 px-3 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-400">
+                      سجل الحركة والتغييرات
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="actions-log">
+                    <CaseActivityTab familyId={family.id} />
+                  </TabsContent>
+                  <TabsContent value="audit-log">
+                    <AuditTimeline entityType="FAMILY" entityId={family.id} />
+                  </TabsContent>
+                </Tabs>
               </TabsContent>
+
             </div>
           </Tabs>
         </div>
 
         {/* --- Footer Panel --- */}
-        <div className="p-4 border-t border-gray-100 flex-shrink-0 flex items-center justify-between bg-gray-50/50">
-          <div className="text-[10px] text-gray-400 font-medium">
+        <div className="p-4 border-t border-border flex-shrink-0 flex items-center justify-between bg-slate-950/80">
+          <div className="text-[10px] text-slate-400 font-medium">
             تاريخ التسجيل: {formatDate(family.createdAt)}
           </div>
           <button
             onClick={() => onOpenChange(false)}
-            className="bg-gray-800 hover:bg-gray-900 text-white rounded-xl px-5 py-2 text-xs font-semibold shadow-sm transition-all"
+            className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl px-5 py-2 text-xs font-semibold border border-border/60 transition-all"
           >
             إغلاق النافذة
           </button>

@@ -217,11 +217,49 @@ model Family {
   headPhoneNumber String?
   headAltPhone    String?
   headBirthdate   DateTime?
+  socialStatus    String?
+
+  // --- Head Husband Additional Info ---
+  headLastName        String?
+  headIdType          String?   // e.g. "شخصية", "جواز سفر"
+  headIdIssueDate     String?
+  headIdIssuePlace    String?
+  headAge             Int?
+  headWhatsApp        String?
+  headEducationLevel  String?
+  headOccupation      String?
+
+  // --- Wife / Spouses Info ---
+  spouseName           String?
+  spouseIdNumber       String?
+  spouseIdType         String?
+  spouseBirthdate      DateTime?
+  spouseAge            Int?
+  spouseEducationLevel String?
+  hasAnotherSpouse     Boolean?   @default(false)
+
+  // --- Family Members Statistics (Manual Entry counts) ---
+  manualMembersCount   Int?       // إجمالي عدد أفراد الأسرة
+  manualMalesCount     Int?       // عدد الذكور
+  manualFemalesCount   Int?       // عدد الإناث
+  kidsUnder5Count      Int?       // أطفال (أقل من 5 سنوات)
+  kids5To17Count       Int?       // أطفال (5 - 17 سنة)
+  adults18To59Count    Int?       // بالغين (18 - 59 سنة)
+  elderlyAbove60Count  Int?       // كبار السن (60 فما فوق)
+  specialNeedsCount    Int?       // عدد ذوي الاحتياجات الخاصة
+  disabilityType       String?    // نوع الإعاقة / المرض المزمن
 
   // --- Address ---
   addressDetail  String?  // Street / neighborhood details
   subDistrict    SubDistrict @relation(fields: [subDistrictId], references: [id])
   subDistrictId  Int
+
+  // --- Additional Housing Info ---
+  nearestLandmark      String?    // أقرب معلم بارز
+  rentAmount           Float?     // الإيجار الشهري (إن وجد)
+  waterSource          String?    // مصدر المياه الرئيسي
+  electricitySource    String?    // مصدر الإضاءة الرئيسي
+  housingNotes         String?    // ملاحظات عن السكن
 
   // --- Assessment ---
   vulnerabilityScore Int?    @default(0) // 0–100 score from field assessment
@@ -237,6 +275,35 @@ model Family {
   housingType        String?
   housingCondition   String?
   povertyLevel       PovertyLevel?
+
+  // --- Additional Economic Info ---
+  hasOrphans           Boolean?   @default(false) // هل الأسرة تعول أيتام؟
+  orphansCount         Int?       @default(0)     // عدد الأيتام
+  hasWidow             Boolean?   @default(false) // هل تعول الأسرة أرملة؟
+  hasUnemployed        Boolean?   @default(false) // هل يوجد شخص بلا عمل؟
+  urgentNeeds          String?    // أهم الاحتياجات الحالية
+
+  // --- Displacement Info ---
+  isDisplaced          Boolean?   @default(false)
+  displacementGov      String?    // محافظة النزوح
+  displacementDist     String?    // مديرية النزوح
+  displacementDate     String?    // تاريخ النزوح
+  displacementReason   String?    // سبب النزوح
+
+  // --- Assistance History ---
+  receivedAidBefore    Boolean?   @default(false)
+  aidType              String?
+  aidDonor             String?
+  lastAidDate          String?
+
+  // --- Lojistical & Financial Delivery ---
+  deliveryMethod       String?    // طريقة استلام المساعدات المالية
+  kuraimiAccountYemeni String?    // رقم الحساب في بنك الكريمي الريال اليمني
+  kuraimiAccountSaudi  String?    // رقم الحساب في بنك الكريمي الريال السعودي
+
+  // --- Verification & Referrer ---
+  referrerName         String?    // اسم المعرف الرباعي
+  referrerRelation     String?    // صلة القرابة بالمعرف
 
   // --- Relations ---
   members      Beneficiary[]
