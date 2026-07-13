@@ -299,6 +299,22 @@ export function FamilyFormSheet({ family, geography, trigger, userRole }: Family
     }
   }, [family, isEditMode, open])
 
+  // Family Members Dynamic State
+  interface FamilyMember {
+    id?: string
+    fullName: string
+    birthdate: string
+    gender: "MALE" | "FEMALE"
+    relationshipToHead: string
+  }
+  const [members, setMembers] = useState<FamilyMember[]>([])
+  
+  // State for new member form inputs
+  const [newMemberName, setNewMemberName] = useState("")
+  const [newMemberBirthdate, setNewMemberBirthdate] = useState("")
+  const [newMemberGender, setNewMemberGender] = useState<"MALE" | "FEMALE">("MALE")
+  const [newMemberRelation, setNewMemberRelation] = useState("")
+
   // Load initial values for editing
   useEffect(() => {
     if (isEditMode && family) {
@@ -319,6 +335,20 @@ export function FamilyFormSheet({ family, geography, trigger, userRole }: Family
 
       setGovId(matchedGovId)
       setDistrictId(matchedDistId)
+
+      if (family.members) {
+        setMembers(
+          family.members.map((m: any) => ({
+            id: m.id,
+            fullName: m.fullName,
+            birthdate: m.birthdate ? new Date(m.birthdate).toISOString().split("T")[0] : "",
+            gender: m.gender,
+            relationshipToHead: m.relationshipToHead || "",
+          }))
+        )
+      } else {
+        setMembers([])
+      }
 
       // Set form values
       reset({
@@ -400,6 +430,9 @@ export function FamilyFormSheet({ family, geography, trigger, userRole }: Family
         referrerRelation: family.referrerRelation || "",
       })
     } else if (open) {
+      setGovId("")
+      setDistrictId("")
+      setMembers([])
       reset({
         headFullName: "",
         headNationalId: "",
@@ -478,10 +511,65 @@ export function FamilyFormSheet({ family, geography, trigger, userRole }: Family
         referrerName: "",
         referrerRelation: "",
       })
-      setGovId("")
       setDistrictId("")
     }
   }, [family, isEditMode, open, geography, reset])
+
+  // Auto-calculate member statistics based on dynamic members list
+  useEffect(() => {
+    const headGender = watch("headGender") || "MALE"
+    const hasSpouse = !!watch("spouseName")
+    
+    let total = 1 + (hasSpouse ? 1 : 0) + members.length
+    let males = (headGender === "MALE" ? 1 : 0) + members.filter(m => m.gender === "MALE").length
+    let females = (headGender === "FEMALE" ? 1 : 0) + (hasSpouse ? 1 : 0) + members.filter(m => m.gender === "FEMALE").length
+    
+    const getAge = (bdate: string) => {
+      if (!bdate) return 0
+      const birth = new Date(bdate)
+      const today = new Date()
+      let age = today.getFullYear() - birth.getFullYear()
+      const m = today.getMonth() - birth.getMonth()
+      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
+      return age
+    }
+
+    const kidsUnder5 = members.filter(m => getAge(m.birthdate) < 5).length
+    const kids5to17 = members.filter(m => {
+      const age = getAge(m.birthdate)
+      return age >= 5 && age <= 17
+    }).length
+    
+    const headAgeVal = Number(watch("headAge")) || 30
+    const spouseAgeVal = Number(watch("spouseAge")) || 25
+    
+    let adults18to59 = 0
+    let elderly60 = 0
+    
+    // Head age
+    if (headAgeVal >= 60) elderly60++
+    else if (headAgeVal >= 18) adults18to59++
+    
+    // Spouse age
+    if (hasSpouse) {
+      if (spouseAgeVal >= 60) elderly60++
+      else if (spouseAgeVal >= 18) adults18to59++
+    }
+    
+    members.forEach(m => {
+      const age = getAge(m.birthdate)
+      if (age >= 60) elderly60++
+      else if (age >= 18) adults18to59++
+    })
+
+    setValue("manualMembersCount", total.toString() as any)
+    setValue("manualMalesCount", males.toString() as any)
+    setValue("manualFemalesCount", females.toString() as any)
+    setValue("kidsUnder5Count", kidsUnder5.toString() as any)
+    setValue("kids5To17Count", kids5to17.toString() as any)
+    setValue("adults18To59Count", adults18to59.toString() as any)
+    setValue("elderlyAbove60Count", elderly60.toString() as any)
+  }, [members, watch("headGender"), watch("spouseName"), watch("headAge"), watch("spouseAge"), setValue])
 
   // cascading selects helpers
   const activeGovernorate = geography.find((g) => g.id === govId)
@@ -495,8 +583,8 @@ export function FamilyFormSheet({ family, geography, trigger, userRole }: Family
     setSuccessMsg(null)
 
     const result = isEditMode
-      ? await updateFamily(family.id, values)
-      : await createFamily(values)
+      ? await updateFamily(family.id, { ...values, members })
+      : await createFamily({ ...values, members })
 
     if (result.success) {
       const familyId = isEditMode ? family.id : result.family?.id
@@ -517,7 +605,10 @@ export function FamilyFormSheet({ family, geography, trigger, userRole }: Family
       setSuccessMsg(
         isEditMode ? "تم تحديث بيانات الأسرة بنجاح!" : "تم تسجيل الأسرة الجديدة بنجاح!"
       )
-      if (!isEditMode) reset()
+      if (!isEditMode) {
+        reset()
+        setMembers([])
+      }
       setTimeout(() => {
         setOpen(false)
         setSuccessMsg(null)
@@ -773,6 +864,139 @@ export function FamilyFormSheet({ family, geography, trigger, userRole }: Family
                       <label className="text-xs font-bold text-slate-300">نوع الإعاقة / الأمراض المزمنة لأفراد الأسرة</label>
                       <Input placeholder="مثال: شلل أطفال، مريض بالقلب..." className="bg-slate-900/40 border-border text-white" {...register("disabilityType")} />
                     </div>
+
+                    <Separator className="my-2 border-border/40 col-span-4" />
+                    
+                    {/* قسم إضافة أفراد الأسرة كأعضاء */}
+                    <div className="col-span-4 space-y-4">
+                      <h4 className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                        <Users className="h-4 w-4" />
+                        أفراد الأسرة التابعين (الأعضاء)
+                      </h4>
+
+                      {/* حقول إضافة عضو جديد */}
+                      <div className="rounded-xl border border-border/50 bg-slate-900/10 p-4 space-y-3">
+                        <p className="text-[11px] font-bold text-slate-400">إضافة عضو جديد للأسرة:</p>
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold text-slate-300">الاسم الكامل للعضو</label>
+                            <Input 
+                              placeholder="الاسم الرباعي للعضو" 
+                              className="bg-slate-900/40 border-border text-white text-xs h-9" 
+                              value={newMemberName} 
+                              onChange={e => setNewMemberName(e.target.value)} 
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold text-slate-300">تاريخ الميلاد</label>
+                            <Input 
+                              type="date" 
+                              className="bg-slate-900/40 border-border text-white text-xs h-9" 
+                              value={newMemberBirthdate} 
+                              onChange={e => setNewMemberBirthdate(e.target.value)} 
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold text-slate-300">الجنس</label>
+                            <select 
+                              className="flex h-9 w-full rounded-xl border border-border bg-slate-900/40 text-white px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right"
+                              value={newMemberGender} 
+                              onChange={e => setNewMemberGender(e.target.value as any)}
+                            >
+                              <option value="MALE" className="bg-slate-950 text-white">ذكر</option>
+                              <option value="FEMALE" className="bg-slate-950 text-white">أنثى</option>
+                            </select>
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold text-slate-300">صلة القرابة برب الأسرة</label>
+                            <Input 
+                              placeholder="ابن، ابنة، والدة..." 
+                              className="bg-slate-900/40 border-border text-white text-xs h-9" 
+                              value={newMemberRelation} 
+                              onChange={e => setNewMemberRelation(e.target.value)} 
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end pt-1">
+                          <Button
+                            type="button"
+                            size="sm"
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-4 rounded-lg font-semibold"
+                            onClick={() => {
+                              if (!newMemberName.trim()) {
+                                alert("يرجى إدخال اسم العضو الكامل")
+                                return
+                              }
+                              if (!newMemberBirthdate) {
+                                alert("يرجى إدخال تاريخ ميلاد العضو")
+                                return
+                              }
+                              if (!newMemberRelation.trim()) {
+                                alert("يرجى تحديد صلة القرابة برب الأسرة")
+                                return
+                              }
+                              setMembers(prev => [...prev, {
+                                fullName: newMemberName.trim(),
+                                birthdate: newMemberBirthdate,
+                                gender: newMemberGender,
+                                relationshipToHead: newMemberRelation.trim()
+                              }])
+                              // Reset input states
+                              setNewMemberName("")
+                              setNewMemberBirthdate("")
+                              setNewMemberGender("MALE")
+                              setNewMemberRelation("")
+                            }}
+                          >
+                            + إضافة عضو للأسرة
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* قائمة الأعضاء المضافين */}
+                      {members.length > 0 ? (
+                        <div className="space-y-2">
+                          <p className="text-[10px] font-bold text-slate-400">الأعضاء المضافون حالياً ({members.length})</p>
+                          <div className="grid grid-cols-1 gap-2">
+                            {members.map((m, idx) => (
+                              <div key={idx} className="flex items-center justify-between rounded-xl border border-border bg-slate-900/20 p-2.5">
+                                <div className="grid grid-cols-4 gap-4 flex-1 text-right text-xs">
+                                  <div className="truncate font-semibold text-slate-200">
+                                    <span className="text-[10px] text-slate-500 block">الاسم</span>
+                                    {m.fullName}
+                                  </div>
+                                  <div className="text-slate-300">
+                                    <span className="text-[10px] text-slate-500 block">تاريخ الميلاد</span>
+                                    {m.birthdate}
+                                  </div>
+                                  <div className="text-slate-300">
+                                    <span className="text-[10px] text-slate-500 block">الجنس</span>
+                                    {m.gender === "MALE" ? "ذكر" : "أنثى"}
+                                  </div>
+                                  <div className="text-slate-300">
+                                    <span className="text-[10px] text-slate-500 block">الصلة</span>
+                                    {m.relationshipToHead}
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setMembers(prev => prev.filter((_, i) => i !== idx))}
+                                  className="rounded-lg p-1.5 text-slate-500 hover:bg-red-950/40 hover:text-red-400 transition-colors mr-2 flex-shrink-0"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center py-4 text-slate-500 text-[11px] border border-dashed border-border rounded-xl">
+                          لم يتم إضافة أي أفراد تابعين كأعضاء بعد. (سيتم احتساب الإحصائيات والأعمار الفئات العمرية تلقائياً بمجرد إضافتهم).
+                        </div>
+                      )}
+                    </div>
+
                   </div>
                 </TabsContent>
 

@@ -325,6 +325,40 @@ export function FamilyDetailsSheet({ family, open, onOpenChange }: FamilyDetails
                     </div>
                   </div>
                 </div>
+
+                {family.members && family.members.length > 0 && (
+                  <>
+                    <Separator className="my-2 border-border/40" />
+                    <div className="space-y-4">
+                      <h4 className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                        <Users className="h-4 w-4 text-emerald-400" />
+                        قائمة التابعين المسجلين كأعضاء للأسرة ({family.members.length})
+                      </h4>
+                      <div className="grid grid-cols-1 gap-2">
+                        {family.members.map((m: any) => (
+                          <div key={m.id} className="grid grid-cols-4 gap-4 rounded-xl border border-border/60 bg-slate-900/40 p-3 text-right text-xs">
+                            <div>
+                              <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">اسم العضو الكامل</span>
+                              <span className="text-xs font-bold text-white block truncate">{m.fullName}</span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">تاريخ الميلاد</span>
+                              <span className="text-xs font-bold text-white block">{formatDate(m.birthdate)}</span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">الجنس</span>
+                              <span className="text-xs font-bold text-white block">{m.gender === "MALE" ? "ذكر" : "أنثى"}</span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">صلة القرابة برب الأسرة</span>
+                              <span className="text-xs font-bold text-white block">{m.relationshipToHead || "—"}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
               </TabsContent>
 
               {/* === TAB 3: HOUSING & DISPLACEMENT === */}

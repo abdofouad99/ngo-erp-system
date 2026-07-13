@@ -337,6 +337,7 @@ model Beneficiary {
   birthdate   DateTime
   nationalId  String?  // May not have their own ID (children)
   religion    String?  // الديانة
+  relationshipToHead String? // صلة القرابة برب الأسرة (ابن، ابنة، إلخ)
 
   // --- Classification ---
   category    BeneficiaryCategory

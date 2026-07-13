@@ -281,6 +281,23 @@ export async function createFamily(rawInput: any) {
       },
     })
 
+    const members = rawInput.members || []
+    if (members && members.length > 0) {
+      for (const m of members) {
+        await prisma.beneficiary.create({
+          data: {
+            fullName: m.fullName,
+            gender: m.gender,
+            birthdate: new Date(m.birthdate),
+            relationshipToHead: m.relationshipToHead,
+            category: "GENERAL",
+            familyId: family.id,
+            isActive: true,
+          }
+        })
+      }
+    }
+
     // Log the create event
     await createAuditLog({
       entityType: "FAMILY",
@@ -424,6 +441,41 @@ export async function updateFamily(id: string, rawInput: any) {
         referrerRelation: validatedData.referrerRelation || null,
       },
     })
+
+    const members = rawInput.members || []
+    const existingMemberIds = members.filter((m: any) => m.id).map((m: any) => m.id)
+    await prisma.beneficiary.deleteMany({
+      where: {
+        familyId: id,
+        id: { notIn: existingMemberIds }
+      }
+    })
+
+    for (const m of members) {
+      if (m.id) {
+        await prisma.beneficiary.update({
+          where: { id: m.id },
+          data: {
+            fullName: m.fullName,
+            gender: m.gender,
+            birthdate: new Date(m.birthdate),
+            relationshipToHead: m.relationshipToHead,
+          }
+        })
+      } else {
+        await prisma.beneficiary.create({
+          data: {
+            fullName: m.fullName,
+            gender: m.gender,
+            birthdate: new Date(m.birthdate),
+            relationshipToHead: m.relationshipToHead,
+            category: "GENERAL",
+            familyId: id,
+            isActive: true,
+          }
+        })
+      }
+    }
 
     // Log the update event
     await createAuditLog({
