@@ -574,6 +574,10 @@ export function FamilyFormSheet({ family, geography, trigger, userRole }: Family
                       <Input placeholder="مكان إصدار البطاقة" className="bg-slate-900/40 border-border text-white" {...register("headIdIssuePlace")} />
                     </div>
                     <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-300">تاريخ إصدار الهوية</label>
+                      <Input type="date" className="bg-slate-900/40 border-border text-white" {...register("headIdIssueDate")} />
+                    </div>
+                    <div className="space-y-1.5">
                       <label className="text-xs font-bold text-slate-300">تاريخ الميلاد</label>
                       <Input type="date" className="bg-slate-900/40 border-border text-white" {...register("headBirthdate")} />
                     </div>
