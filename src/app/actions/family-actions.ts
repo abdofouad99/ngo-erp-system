@@ -298,7 +298,7 @@ export async function createFamily(rawInput: any) {
 
     revalidatePath("/dashboard/families")
     revalidatePath("/dashboard/orphans")
-    return { success: true }
+    return { success: true, family }
   } catch (error: any) {
     console.error("Error creating family:", error)
     if (error instanceof z.ZodError) {
@@ -436,7 +436,7 @@ export async function updateFamily(id: string, rawInput: any) {
 
     revalidatePath("/dashboard/families")
     revalidatePath("/dashboard/orphans")
-    return { success: true }
+    return { success: true, family: updatedFamily }
   } catch (error: any) {
     console.error("Error updating family:", error)
     if (error instanceof z.ZodError) {

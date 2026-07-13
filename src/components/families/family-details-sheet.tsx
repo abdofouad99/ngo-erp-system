@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import {
   Sheet,
   SheetContent,
@@ -9,6 +10,7 @@ import {
 } from "@/components/ui/sheet"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import {
   User,
@@ -23,9 +25,13 @@ import {
   Briefcase,
   DollarSign,
   Info,
+  Paperclip,
+  Eye,
+  Download,
 } from "lucide-react"
 import { AuditTimeline } from "@/components/dashboard/audit-timeline"
 import { CaseActivityTab } from "@/components/shared/case-activity-tab"
+import { getFamilyAttachments } from "@/app/actions/attachment-actions"
 
 // =============================================================================
 // HELPERS
@@ -81,6 +87,23 @@ interface FamilyDetailsSheetProps {
 }
 
 export function FamilyDetailsSheet({ family, open, onOpenChange }: FamilyDetailsSheetProps) {
+  const [attachments, setAttachments] = useState<any[]>([])
+  const [loadingAttachments, setLoadingAttachments] = useState(false)
+
+  useEffect(() => {
+    if (family && open) {
+      setLoadingAttachments(true)
+      getFamilyAttachments(family.id).then(res => {
+        if (res.success && res.attachments) {
+          setAttachments(res.attachments)
+        }
+        setLoadingAttachments(false)
+      })
+    } else {
+      setAttachments([])
+    }
+  }, [family, open])
+
   if (!family) return null
 
   const headAge = family.headAge || calculateAge(family.headBirthdate)
@@ -119,7 +142,7 @@ export function FamilyDetailsSheet({ family, open, onOpenChange }: FamilyDetails
         {/* --- Tab Contents (Scrollable Container) --- */}
         <div className="flex-1 overflow-y-auto px-6 py-4">
           <Tabs defaultValue="head" className="w-full flex flex-col h-full">
-            <TabsList className="bg-slate-900/60 border border-border/60 rounded-xl p-1 mb-6 flex-shrink-0 grid grid-cols-6 gap-1 w-full justify-between h-auto">
+            <TabsList className="bg-slate-900/60 border border-border/60 rounded-xl p-1 mb-6 flex-shrink-0 grid grid-cols-7 gap-1 w-full justify-between h-auto">
               <TabsTrigger value="head" className="text-[10px] py-1.5 px-2 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
                 رب الأسرة
               </TabsTrigger>
@@ -134,6 +157,9 @@ export function FamilyDetailsSheet({ family, open, onOpenChange }: FamilyDetails
               </TabsTrigger>
               <TabsTrigger value="referrer" className="text-[10px] py-1.5 px-2 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
                 المعرف والوصي
+              </TabsTrigger>
+              <TabsTrigger value="attachments" className="text-[10px] py-1.5 px-2 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
+                المرفقات والوثائق
               </TabsTrigger>
               <TabsTrigger value="timeline" className="text-[10px] py-1.5 px-2 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
                 الزيارات والحركة
@@ -533,7 +559,78 @@ export function FamilyDetailsSheet({ family, open, onOpenChange }: FamilyDetails
                 </div>
               </TabsContent>
 
-              {/* === TAB 6: TIMELINE & AUDITS === */}
+              {/* === TAB 6: ATTACHMENTS & DOCUMENTS === */}
+              <TabsContent value="attachments" className="space-y-6 outline-none animate-in fade-in duration-300">
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                    <Paperclip className="h-4 w-4 text-emerald-400" />
+                    المستندات والوثائق المرفقة الرسمية للأسرة
+                  </h4>
+
+                  {loadingAttachments ? (
+                    <div className="flex items-center justify-center py-12 text-slate-400 text-xs">
+                      جاري تحميل الملفات...
+                    </div>
+                  ) : attachments.length === 0 ? (
+                    <div className="text-center py-12 text-slate-500 text-xs border border-dashed border-border rounded-xl">
+                      لا توجد أية وثائق أو مرفقات رسمية مسجلة لهذه الأسرة حالياً.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-3">
+                      {attachments.map((att) => (
+                        <div key={att.id} className="flex items-center justify-between rounded-xl border border-border/60 bg-slate-900/40 p-4 transition-all hover:bg-slate-900/60">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-800 border border-border">
+                              <FileText className="h-5 w-5 text-emerald-400" />
+                            </div>
+                            <div className="text-right font-medium">
+                              <span className="text-xs font-bold text-white block truncate max-w-[280px]">
+                                {att.fileName}
+                              </span>
+                              <span className="text-[10px] text-emerald-400 block mt-0.5 font-semibold">
+                                {att.documentType === "NATIONAL_ID" ? "صورة الهوية للزوج والزوجة" : att.documentType === "MEDICAL_REPORT" ? "تقارير طبية" : "كرت العائلة / أخرى"}
+                              </span>
+                              {att.description && (
+                                <span className="text-[10px] text-slate-500 block truncate max-w-[280px] mt-0.5">
+                                  {att.description}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <Badge className="bg-slate-800 text-slate-300 border border-border/40 text-[10px] font-mono font-normal">
+                              {(att.sizeBytes ? (att.sizeBytes / 1024).toFixed(1) : 0)} KB
+                            </Badge>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              asChild
+                              className="h-9 w-9 p-0 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80"
+                            >
+                              <a href={att.fileUrl} target="_blank" rel="noreferrer" download>
+                                <Download className="h-4.5 w-4.5" />
+                              </a>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              asChild
+                              className="h-9 w-9 p-0 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80"
+                            >
+                              <a href={att.fileUrl} target="_blank" rel="noreferrer">
+                                <Eye className="h-4.5 w-4.5" />
+                              </a>
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              {/* === TAB 7: TIMELINE & AUDITS === */}
               <TabsContent value="timeline" className="space-y-6 outline-none">
                 <Tabs defaultValue="actions-log" className="w-full">
                   <TabsList className="bg-slate-900/40 p-1 mb-4 flex gap-1 rounded-lg w-fit border border-border/40">
