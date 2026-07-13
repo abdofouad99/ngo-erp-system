@@ -587,3 +587,210 @@ export async function deleteFamily(id: string) {
     return { success: false, error: "حدث خطأ أثناء حذف الأسرة" }
   }
 }
+
+export async function bulkImportFamilies(families: any[]) {
+  try {
+    const currentUser = await getCurrentUser()
+    if (currentUser?.role === "VIEWER") {
+      return { success: false, error: "عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بالمسح أو التعديل." }
+    }
+
+    const adminUser = await prisma.user.findFirst({
+      where: { role: "ADMIN" },
+    })
+    if (!adminUser) {
+      return { success: false, error: "فشل النظام في تحديد هوية المستخدم المسؤول عن الإدخال" }
+    }
+
+    // Load geography in memory for fast lookup
+    const allSubs = await prisma.subDistrict.findMany({
+      include: {
+        district: {
+          include: {
+            governorate: true
+          }
+        }
+      }
+    })
+
+    const defaultSub = allSubs[0]
+    if (!defaultSub) {
+      return { success: false, error: "قاعدة البيانات فارغة من التقسيم الجغرافي. يرجى تهيئة التقسيم الجغرافي أولاً." }
+    }
+
+    let importedCount = 0
+    let skippedCount = 0
+    let skippedNationalIds: string[] = []
+
+    for (const f of families) {
+      if (!f.headFullName || !f.headNationalId) {
+        skippedCount++
+        continue
+      }
+
+      // Check unique nationalId
+      const existing = await prisma.family.findFirst({
+        where: { headNationalId: String(f.headNationalId).trim(), deletedAt: null },
+      })
+      if (existing) {
+        skippedCount++
+        skippedNationalIds.push(String(f.headNationalId).trim())
+        continue
+      }
+
+      // Resolve subDistrict
+      let subDistrictId = defaultSub.id
+      if (f.subDistrictName) {
+        const match = allSubs.find(
+          sub => 
+            sub.nameAr.trim() === String(f.subDistrictName).trim() ||
+            sub.nameEn?.trim() === String(f.subDistrictName).trim()
+        )
+        if (match) {
+          subDistrictId = match.id
+        }
+      }
+
+      // Parse birthdates helper
+      const parseDate = (dStr: any) => {
+        if (!dStr) return null
+        const d = new Date(dStr)
+        return isNaN(d.getTime()) ? null : d
+      }
+
+      // Parse number helper
+      const parseNum = (val: any) => {
+        if (val === "" || val === null || val === undefined) return null
+        const num = Number(val)
+        return isNaN(num) ? null : num
+      }
+
+      // Parse boolean helper
+      const parseBool = (val: any) => {
+        if (val === true || val === "true" || val === "نعم" || val === 1 || val === "1") return true
+        return false
+      }
+
+      await prisma.family.create({
+        data: {
+          headFullName: String(f.headFullName).trim(),
+          headLastName: f.headLastName ? String(f.headLastName).trim() : null,
+          headNationalId: String(f.headNationalId).trim(),
+          headIdType: f.headIdType ? String(f.headIdType).trim() : null,
+          headIdIssueDate: f.headIdIssueDate ? String(f.headIdIssueDate).trim() : null,
+          headIdIssuePlace: f.headIdIssuePlace ? String(f.headIdIssuePlace).trim() : null,
+          headBirthdate: parseDate(f.headBirthdate),
+          headAge: parseNum(f.headAge),
+          headGender: f.headGender === "FEMALE" || f.headGender === "أنثى" ? "FEMALE" : "MALE",
+          socialStatus: f.socialStatus ? String(f.socialStatus).trim() : null,
+          headPhoneNumber: f.headPhoneNumber ? String(f.headPhoneNumber).trim() : null,
+          headAltPhone: f.headAltPhone ? String(f.headAltPhone).trim() : null,
+          headWhatsApp: f.headWhatsApp ? String(f.headWhatsApp).trim() : null,
+          headEducationLevel: f.headEducationLevel ? String(f.headEducationLevel).trim() : null,
+          headOccupation: f.headOccupation ? String(f.headOccupation).trim() : null,
+          
+          spouseName: f.spouseName ? String(f.spouseName).trim() : null,
+          spouseIdNumber: f.spouseIdNumber ? String(f.spouseIdNumber).trim() : null,
+          spouseIdType: f.spouseIdType ? String(f.spouseIdType).trim() : null,
+          spouseBirthdate: parseDate(f.spouseBirthdate),
+          spouseAge: parseNum(f.spouseAge),
+          spouseEducationLevel: f.spouseEducationLevel ? String(f.spouseEducationLevel).trim() : null,
+          hasAnotherSpouse: parseBool(f.hasAnotherSpouse),
+          
+          manualMembersCount: parseNum(f.manualMembersCount),
+          manualMalesCount: parseNum(f.manualMalesCount),
+          manualFemalesCount: parseNum(f.manualFemalesCount),
+          kidsUnder5Count: parseNum(f.kidsUnder5Count),
+          kids5To17Count: parseNum(f.kids5To17Count),
+          adults18To59Count: parseNum(f.adults18To59Count),
+          elderlyAbove60Count: parseNum(f.elderlyAbove60Count),
+          specialNeedsCount: parseNum(f.specialNeedsCount),
+          disabilityType: f.disabilityType ? String(f.disabilityType).trim() : null,
+          
+          addressDetail: f.addressDetail ? String(f.addressDetail).trim() : null,
+          subDistrictId,
+          nearestLandmark: f.nearestLandmark ? String(f.nearestLandmark).trim() : null,
+          
+          housingType: f.housingType ? String(f.housingType).trim() : null,
+          housingCondition: f.housingCondition ? String(f.housingCondition).trim() : null,
+          rentAmount: parseNum(f.rentAmount),
+          waterSource: f.waterSource ? String(f.waterSource).trim() : null,
+          electricitySource: f.electricitySource ? String(f.electricitySource).trim() : null,
+          housingNotes: f.housingNotes ? String(f.housingNotes).trim() : null,
+          
+          notes: f.notes ? String(f.notes).trim() : null,
+          monthlyIncome: parseNum(f.monthlyIncome),
+          hasOrphans: parseBool(f.hasOrphans),
+          orphansCount: parseNum(f.orphansCount) || 0,
+          hasWidow: parseBool(f.hasWidow),
+          hasUnemployed: parseBool(f.hasUnemployed),
+          urgentNeeds: f.urgentNeeds ? String(f.urgentNeeds).trim() : null,
+          
+          isDisplaced: parseBool(f.isDisplaced),
+          displacementGov: f.displacementGov ? String(f.displacementGov).trim() : null,
+          displacementDist: f.displacementDist ? String(f.displacementDist).trim() : null,
+          displacementDate: f.displacementDate ? String(f.displacementDate).trim() : null,
+          displacementReason: f.displacementReason ? String(f.displacementReason).trim() : null,
+          
+          receivedAidBefore: parseBool(f.receivedAidBefore),
+          aidType: f.aidType ? String(f.aidType).trim() : null,
+          aidDonor: f.aidDonor ? String(f.aidDonor).trim() : null,
+          lastAidDate: f.lastAidDate ? String(f.lastAidDate).trim() : null,
+          
+          deliveryMethod: f.deliveryMethod ? String(f.deliveryMethod).trim() : null,
+          kuraimiAccountYemeni: f.kuraimiAccountYemeni ? String(f.kuraimiAccountYemeni).trim() : null,
+          kuraimiAccountSaudi: f.kuraimiAccountSaudi ? String(f.kuraimiAccountSaudi).trim() : null,
+          
+          referrerName: f.referrerName ? String(f.referrerName).trim() : null,
+          referrerRelation: f.referrerRelation ? String(f.referrerRelation).trim() : null,
+          
+          createdById: adminUser.id,
+          isActive: true,
+        }
+      })
+
+      importedCount++
+    }
+
+    revalidatePath("/dashboard/families")
+    return { 
+      success: true, 
+      importedCount, 
+      skippedCount, 
+      skippedNationalIds 
+    }
+  } catch (error: any) {
+    console.error("Error bulk importing families:", error)
+    return { success: false, error: "حدث خطأ غير متوقع أثناء استيراد بيانات الأسر" }
+  }
+}
+
+export async function getFamilyAidHistory(familyId: string) {
+  try {
+    const aidHistory = await prisma.projectBeneficiary.findMany({
+      where: {
+        beneficiary: {
+          familyId,
+        },
+        deletedAt: null,
+      },
+      include: {
+        project: true,
+        beneficiary: {
+          select: {
+            fullName: true,
+            relationshipToHead: true,
+          }
+        }
+      },
+      orderBy: {
+        deliveryDate: "desc",
+      }
+    })
+
+    return { success: true, aidHistory }
+  } catch (error) {
+    console.error("Error getting family aid history:", error)
+    return { success: false, error: "فشل في جلب سجل المساعدات المستلمة للأسرة" }
+  }
+}

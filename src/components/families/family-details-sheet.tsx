@@ -32,6 +32,8 @@ import {
 import { AuditTimeline } from "@/components/dashboard/audit-timeline"
 import { CaseActivityTab } from "@/components/shared/case-activity-tab"
 import { getFamilyAttachments } from "@/app/actions/attachment-actions"
+import { getFamilyAidHistory } from "@/app/actions/family-actions"
+import { Loader2 } from "lucide-react"
 
 // =============================================================================
 // HELPERS
@@ -89,6 +91,8 @@ interface FamilyDetailsSheetProps {
 export function FamilyDetailsSheet({ family, open, onOpenChange }: FamilyDetailsSheetProps) {
   const [attachments, setAttachments] = useState<any[]>([])
   const [loadingAttachments, setLoadingAttachments] = useState(false)
+  const [aidHistory, setAidHistory] = useState<any[]>([])
+  const [loadingAidHistory, setLoadingAidHistory] = useState(false)
 
   useEffect(() => {
     if (family && open) {
@@ -99,8 +103,17 @@ export function FamilyDetailsSheet({ family, open, onOpenChange }: FamilyDetails
         }
         setLoadingAttachments(false)
       })
+
+      setLoadingAidHistory(true)
+      getFamilyAidHistory(family.id).then(res => {
+        if (res.success && res.aidHistory) {
+          setAidHistory(res.aidHistory)
+        }
+        setLoadingAidHistory(false)
+      })
     } else {
       setAttachments([])
+      setAidHistory([])
     }
   }, [family, open])
 
@@ -142,27 +155,30 @@ export function FamilyDetailsSheet({ family, open, onOpenChange }: FamilyDetails
         {/* --- Tab Contents (Scrollable Container) --- */}
         <div className="flex-1 overflow-y-auto px-6 py-4">
           <Tabs defaultValue="head" className="w-full flex flex-col h-full">
-            <TabsList className="bg-slate-900/60 border border-border/60 rounded-xl p-1 mb-6 flex-shrink-0 grid grid-cols-7 gap-1 w-full justify-between h-auto">
-              <TabsTrigger value="head" className="text-[10px] py-1.5 px-2 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
+            <TabsList className="bg-slate-900/60 border border-border/60 rounded-xl p-1 mb-6 flex-shrink-0 grid grid-cols-8 gap-1 w-full justify-between h-auto">
+              <TabsTrigger value="head" className="text-[10px] py-1.5 px-1.5 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
                 رب الأسرة
               </TabsTrigger>
-              <TabsTrigger value="spouse" className="text-[10px] py-1.5 px-2 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
+              <TabsTrigger value="spouse" className="text-[10px] py-1.5 px-1.5 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
                 الزوجة والأفراد
               </TabsTrigger>
-              <TabsTrigger value="housing" className="text-[10px] py-1.5 px-2 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
+              <TabsTrigger value="housing" className="text-[10px] py-1.5 px-1.5 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
                 السكن والنزوح
               </TabsTrigger>
-              <TabsTrigger value="financial" className="text-[10px] py-1.5 px-2 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
-                المالية والمعيشة
+              <TabsTrigger value="financial" className="text-[10px] py-1.5 px-1.5 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
+                المالية
               </TabsTrigger>
-              <TabsTrigger value="referrer" className="text-[10px] py-1.5 px-2 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
-                المعرف والوصي
+              <TabsTrigger value="referrer" className="text-[10px] py-1.5 px-1.5 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
+                المعرف
               </TabsTrigger>
-              <TabsTrigger value="attachments" className="text-[10px] py-1.5 px-2 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
-                المرفقات والوثائق
+              <TabsTrigger value="attachments" className="text-[10px] py-1.5 px-1.5 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
+                المرفقات
               </TabsTrigger>
-              <TabsTrigger value="timeline" className="text-[10px] py-1.5 px-2 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
-                الزيارات والحركة
+              <TabsTrigger value="timeline" className="text-[10px] py-1.5 px-1.5 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
+                الحركة
+              </TabsTrigger>
+              <TabsTrigger value="aidHistory" className="text-[10px] py-1.5 px-1.5 flex-1 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 text-slate-300">
+                المساعدات
               </TabsTrigger>
             </TabsList>
 
@@ -683,6 +699,81 @@ export function FamilyDetailsSheet({ family, open, onOpenChange }: FamilyDetails
                     <AuditTimeline entityType="FAMILY" entityId={family.id} />
                   </TabsContent>
                 </Tabs>
+              </TabsContent>
+
+              {/* === TAB 8: AID HISTORY === */}
+              <TabsContent value="aidHistory" className="space-y-6 outline-none">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                      <CreditCard className="h-4 w-4 text-emerald-400" />
+                      سجل المساعدات والمواد المستلمة للأسرة
+                    </h4>
+                    {aidHistory.length > 0 && (
+                      <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg">
+                        إجمالي التوزيعات: {aidHistory.length}
+                      </span>
+                    )}
+                  </div>
+
+                  {loadingAidHistory ? (
+                    <div className="flex flex-col items-center justify-center py-10 gap-2">
+                      <Loader2 className="h-6 w-6 animate-spin text-slate-500" />
+                      <span className="text-xs text-slate-500 font-bold">جاري جلب سجل المساعدات...</span>
+                    </div>
+                  ) : aidHistory.length > 0 ? (
+                    <div className="space-y-4">
+                      {/* ملخص إحصائي بسيط لمبالغ المساعدات */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="bg-slate-900/40 p-4 rounded-xl border border-border/60 text-right">
+                          <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">إجمالي قيمة الدعم المستلم</span>
+                          <span className="text-lg font-black text-emerald-400">
+                            {aidHistory.reduce((acc, curr) => acc + (curr.unitValue ? Number(curr.unitValue) * curr.quantity : 0), 0).toLocaleString("ar-YE-u-nu-latn")} $
+                          </span>
+                        </div>
+                        <div className="bg-slate-900/40 p-4 rounded-xl border border-border/60 text-right">
+                          <span className="text-[10px] font-semibold text-slate-400 block mb-0.5">آخر تاريخ استلام معونة</span>
+                          <span className="text-sm font-bold text-slate-200">
+                            {formatDate(aidHistory[0]?.deliveryDate)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* جدول المساعدات المستلمة */}
+                      <div className="rounded-xl border border-border/60 overflow-hidden bg-slate-900/30">
+                        <table className="w-full text-right text-xs">
+                          <thead className="bg-slate-900/60 border-b border-border">
+                            <tr>
+                              <th className="p-3 text-slate-300 font-bold">اسم المشروع</th>
+                              <th className="p-3 text-slate-300 font-bold">المستلم</th>
+                              <th className="p-3 text-slate-300 font-bold">المادة المستلمة</th>
+                              <th className="p-3 text-slate-300 font-bold">الكمية</th>
+                              <th className="p-3 text-slate-300 font-bold">تاريخ الاستلام</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-border">
+                            {aidHistory.map((item: any) => (
+                              <tr key={item.id} className="hover:bg-slate-900/20">
+                                <td className="p-3 font-semibold text-slate-200">{item.project.nameAr}</td>
+                                <td className="p-3 text-slate-300">
+                                  {item.beneficiary.fullName}
+                                  <span className="text-[10px] text-slate-500 block">({item.beneficiary.relationshipToHead || "رب الأسرة"})</span>
+                                </td>
+                                <td className="p-3 text-slate-300 font-bold text-emerald-400">{item.deliveredItem}</td>
+                                <td className="p-3 text-slate-400 font-mono">{item.quantity}</td>
+                                <td className="p-3 text-slate-400 font-mono">{formatDate(item.deliveryDate)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-10 text-slate-500 text-xs border border-dashed border-border rounded-xl">
+                      لا يوجد أي سجل مساعدات مسجل لهذه الأسرة حالياً.
+                    </div>
+                  )}
+                </div>
               </TabsContent>
 
             </div>

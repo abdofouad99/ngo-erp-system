@@ -11,6 +11,7 @@ import {
   Loader2,
   Download,
   Printer,
+  RefreshCw,
 } from "lucide-react"
 import { PrintProfile } from "@/components/print-profile"
 import { Button } from "@/components/ui/button"
@@ -29,6 +30,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { FamilyDetailsSheet } from "@/components/families/family-details-sheet"
 import { FamilyFormSheet } from "@/components/families/family-form-sheet"
 import { toggleFamilyActive } from "@/app/actions/family-actions"
+import { ExcelImportSheet } from "@/components/families/excel-import-sheet"
+import { FamilyCardSheet } from "@/components/families/family-card-sheet"
 
 interface FamiliesClientProps {
   initialFamilies: any[]
@@ -41,6 +44,15 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
   const [selectedGov, setSelectedGov] = useState<string>("ALL")
   const [selectedPoverty, setSelectedPoverty] = useState<string>("ALL")
   const [selectedStatus, setSelectedStatus] = useState<string>("ALL")
+
+  // Advanced Filter States
+  const [showAdvanced, setShowAdvanced] = useState(false)
+  const [filterDisplaced, setFilterDisplaced] = useState<string>("ALL")
+  const [filterOrphans, setFilterOrphans] = useState<string>("ALL")
+  const [filterWidow, setFilterWidow] = useState<string>("ALL")
+  const [filterUnemployed, setFilterUnemployed] = useState<string>("ALL")
+  const [filterHousingType, setFilterHousingType] = useState<string>("ALL")
+  const [filterMaxIncome, setFilterMaxIncome] = useState<string>("")
 
   // Selected Family state for viewing details
   const [selectedFamily, setSelectedFamily] = useState<any | null>(null)
@@ -74,7 +86,52 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
       (selectedStatus === "ACTIVE" && family.isActive) ||
       (selectedStatus === "INACTIVE" && !family.isActive)
 
-    return matchesSearch && matchesGov && matchesPoverty && matchesStatus
+    // Match Displaced
+    const matchesDisplaced =
+      filterDisplaced === "ALL" ||
+      (filterDisplaced === "YES" && family.isDisplaced) ||
+      (filterDisplaced === "NO" && !family.isDisplaced)
+
+    // Match Orphans
+    const matchesOrphans =
+      filterOrphans === "ALL" ||
+      (filterOrphans === "YES" && family.hasOrphans) ||
+      (filterOrphans === "NO" && !family.hasOrphans)
+
+    // Match Widow
+    const matchesWidow =
+      filterWidow === "ALL" ||
+      (filterWidow === "YES" && family.hasWidow) ||
+      (filterWidow === "NO" && !family.hasWidow)
+
+    // Match Unemployed
+    const matchesUnemployed =
+      filterUnemployed === "ALL" ||
+      (filterUnemployed === "YES" && family.hasUnemployed) ||
+      (filterUnemployed === "NO" && !family.hasUnemployed)
+
+    // Match Housing Type
+    const matchesHousing =
+      filterHousingType === "ALL" ||
+      family.housingType === filterHousingType
+
+    // Match Max Income
+    const matchesIncome =
+      !filterMaxIncome ||
+      (family.monthlyIncome !== null && family.monthlyIncome <= Number(filterMaxIncome))
+
+    return (
+      matchesSearch &&
+      matchesGov &&
+      matchesPoverty &&
+      matchesStatus &&
+      matchesDisplaced &&
+      matchesOrphans &&
+      matchesWidow &&
+      matchesUnemployed &&
+      matchesHousing &&
+      matchesIncome
+    )
   })
 
   // Open details sheet helper
@@ -165,6 +222,126 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
               <option value="INACTIVE" className="bg-slate-950 text-white">المعطلة فقط</option>
             </select>
           </div>
+
+          {/* زر التبديل للبحث المتقدم */}
+          <div className="flex justify-start mt-4">
+            <button
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="text-xs font-bold text-slate-400 hover:text-emerald-400 flex items-center gap-1 transition-colors"
+            >
+              {showAdvanced ? "▲ إخفاء خيارات البحث المتقدم" : "▼ عرض خيارات البحث المتقدم والمركب"}
+            </button>
+          </div>
+
+          {/* لوحة البحث المتقدم القابلة للطي */}
+          {showAdvanced && (
+            <div className="mt-4 pt-4 border-t border-border/40 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 animate-in fade-in slide-in-from-top-2 duration-300">
+              {/* Displaced */}
+              <div className="space-y-1.5 text-right">
+                <label className="text-[11px] font-bold text-slate-400">حالة النزوح</label>
+                <select
+                  value={filterDisplaced}
+                  onChange={(e) => setFilterDisplaced(e.target.value)}
+                  className="flex h-9 w-full rounded-xl border border-border bg-slate-900/40 text-white px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right"
+                >
+                  <option value="ALL" className="bg-slate-950 text-white">الكل (نازح أو مقيم)</option>
+                  <option value="YES" className="bg-slate-950 text-white">الأسر النازحة فقط</option>
+                  <option value="NO" className="bg-slate-950 text-white">الأسر المقيمة فقط</option>
+                </select>
+              </div>
+
+              {/* Orphans */}
+              <div className="space-y-1.5 text-right">
+                <label className="text-[11px] font-bold text-slate-400">رعاية الأيتام</label>
+                <select
+                  value={filterOrphans}
+                  onChange={(e) => setFilterOrphans(e.target.value)}
+                  className="flex h-9 w-full rounded-xl border border-border bg-slate-900/40 text-white px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right"
+                >
+                  <option value="ALL" className="bg-slate-950 text-white">الكل</option>
+                  <option value="YES" className="bg-slate-950 text-white">أسر تكفل أيتاماً</option>
+                  <option value="NO" className="bg-slate-950 text-white">لا تكفل أيتاماً</option>
+                </select>
+              </div>
+
+              {/* Widow */}
+              <div className="space-y-1.5 text-right">
+                <label className="text-[11px] font-bold text-slate-400">أرامل بالأسرة</label>
+                <select
+                  value={filterWidow}
+                  onChange={(e) => setFilterWidow(e.target.value)}
+                  className="flex h-9 w-full rounded-xl border border-border bg-slate-900/40 text-white px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right"
+                >
+                  <option value="ALL" className="bg-slate-950 text-white">الكل</option>
+                  <option value="YES" className="bg-slate-950 text-white">يوجد أرملة بالأسرة</option>
+                  <option value="NO" className="bg-slate-950 text-white">لا يوجد أرملة بالأسرة</option>
+                </select>
+              </div>
+
+              {/* Unemployed */}
+              <div className="space-y-1.5 text-right">
+                <label className="text-[11px] font-bold text-slate-400">عاطلين عن العمل</label>
+                <select
+                  value={filterUnemployed}
+                  onChange={(e) => setFilterUnemployed(e.target.value)}
+                  className="flex h-9 w-full rounded-xl border border-border bg-slate-900/40 text-white px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right"
+                >
+                  <option value="ALL" className="bg-slate-950 text-white">الكل</option>
+                  <option value="YES" className="bg-slate-950 text-white">يوجد عاطلين بالأسرة</option>
+                  <option value="NO" className="bg-slate-950 text-white">لا يوجد عاطلين بالأسرة</option>
+                </select>
+              </div>
+
+              {/* Housing Type */}
+              <div className="space-y-1.5 text-right">
+                <label className="text-[11px] font-bold text-slate-400">نوع السكن</label>
+                <select
+                  value={filterHousingType}
+                  onChange={(e) => setFilterHousingType(e.target.value)}
+                  className="flex h-9 w-full rounded-xl border border-border bg-slate-900/40 text-white px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right"
+                >
+                  <option value="ALL" className="bg-slate-950 text-white">كل أنواع السكن</option>
+                  <option value="ملكي" className="bg-slate-950 text-white">ملكي</option>
+                  <option value="إيجار" className="bg-slate-950 text-white">إيجار</option>
+                  <option value="نزوح/مخيم" className="bg-slate-950 text-white">نزوح / مخيم</option>
+                  <option value="شعبي" className="bg-slate-950 text-white">شعبي</option>
+                  <option value="أخرى" className="bg-slate-950 text-white">أخرى</option>
+                </select>
+              </div>
+
+              {/* Max Income */}
+              <div className="space-y-1.5 text-right">
+                <label className="text-[11px] font-bold text-slate-400">الحد الأقصى للدخل الشهري</label>
+                <Input
+                  type="number"
+                  placeholder="مبلغ الدخل الأقصى..."
+                  value={filterMaxIncome}
+                  onChange={(e) => setFilterMaxIncome(e.target.value)}
+                  className="bg-slate-900/40 border-border text-white text-xs h-9 focus-visible:ring-emerald-500/50 text-right"
+                />
+              </div>
+
+              {/* زر مسح فلاتر البحث المتقدم */}
+              <div className="col-span-1 sm:col-span-2 md:col-span-3 flex justify-end pt-2">
+                <Button
+                  onClick={() => {
+                    setFilterDisplaced("ALL")
+                    setFilterOrphans("ALL")
+                    setFilterWidow("ALL")
+                    setFilterUnemployed("ALL")
+                    setFilterHousingType("ALL")
+                    setFilterMaxIncome("")
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="text-xs font-semibold hover:bg-slate-850 hover:text-white border-border rounded-xl px-4 py-1.5 h-8 bg-slate-900/40 text-slate-300"
+                >
+                  <RefreshCw className="h-3.5 w-3.5 ml-1.5" />
+                  إعادة ضبط فلاتر البحث المتقدم
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -173,20 +350,23 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
         <div className="text-sm text-slate-450 font-bold">
           تم العثور على <span className="font-extrabold text-white text-base">{filteredFamilies.length}</span> أسرة
         </div>
-        <Button
-          onClick={() => {
-            if (currentUserRole === "VIEWER") {
-              alert("عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بتصدير البيانات.")
-              return
-            }
-            exportFamiliesToExcel(filteredFamilies)
-          }}
-          disabled={filteredFamilies.length === 0}
-          className="rounded-xl px-4 text-xs font-bold bg-indigo-650 hover:bg-indigo-700 text-white gap-2 transition-all duration-300 h-9 active:scale-[0.98]"
-        >
-          <Download className="h-4 w-4" />
-          <span>تصدير Excel (المصفى)</span>
-        </Button>
+        <div className="flex gap-2">
+          <ExcelImportSheet currentUserRole={currentUserRole} />
+          <Button
+            onClick={() => {
+              if (currentUserRole === "VIEWER") {
+                alert("عذراً، هذا الحساب مخصص للقراءة والعرض فقط، ولا يسمح بتصدير البيانات.")
+                return
+              }
+              exportFamiliesToExcel(filteredFamilies)
+            }}
+            disabled={filteredFamilies.length === 0}
+            className="rounded-xl px-4 text-xs font-bold bg-indigo-650 hover:bg-indigo-700 text-white gap-2 transition-all duration-300 h-9 active:scale-[0.98]"
+          >
+            <Download className="h-4 w-4" />
+            <span>تصدير Excel (المصفى)</span>
+          </Button>
+        </div>
       </div>
 
       {/* ── Table / Grid View ───────────────────────────────────── */}
@@ -274,6 +454,9 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
                               <Eye className="h-3.5 w-3.5" />
                               <span>التفاصيل</span>
                             </Button>
+
+                            {/* Family Card QR */}
+                            <FamilyCardSheet family={family} />
 
                             {/* Print Profile */}
                             <Button
