@@ -18,6 +18,7 @@ import {
   RefreshCw,
   ClipboardList,
   Bell,
+  Stethoscope,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -42,6 +43,12 @@ const mainNavItems = [
     href: "/dashboard/orphans",
     label: "إدارة الأيتام",
     icon: Baby,
+    exact: false,
+  },
+  {
+    href: "/dashboard/patients",
+    label: "إدارة المرضى",
+    icon: Stethoscope,
     exact: false,
   },
   {

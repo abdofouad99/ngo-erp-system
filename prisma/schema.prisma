@@ -127,6 +127,20 @@ enum TagCategory {
   CUSTOM                     // تصنيف مخصص مستقبلي
 }
 
+enum MedicalSeverity {
+  CRITICAL   // حرج
+  SERIOUS    // خطير
+  MODERATE   // متوسط
+  STABLE     // مستقر
+}
+
+enum PatientStatus {
+  ACTIVE     // نشط - قيد العلاج
+  RECOVERED  // تعافى
+  DECEASED   // متوفى
+  SUSPENDED  // معلق
+}
+
 // =============================================================================
 // MODULE 0: AUTHENTICATION
 // =============================================================================
@@ -147,6 +161,7 @@ model User {
   deliveriesRecorded    ProjectBeneficiary[] @relation("DeliveryRecordedBy")
   sponsorshipsCreated   Sponsorship[]        @relation("SponsorshipCreatedBy")
   beneficiariesCreated  Beneficiary[]        @relation("BeneficiaryCreatedBy")
+  patientsCreated       Patient[]            @relation("PatientCreatedBy")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -194,6 +209,7 @@ model SubDistrict {
   district   District @relation(fields: [districtId], references: [id])
   districtId Int
   families   Family[]
+  patients   Patient[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -311,6 +327,7 @@ model Family {
   sponsorships Sponsorship[] // A family can also have a direct family sponsorship
   caseActivities CaseActivity[]
   tags         FamilyTag[]         // التصنيفات المرنة
+  patients     Patient[]           // المرضى المرتبطون بالأسرة
 
   // --- Audit ---
   createdBy   User   @relation("FamilyCreatedBy", fields: [createdById], references: [id])
@@ -840,4 +857,64 @@ model OrphanUpdateRequest {
   updatedAt DateTime @updatedAt
 
   @@map("orphan_update_requests")
+}
+
+// =============================================================================
+// MODULE: PATIENT MANAGEMENT (إدارة المرضى)
+// =============================================================================
+
+model Patient {
+  id String @id @default(cuid())
+
+  // --- Personal Info ---
+  fullName    String
+  nationalId  String?  @unique
+  gender      Gender
+  birthdate   DateTime?
+  age         Int?
+  phoneNumber String?
+  altPhone    String?
+
+  // --- Family Size ---
+  familyMembersCount Int?   // عدد أفراد الأسرة
+
+  // --- Address (linked to geography like families) ---
+  subDistrict   SubDistrict @relation(fields: [subDistrictId], references: [id])
+  subDistrictId Int
+  addressDetail String?     // العنوان التفصيلي (حي، شارع...)
+  village       String?     // القرية / المنطقة
+
+  // --- Link to registered Family (optional) ---
+  family   Family? @relation(fields: [familyId], references: [id])
+  familyId String?
+
+  // --- Medical Data ---
+  diagnosis     String     // التشخيص / اسم المرض
+  diseaseType   String?    // نوع المرض (مزمن / حاد / إعاقة / نفسي)
+  severity      MedicalSeverity @default(STABLE)  // درجة الخطورة
+  hospital      String?    // المستشفى / المركز الصحي
+  doctor        String?    // الطبيب المعالج
+  medicalNotes  String?    // ملاحظات طبية
+
+  // --- Support Info ---
+  supportType   String?    // نوع الدعم المطلوب (أدوية / عملية / أجهزة)
+  monthlyCost   Float?     // التكلفة التقديرية الشهرية بالدولار
+  totalSpent    Float?     // إجمالي ما صُرف حتى الآن
+  fundingSource String?    // جهة تمويل العلاج
+
+  // --- Status ---
+  status        PatientStatus @default(ACTIVE)
+  isActive      Boolean @default(true)
+  notes         String?
+
+  // --- Audit ---
+  createdBy   User?   @relation("PatientCreatedBy", fields: [createdById], references: [id])
+  createdById String?
+
+  deletedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("patients")
 }
