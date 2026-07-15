@@ -700,6 +700,9 @@ model Attachment {
   projectDelivery      ProjectBeneficiary? @relation(fields: [projectDeliveryId], references: [id])
   projectDeliveryId    String?
 
+  patient              Patient?            @relation(fields: [patientId], references: [id])
+  patientId            String?
+
   // --- Audit ---
   uploadedById String? // User ID from auth system
 
@@ -906,6 +909,9 @@ model Patient {
   status        PatientStatus @default(ACTIVE)
   isActive      Boolean @default(true)
   notes         String?
+
+  // --- Relations ---
+  attachments  Attachment[]
 
   // --- Audit ---
   createdBy   User?   @relation("PatientCreatedBy", fields: [createdById], references: [id])

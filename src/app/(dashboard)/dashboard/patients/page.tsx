@@ -11,6 +11,7 @@ import { getCurrentUser } from "@/app/actions/auth-actions"
 // DATA FETCHING
 // =============================================================================
 
+
 async function getPatients() {
   return await prisma.patient.findMany({
     where: { deletedAt: null },
@@ -28,6 +29,9 @@ async function getPatients() {
           headFullName: true,
           headNationalId: true,
         },
+      },
+      attachments: {
+        orderBy: { createdAt: "asc" },
       },
     },
     orderBy: { createdAt: "desc" },

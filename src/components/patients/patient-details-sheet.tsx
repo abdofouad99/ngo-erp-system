@@ -22,7 +22,9 @@ import {
   Users,
   Building2,
   Link2,
+  Paperclip,
 } from "lucide-react"
+import { PatientAttachmentsTab } from "@/components/patients/patient-attachments-tab"
 
 function formatDate(date: Date | string | null): string {
   if (!date) return "—"
@@ -110,7 +112,7 @@ export function PatientDetailsSheet({ patient, open, onOpenChange }: PatientDeta
         {/* Tabs */}
         <div className="flex-1 overflow-y-auto px-6 py-4">
           <Tabs defaultValue="personal" className="w-full">
-            <TabsList className="bg-slate-900/60 border border-border/60 rounded-xl p-1 mb-6 grid grid-cols-3 gap-1 w-full h-auto">
+            <TabsList className="bg-slate-900/60 border border-border/60 rounded-xl p-1 mb-6 grid grid-cols-4 gap-1 w-full h-auto">
               <TabsTrigger value="personal" className="text-[11px] py-2 data-[state=active]:bg-rose-500/10 data-[state=active]:text-rose-400 text-slate-300">
                 البيانات الشخصية
               </TabsTrigger>
@@ -119,6 +121,9 @@ export function PatientDetailsSheet({ patient, open, onOpenChange }: PatientDeta
               </TabsTrigger>
               <TabsTrigger value="support" className="text-[11px] py-2 data-[state=active]:bg-rose-500/10 data-[state=active]:text-rose-400 text-slate-300">
                 الدعم والتمويل
+              </TabsTrigger>
+              <TabsTrigger value="attachments" className="text-[11px] py-2 data-[state=active]:bg-rose-500/10 data-[state=active]:text-rose-400 text-slate-300 flex items-center gap-1">
+                <Paperclip className="h-3 w-3" /> المرفقات
               </TabsTrigger>
             </TabsList>
 
@@ -240,6 +245,15 @@ export function PatientDetailsSheet({ patient, open, onOpenChange }: PatientDeta
                 </div>
               </div>
             </TabsContent>
+
+            {/* === TAB 4: ATTACHMENTS === */}
+            <TabsContent value="attachments" className="outline-none">
+              <PatientAttachmentsTab
+                patientId={patient.id}
+                initialAttachments={patient.attachments || []}
+              />
+            </TabsContent>
+
           </Tabs>
         </div>
 
