@@ -2,8 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Google Font: Cairo (Arabic + Latin) ─────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap');
+/* ── Google Fonts: Cairo & Almarai (Arabic + Latin) ─────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&family=Cairo:wght@300;400;500;600;700;800&display=swap');
 
 @layer base {
   :root {
@@ -58,7 +58,7 @@
   }
 
   html {
-    font-family: 'Cairo', system-ui, sans-serif;
+    font-family: 'Almarai', 'Cairo', system-ui, sans-serif;
     scroll-behavior: smooth;
   }
 
@@ -88,11 +88,17 @@
 /* ── Custom Premium Utilities ────────────────────────────────────────────── */
 @layer utilities {
   .glass-card {
-    @apply bg-card/40 backdrop-blur-md border border-border/60 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:border-primary/30 transition-all duration-300;
+    @apply bg-card/40 backdrop-blur-md border border-border/60 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:border-primary/40 hover:shadow-[0_8px_30px_rgba(16,185,129,0.12)] transition-all duration-300;
   }
   
   .glass-panel {
     @apply bg-card/65 backdrop-blur-lg border border-border/80 shadow-2xl;
+  }
+
+  .sidebar-glow-active {
+    background: linear-gradient(90deg, rgba(16, 185, 129, 0.15) 0%, rgba(20, 184, 166, 0.05) 100%);
+    border-right: 3px solid #10b981;
+    box-shadow: inset -5px 0 15px -5px rgba(16, 185, 129, 0.3);
   }
 
   .neon-glow-emerald {

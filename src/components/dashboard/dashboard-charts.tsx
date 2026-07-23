@@ -14,6 +14,7 @@ import {
   Legend,
   AreaChart,
   Area,
+  CartesianGrid,
 } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -24,6 +25,11 @@ import {
   PackageOpen,
   ArrowUpRight,
   Filter,
+  BarChart2,
+  PieChart as PieIcon,
+  Sparkles,
+  Activity,
+  Layers,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -34,11 +40,7 @@ interface DashboardChartsProps {
   activeProjectsCount: number
 }
 
-const COLORS = ["#10b981", "#3b82f6", "#f43f5e", "#f59e0b", "#8b5cf6", "#6b7280"]
-
-// ============================================================
-// Helper Functions for Dynamic Aggregations
-// ============================================================
+const BRIGHT_COLORS = ["#10b981", "#06b6d4", "#8b5cf6", "#f43f5e", "#f59e0b", "#3b82f6"]
 
 const getMonthlyGrowthData = (families: any[], beneficiaries: any[]) => {
   const monthsData: { name: string; "الأسر": number; "الأيتام": number }[] = []
@@ -108,7 +110,6 @@ export function DashboardCharts({
   const [mounted, setMounted] = useState(false)
   const [selectedGov, setSelectedGov] = useState("ALL")
 
-  // Hydration guard to prevent Next.js SSR mismatch
   useEffect(() => {
     setMounted(true)
   }, [])
@@ -127,7 +128,6 @@ export function DashboardCharts({
     )
   }
 
-  // Filter lists based on selected Governorate
   const filteredFamilies = rawFamilies.filter(
     (f) => selectedGov === "ALL" || f.governorateId?.toString() === selectedGov
   )
@@ -135,17 +135,14 @@ export function DashboardCharts({
     (b) => selectedGov === "ALL" || b.governorateId?.toString() === selectedGov
   )
 
-  // Calculate Metrics
   const activeFamiliesCount = filteredFamilies.filter(f => f.isActive).length
   const activeBeneficiariesCount = filteredBeneficiaries.filter(b => b.isActive).length
   const activeSponsorshipsCount = filteredBeneficiaries.filter(b => b.isActive && b.isSponsored).length
 
-  // Generate Sparkline Data
   const familiesSparkline = getSparklineData(filteredFamilies)
   const beneficiariesSparkline = getSparklineData(filteredBeneficiaries)
   const sponsorshipsSparkline = getSparklineData(filteredBeneficiaries, undefined, true)
 
-  // Re-Calculate Chart Data based on filtered lists
   const severePoverty = filteredFamilies.filter(f => f.povertyLevel === "SEVERE" && f.isActive).length
   const mediumPoverty = filteredFamilies.filter(f => f.povertyLevel === "MEDIUM" && f.isActive).length
   const lowPoverty = filteredFamilies.filter(f => f.povertyLevel === "LOW" && f.isActive).length
@@ -190,74 +187,87 @@ export function DashboardCharts({
     {
       title: "إجمالي الأسر",
       value: activeFamiliesCount,
-      description: "أسرة نشطة مسجلة",
+      description: "أسرة مسجلة بالكامل",
       icon: Users,
-      iconBg: "bg-blue-500/10",
-      iconColor: "text-blue-400",
-      strokeColor: "#3b82f6",
+      badgeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+      iconBg: "bg-emerald-500/20 text-emerald-400",
+      strokeColor: "#10b981",
       sparklineData: familiesSparkline,
       href: "/dashboard/families",
     },
     {
       title: "المستفيدون",
       value: activeBeneficiariesCount,
-      description: "فرد مستفيد",
+      description: "فرد تلقى الدعم",
       icon: TrendingUp,
-      iconBg: "bg-emerald-500/10",
-      iconColor: "text-emerald-400",
-      strokeColor: "#10b981",
+      badgeColor: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+      iconBg: "bg-cyan-500/20 text-cyan-400",
+      strokeColor: "#06b6d4",
       sparklineData: beneficiariesSparkline,
       href: "/dashboard/families",
     },
     {
       title: "المشاريع النشطة",
       value: activeProjectsCount,
-      description: "مشروع قيد التنفيذ",
+      description: "مشروع قيد التوزيع",
       icon: PackageOpen,
-      iconBg: "bg-orange-500/10",
-      iconColor: "text-orange-400",
-      strokeColor: "#f97316",
+      badgeColor: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+      iconBg: "bg-amber-500/20 text-amber-400",
+      strokeColor: "#f59e0b",
       sparklineData: null,
       href: "/dashboard/projects",
     },
     {
       title: "الرعايات الفعّالة",
       value: activeSponsorshipsCount,
-      description: "كفالة نشطة حالياً",
+      description: "كفالة نشطة قائمة",
       icon: HeartHandshake,
-      iconBg: "bg-rose-500/10",
-      iconColor: "text-rose-400",
+      badgeColor: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+      iconBg: "bg-rose-500/20 text-rose-400",
       strokeColor: "#f43f5e",
       sparklineData: sponsorshipsSparkline,
       href: "/dashboard/sponsors",
     },
   ]
 
-  const tooltipStyle = {
-    backgroundColor: "rgba(15, 23, 42, 0.95)",
-    borderColor: "rgba(51, 65, 85, 0.8)",
-    borderRadius: "12px",
-    color: "#fff",
-    textAlign: "right" as const,
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-slate-900/95 backdrop-blur-xl border border-emerald-500/30 p-3 rounded-xl shadow-2xl text-right space-y-1">
+          <p className="text-xs font-bold text-slate-200 border-b border-border/40 pb-1">{label}</p>
+          {payload.map((entry: any, index: number) => (
+            <div key={index} className="flex items-center justify-between gap-4 text-xs">
+              <span className="font-bold font-mono text-emerald-400">{entry.value}</span>
+              <span className="text-slate-300 font-medium" style={{ color: entry.color }}>
+                {entry.name}
+              </span>
+            </div>
+          ))}
+        </div>
+      )
+    }
+    return null
   }
 
   return (
     <div className="space-y-6">
       {/* ── Filter Bar ────────────────────────────────────────── */}
-      <Card className="glass-card border border-white/5 bg-slate-950/20 backdrop-blur-md">
+      <Card className="bg-slate-900/60 border border-emerald-500/20 backdrop-blur-xl shadow-xl">
         <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-sm text-slate-350 font-semibold">
-            <Filter className="h-4 w-4 text-emerald-400" />
-            <span>تصفية وتحليل لوحة البيانات بالكامل:</span>
+          <div className="flex items-center gap-2.5 text-sm text-slate-200 font-bold">
+            <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400">
+              <Filter className="h-4 w-4" />
+            </div>
+            <span>تصفية وتحليل لوحة البيانات بالكامل جغرافياً:</span>
           </div>
 
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <select
               value={selectedGov}
               onChange={(e) => setSelectedGov(e.target.value)}
-              className="flex h-9 w-full sm:w-56 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right text-slate-200 font-semibold cursor-pointer transition-all"
+              className="flex h-10 w-full sm:w-60 rounded-xl border border-emerald-500/30 bg-slate-950 px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right text-emerald-300 font-bold cursor-pointer transition-all shadow-inner"
             >
-              <option value="ALL" className="bg-slate-950 text-white">كل المحافظات</option>
+              <option value="ALL" className="bg-slate-950 text-white">كل المحافظات (عرض كلي)</option>
               {governorates.map((gov) => (
                 <option key={gov.id} value={gov.id.toString()} className="bg-slate-950 text-white">
                   {gov.nameAr}
@@ -274,37 +284,38 @@ export function DashboardCharts({
           const Icon = card.icon
           return (
             <Link key={card.title} href={card.href}>
-              <Card className="group cursor-pointer glass-card hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/5 hover:border-emerald-500/20 duration-300">
-                <CardContent className="p-5">
+              <Card className="group cursor-pointer bg-slate-900/40 border border-border/60 hover:border-emerald-500/40 hover:bg-slate-900/70 transition-all duration-300 shadow-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl group-hover:bg-emerald-500/10 transition-all" />
+                <CardContent className="p-5 relative">
                   <div className="flex items-start justify-between">
-                    <div className={`rounded-xl ${card.iconBg} p-2.5`}>
-                      <Icon className={`h-5 w-5 ${card.iconColor}`} />
+                    <div className={`rounded-xl ${card.iconBg} p-2.5 shadow-md`}>
+                      <Icon className="h-5 w-5" />
                     </div>
-                    <span className="flex items-center gap-0.5 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-md">
-                      <ArrowUpRight className="h-3 w-3" />
+                    <span className={`flex items-center gap-1 text-[10px] font-bold border px-2 py-0.5 rounded-full ${card.badgeColor}`}>
+                      <Activity className="h-3 w-3 animate-pulse" />
                       مباشر
                     </span>
                   </div>
 
                   <div className="flex items-end justify-between mt-4">
                     <div>
-                      <p className="text-2xl font-bold tabular-nums text-foreground md:text-3xl">
-                        {card.value.toLocaleString("ar-SA-u-nu-latn")}
+                      <p className="text-3xl font-black tabular-nums text-white group-hover:text-emerald-400 transition-colors">
+                        {card.value.toLocaleString("ar-YE-u-nu-latn")}
                       </p>
-                      <p className="mt-1 text-sm font-semibold text-foreground/90">
+                      <p className="mt-1 text-xs font-bold text-slate-300">
                         {card.title}
                       </p>
-                      <p className="text-xs text-muted-foreground">{card.description}</p>
+                      <p className="text-[10px] text-slate-400 font-medium">{card.description}</p>
                     </div>
 
                     {/* Sparkline chart */}
                     {card.sparklineData && (
-                      <div className="w-16 h-10 flex-shrink-0 opacity-70 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="w-20 h-11 flex-shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
                         <ResponsiveContainer width="100%" height="100%">
                           <AreaChart data={card.sparklineData}>
                             <defs>
                               <linearGradient id={`sparkGrad-${card.title}`} x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor={card.strokeColor} stopOpacity={0.3}/>
+                                <stop offset="5%" stopColor={card.strokeColor} stopOpacity={0.6}/>
                                 <stop offset="95%" stopColor={card.strokeColor} stopOpacity={0}/>
                               </linearGradient>
                             </defs>
@@ -313,7 +324,7 @@ export function DashboardCharts({
                               dataKey="value"
                               stroke={card.strokeColor}
                               fill={`url(#sparkGrad-${card.title})`}
-                              strokeWidth={1.5}
+                              strokeWidth={2}
                               dot={false}
                             />
                           </AreaChart>
@@ -331,73 +342,99 @@ export function DashboardCharts({
       {/* ── Main Charts Grid ────────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* ── Chart 0: Monthly Bar Chart ─────────────────────────── */}
-        <Card className="glass-card md:col-span-2">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold text-gradient">التسجيلات الشهرية — أعمدة مقارنة</CardTitle>
-            <CardDescription className="text-xs">مقارنة عدد الأسر والأيتام المسجلين في كل شهر (آخر 6 أشهر).</CardDescription>
+        <Card className="bg-slate-900/50 border border-border/60 backdrop-blur-xl md:col-span-2 shadow-2xl">
+          <CardHeader className="pb-2 border-b border-border/40 flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-sm font-bold text-emerald-400 flex items-center gap-2">
+                <BarChart2 className="h-4 w-4 text-emerald-400" />
+                التسجيلات الشهرية للمستفيدين والأسر
+              </CardTitle>
+              <CardDescription className="text-xs text-slate-400">مقارنة شهرية متدرجة لأعمدة التسجيل الجديد (آخر 6 أشهر).</CardDescription>
+            </div>
+            <span className="text-[10px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 px-2 py-1 rounded-lg font-bold">
+              تحديث تلقائي
+            </span>
           </CardHeader>
-          <CardContent className="h-72">
+          <CardContent className="h-80 pt-4">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={growthData.slice(-6)}
-                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-              >
-                <XAxis dataKey="name" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
-                <Legend verticalAlign="top" height={36} />
-                <Bar dataKey="الأيتام" fill="#10b981" radius={[6, 6, 0, 0]} maxBarSize={32} />
-                <Bar dataKey="الأسر" fill="#3b82f6" radius={[6, 6, 0, 0]} maxBarSize={32} />
+              <BarChart data={growthData.slice(-6)} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="barFamGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#06b6d4" stopOpacity={1}/>
+                    <stop offset="100%" stopColor="#0891b2" stopOpacity={0.6}/>
+                  </linearGradient>
+                  <linearGradient id="barOrphGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#10b981" stopOpacity={1}/>
+                    <stop offset="100%" stopColor="#059669" stopOpacity={0.6}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
+                <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={{ stroke: "#334155" }} />
+                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={{ stroke: "#334155" }} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(16, 185, 129, 0.05)" }} />
+                <Legend verticalAlign="top" height={36} iconType="circle" />
+                <Bar dataKey="الأيتام" fill="url(#barOrphGrad)" radius={[8, 8, 0, 0]} maxBarSize={36} />
+                <Bar dataKey="الأسر" fill="url(#barFamGrad)" radius={[8, 8, 0, 0]} maxBarSize={36} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
         {/* ── Chart 0b: Monthly Line/Area Chart ──────────────────── */}
-        <Card className="glass-card md:col-span-2">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold text-gradient">معدل نمو التسجيل السنوي (خطي)</CardTitle>
-            <CardDescription className="text-xs">رصد زيادة تسجيل الأيتام والأسر شهرياً على مدار الـ 12 شهراً الأخيرة.</CardDescription>
+        <Card className="bg-slate-900/50 border border-border/60 backdrop-blur-xl md:col-span-2 shadow-2xl">
+          <CardHeader className="pb-2 border-b border-border/40 flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-sm font-bold text-cyan-400 flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-cyan-400" />
+                معدل النمو السنوي التراكمي (مخطط نيون مشع)
+              </CardTitle>
+              <CardDescription className="text-xs text-slate-400">رصد نمو إدراج المستفيدين عبر مسار 12 شهراً متصلة.</CardDescription>
+            </div>
           </CardHeader>
-          <CardContent className="h-72">
+          <CardContent className="h-80 pt-4">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={growthData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="colorOrphans" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                  <linearGradient id="areaOrphans" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.0}/>
                   </linearGradient>
-                  <linearGradient id="colorFamilies" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/>
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                  <linearGradient id="areaFamilies" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="#06b6d4" stopOpacity={0.0}/>
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="name" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={tooltipStyle} />
-                <Legend verticalAlign="top" height={36} />
-                <Area type="monotone" dataKey="الأيتام" stroke="#10b981" fillOpacity={1} fill="url(#colorOrphans)" strokeWidth={2} />
-                <Area type="monotone" dataKey="الأسر" stroke="#3b82f6" fillOpacity={1} fill="url(#colorFamilies)" strokeWidth={2} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
+                <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} />
+                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend verticalAlign="top" height={36} iconType="circle" />
+                <Area type="monotone" dataKey="الأيتام" stroke="#10b981" fillOpacity={1} fill="url(#areaOrphans)" strokeWidth={3} />
+                <Area type="monotone" dataKey="الأسر" stroke="#06b6d4" fillOpacity={1} fill="url(#areaFamilies)" strokeWidth={3} />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
         {/* ── Chart 1: Poverty Levels ────────────────────────────── */}
-        <Card className="glass-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold text-foreground">توزيع الأسر حسب مستوى الفقر</CardTitle>
-            <CardDescription className="text-xs">توزيع الأسر المستفيدة بين الفقر الشديد، المتوسط، والمنخفض.</CardDescription>
+        <Card className="bg-slate-900/50 border border-border/60 backdrop-blur-xl shadow-xl">
+          <CardHeader className="pb-2 border-b border-border/40">
+            <CardTitle className="text-sm font-bold text-slate-100 flex items-center gap-2">
+              <Layers className="h-4 w-4 text-purple-400" />
+              توزيع الأسر حسب شريحة الفقر
+            </CardTitle>
+            <CardDescription className="text-xs text-slate-400">تصنيف الأسر المسجلة حسب نتائج التقييم الاجتماعي.</CardDescription>
           </CardHeader>
-          <CardContent className="h-64">
+          <CardContent className="h-64 pt-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={povertyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <XAxis dataKey="name" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
-                <Tooltip cursor={{ fill: "rgba(255, 255, 255, 0.05)" }} contentStyle={tooltipStyle} />
-                <Bar dataKey="value" fill="#3b82f6" radius={[6, 6, 0, 0]}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.2} />
+                <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} />
+                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar dataKey="value" radius={[8, 8, 0, 0]} maxBarSize={40}>
                   {povertyData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell key={`cell-${index}`} fill={BRIGHT_COLORS[index % BRIGHT_COLORS.length]} />
                   ))}
                 </Bar>
               </BarChart>
@@ -406,76 +443,32 @@ export function DashboardCharts({
         </Card>
 
         {/* ── Chart 2: Orphan Genders ───────────────────────────── */}
-        <Card className="glass-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold text-foreground">توزيع الأيتام حسب الجنس</CardTitle>
-            <CardDescription className="text-xs">النسبة المئوية للأيتام الذكور مقارنة بالإناث المسجلين.</CardDescription>
+        <Card className="bg-slate-900/50 border border-border/60 backdrop-blur-xl shadow-xl">
+          <CardHeader className="pb-2 border-b border-border/40">
+            <CardTitle className="text-sm font-bold text-slate-100 flex items-center gap-2">
+              <PieIcon className="h-4 w-4 text-pink-400" />
+              نسبة الأيتام (ذكور / إناث)
+            </CardTitle>
+            <CardDescription className="text-xs text-slate-400">النسبة المئوية الحية لربط كفالات الذكور والإناث.</CardDescription>
           </CardHeader>
-          <CardContent className="h-64 flex items-center justify-center">
+          <CardContent className="h-64 flex items-center justify-center pt-2">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={genderData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
+                  innerRadius={55}
                   outerRadius={80}
-                  paddingAngle={5}
+                  paddingAngle={6}
                   dataKey="value"
+                  stroke="none"
                 >
-                  {genderData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={index === 0 ? "#10b981" : "#f43f5e"} />
-                  ))}
+                  <Cell fill="#06b6d4" />
+                  <Cell fill="#f43f5e" />
                 </Pie>
-                <Tooltip contentStyle={tooltipStyle} />
-                <Legend verticalAlign="bottom" height={36} />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* ── Chart 3: Geographical Distribution ────────────────── */}
-        <Card className="glass-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold text-foreground">التوزيع الجغرافي للأسر</CardTitle>
-            <CardDescription className="text-xs">توزيع الأسر المستفيدة على مستوى المحافظات.</CardDescription>
-          </CardHeader>
-          <CardContent className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={geoData} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                <XAxis type="number" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis dataKey="name" type="category" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={tooltipStyle} />
-                <Bar dataKey="value" fill="#8b5cf6" radius={[0, 6, 6, 0]} barSize={20} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* ── Chart 4: Orphan Sponsorship coverage ──────────────── */}
-        <Card className="glass-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold text-foreground">معدل كفالات الأيتام</CardTitle>
-            <CardDescription className="text-xs">نسبة الأيتام المكفولين فعلياً مقارنة بمن هم في قائمة الانتظار.</CardDescription>
-          </CardHeader>
-          <CardContent className="h-64 flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={sponsorshipData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  labelLine={false}
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                >
-                  {sponsorshipData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={index === 0 ? "#10b981" : "#475569"} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={tooltipStyle} />
-                <Legend verticalAlign="bottom" height={36} />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend verticalAlign="bottom" height={36} iconType="circle" />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>

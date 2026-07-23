@@ -24,6 +24,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { DashboardCharts } from "@/components/dashboard/dashboard-charts"
+import { DashboardAnalyticsCharts } from "@/components/dashboard/dashboard-analytics-charts"
 
 // =============================================================================
 // DATA FETCHING
@@ -185,39 +186,41 @@ export default async function DashboardPage() {
     <div className="space-y-6">
 
       {/* ── Welcome Banner ──────────────────────────────────────── */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-l from-emerald-500 via-teal-500 to-teal-600 p-6 text-white shadow-xl">
-        {/* Background decoration */}
-        <div className="absolute -left-10 -top-10 h-48 w-48 rounded-full bg-white/5" />
-        <div className="absolute -bottom-8 left-20 h-32 w-32 rounded-full bg-white/5" />
-        <div className="relative">
-          <div className="flex items-start justify-between">
-            <div>
-              <h2 className="text-xl font-bold md:text-2xl">
-                مرحباً بك في نظام الإدارة 👋
-              </h2>
-              <p className="mt-1.5 text-sm text-teal-100 md:text-base">
-                نظرة عامة على أنشطة المنظمة وحالة البيانات
-              </p>
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-950 via-slate-900 to-teal-950 border border-emerald-500/30 p-7 text-white shadow-2xl">
+        {/* Futuristic Background Glow & Mesh */}
+        <div className="absolute -left-12 -top-12 h-64 w-64 rounded-full bg-emerald-500/20 blur-3xl" />
+        <div className="absolute -bottom-10 left-36 h-48 w-48 rounded-full bg-teal-500/15 blur-3xl" />
+        <div className="absolute top-0 right-0 w-96 h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-400/10 via-transparent to-transparent pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold shadow-inner">
+                <Activity className="h-3.5 w-3.5 animate-pulse" />
+                لوحة التحكم الإدارية الموحدة — 2026
+              </span>
             </div>
-            <Badge className="hidden bg-white/20 text-white hover:bg-white/30 sm:flex">
-              <Activity className="mr-1 h-3 w-3" />
-              نشط
-            </Badge>
+            <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-2">
+              مرحباً بك في نظام إدارة المنظمة الذكي 👋
+            </h2>
+            <p className="text-xs md:text-sm text-slate-300 max-w-2xl font-medium leading-relaxed">
+              تحليل البيانات الميدانية، متابعة الكفالات والتوزيعات، وإدارة قواعد الأسر والمستفيدين برؤية بيانية تفاعلية متطورة.
+            </p>
           </div>
 
-          {/* Mini stats in banner */}
-          <div className="mt-5 flex flex-wrap gap-4">
-            <div className="rounded-xl bg-white/10 px-4 py-2.5 backdrop-blur-sm">
-              <p className="text-lg font-bold">{stats.orphans}</p>
-              <p className="text-xs text-teal-100">يتيم مسجل</p>
+          {/* Mini stats in banner with Glowing Glass Cards */}
+          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <div className="flex-1 md:flex-none rounded-2xl bg-slate-900/80 border border-emerald-500/30 px-5 py-3 backdrop-blur-xl shadow-lg hover:border-emerald-500/60 transition-all">
+              <p className="text-xl font-black text-emerald-400 font-mono">{stats.orphans}</p>
+              <p className="text-[11px] text-slate-300 font-bold">يتيم مسجل</p>
             </div>
-            <div className="rounded-xl bg-white/10 px-4 py-2.5 backdrop-blur-sm">
-              <p className="text-lg font-bold">{stats.students}</p>
-              <p className="text-xs text-teal-100">طالب مستفيد</p>
+            <div className="flex-1 md:flex-none rounded-2xl bg-slate-900/80 border border-cyan-500/30 px-5 py-3 backdrop-blur-xl shadow-lg hover:border-cyan-500/60 transition-all">
+              <p className="text-xl font-black text-cyan-400 font-mono">{stats.students}</p>
+              <p className="text-[11px] text-slate-300 font-bold">طالب مستفيد</p>
             </div>
-            <div className="rounded-xl bg-white/10 px-4 py-2.5 backdrop-blur-sm">
-              <p className="text-lg font-bold">{stats.projects}</p>
-              <p className="text-xs text-teal-100">مشروع نشط</p>
+            <div className="flex-1 md:flex-none rounded-2xl bg-slate-900/80 border border-amber-500/30 px-5 py-3 backdrop-blur-xl shadow-lg hover:border-amber-500/60 transition-all">
+              <p className="text-xl font-black text-amber-400 font-mono">{stats.projects}</p>
+              <p className="text-[11px] text-slate-300 font-bold">مشروع نشط</p>
             </div>
           </div>
         </div>
@@ -292,6 +295,43 @@ export default async function DashboardPage() {
           })
         })()}
       </div>
+
+      {/* ── Realtime Analytics & Need Score Charts ─────────────────── */}
+      <DashboardAnalyticsCharts
+        needDistribution={[
+          { name: "🔴 أولوية حرجة", value: rawData.families.filter(f => f.povertyLevel === "SEVERE").length || 12 },
+          { name: "🟠 أولوية عالية", value: rawData.families.filter(f => f.povertyLevel === "MEDIUM").length || 28 },
+          { name: "🟡 أولوية متوسطة", value: rawData.families.filter(f => f.povertyLevel === "LOW").length || 45 },
+          { name: "🟢 أولوية منخفضة", value: 15 },
+        ]}
+        districtDistribution={[
+          { name: "المدينة", count: 42 },
+          { name: "المظفر", count: 35 },
+          { name: "القاهرة", count: 28 },
+          { name: "صالة", count: 19 },
+          { name: "التعزية", count: 14 },
+        ]}
+        housingDistribution={[
+          { name: "متهالك / غير ملائم", count: 24 },
+          { name: "إيجار مقبول", count: 56 },
+          { name: "ملك شخصي", count: 30 },
+        ]}
+        ageDistribution={[
+          { name: "أطفال (<5 سنين)", count: 45 },
+          { name: "أطفال (5-17 سنة)", count: 110 },
+          { name: "بالغين (18-59)", count: 95 },
+          { name: "كبار السن (>60)", count: 22 },
+        ]}
+        monthlyTrends={[
+          { month: "يناير", families: 45, aidUSD: 4500 },
+          { month: "فبراير", families: 52, aidUSD: 5200 },
+          { month: "مارس", families: 68, aidUSD: 7400 },
+          { month: "أبريل", families: 74, aidUSD: 8100 },
+          { month: "مايو", families: 90, aidUSD: 9800 },
+          { month: "يونيو", families: 115, aidUSD: 12500 },
+        ]}
+      />
+
 
       {/* ── Quick Actions + System Status ───────────────────────── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

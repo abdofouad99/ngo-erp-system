@@ -76,6 +76,18 @@ const mainNavItems = [
     exact: false,
   },
   {
+    href: "/dashboard/targeting",
+    label: "محرك الاستهداف الذكي",
+    icon: ClipboardList,
+    exact: false,
+  },
+  {
+    href: "/dashboard/data-quality",
+    label: "جودة البيانات والدمج",
+    icon: RefreshCw,
+    exact: false,
+  },
+  {
     href: "/dashboard/reports",
     label: "التقارير والإحصائيات",
     icon: FileText,
@@ -155,12 +167,17 @@ export function AppSidebar({ className }: AppSidebarProps) {
       {/* ── Navigation ────────────────────────────────────────────── */}
       <nav className="flex-1 overflow-y-auto px-3 py-5 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-700">
 
-        {/* Main Links */}
-        <div className="mb-6 space-y-0.5">
-          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-            القائمة الرئيسية
+        {/* SECTION 1: الرئيسية والاستهداف */}
+        <div className="mb-5 space-y-1">
+          <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-widest text-emerald-500/80">
+            الرئيسية والتحليلات
           </p>
-          {mainNavItems.map((item) => {
+          {[
+            { href: "/dashboard", label: "الرئيسية والداشبورد", icon: Home, exact: true, color: "text-emerald-400" },
+            { href: "/dashboard/targeting", label: "محرك الاستهداف الذكي", icon: ClipboardList, exact: false, color: "text-teal-400", badge: "جديد" },
+            { href: "/dashboard/data-quality", label: "جودة البيانات والدمج", icon: RefreshCw, exact: false, color: "text-cyan-400" },
+            { href: "/dashboard/reports", label: "التقارير والإحصائيات", icon: FileText, exact: false, color: "text-sky-400" },
+          ].map((item) => {
             const Icon = item.icon
             const active = isActive(item.href, item.exact)
             return (
@@ -168,42 +185,47 @@ export function AppSidebar({ className }: AppSidebarProps) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150",
+                  "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold transition-all duration-200",
                   active
-                    ? "bg-emerald-500/10 text-emerald-400"
-                    : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-100"
+                    ? "sidebar-glow-active text-emerald-400 bg-emerald-500/10 shadow-sm"
+                    : "text-slate-400 hover:bg-slate-900/80 hover:text-slate-200"
                 )}
               >
-                {/* Active indicator bar - perfectly aligned in RTL */}
                 <div
                   className={cn(
-                    "absolute right-1 top-1/2 -translate-y-1/2 h-5 w-1 rounded-full bg-emerald-400 transition-all",
+                    "absolute right-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-l-full bg-emerald-400 transition-all duration-300",
                     active ? "opacity-100 scale-100" : "opacity-0 scale-50"
                   )}
                 />
                 <Icon
                   className={cn(
-                    "h-[18px] w-[18px] flex-shrink-0 transition-colors mr-1.5",
-                    active
-                      ? "text-emerald-400"
-                      : "text-slate-500 group-hover:text-slate-300"
+                    "h-4 w-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110",
+                    active ? "text-emerald-400" : item.color || "text-slate-400"
                   )}
                 />
                 <span className="flex-1 truncate">{item.label}</span>
-                {active && (
-                  <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-400" />
+                {item.badge && (
+                  <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[9px] px-1.5 py-0.5 rounded-full font-bold">
+                    {item.badge}
+                  </span>
                 )}
               </Link>
             )
           })}
         </div>
 
-        {/* System Links */}
-        <div className="space-y-0.5">
-          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-            النظام
+        {/* SECTION 2: إدارة الفئات والأسر */}
+        <div className="mb-5 space-y-1">
+          <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-widest text-teal-500/80">
+            إدارة المستفيدين
           </p>
-          {systemNavItems.map((item) => {
+          {[
+            { href: "/dashboard/families", label: "إدارة الأسر المستفيدة", icon: Users, exact: false, color: "text-blue-400" },
+            { href: "/dashboard/orphans", label: "إدارة الأيتام", icon: Baby, exact: false, color: "text-purple-400" },
+            { href: "/dashboard/patients", label: "إدارة المرضى", icon: Stethoscope, exact: false, color: "text-rose-400" },
+            { href: "/dashboard/update-requests", label: "طلبات التحديث الذاتي", icon: RefreshCw, exact: false, color: "text-amber-400" },
+            { href: "/dashboard/kanban", label: "لوحة الكانبان", icon: ArrowLeftRight, exact: false, color: "text-indigo-400" },
+          ].map((item) => {
             const Icon = item.icon
             const active = isActive(item.href, item.exact)
             return (
@@ -211,25 +233,105 @@ export function AppSidebar({ className }: AppSidebarProps) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150",
+                  "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold transition-all duration-200",
                   active
-                    ? "bg-emerald-500/10 text-emerald-400"
-                    : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-100"
+                    ? "sidebar-glow-active text-emerald-400 bg-emerald-500/10 shadow-sm"
+                    : "text-slate-400 hover:bg-slate-900/80 hover:text-slate-200"
                 )}
               >
-                {/* Active indicator bar - perfectly aligned in RTL */}
                 <div
                   className={cn(
-                    "absolute right-1 top-1/2 -translate-y-1/2 h-5 w-1 rounded-full bg-emerald-400 transition-all",
+                    "absolute right-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-l-full bg-emerald-400 transition-all duration-300",
                     active ? "opacity-100 scale-100" : "opacity-0 scale-50"
                   )}
                 />
                 <Icon
                   className={cn(
-                    "h-[18px] w-[18px] flex-shrink-0 transition-colors mr-1.5",
-                    active
-                      ? "text-emerald-400"
-                      : "text-slate-500 group-hover:text-slate-300"
+                    "h-4 w-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110",
+                    active ? "text-emerald-400" : item.color || "text-slate-400"
+                  )}
+                />
+                <span className="flex-1 truncate">{item.label}</span>
+              </Link>
+            )
+          })}
+        </div>
+
+        {/* SECTION 3: الكفالات والمشاريع */}
+        <div className="mb-5 space-y-1">
+          <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-widest text-sky-500/80">
+            الكفالات والتوزيعات
+          </p>
+          {[
+            { href: "/dashboard/sponsors", label: "الكفلاء والكفالات", icon: HeartHandshake, exact: false, color: "text-emerald-400" },
+            { href: "/dashboard/projects", label: "المشاريع والتوزيعات", icon: PackageOpen, exact: false, color: "text-amber-400" },
+            { href: "/dashboard/import", label: "استيراد البيانات Excel", icon: FileSpreadsheet, exact: false, color: "text-teal-400" },
+          ].map((item) => {
+            const Icon = item.icon
+            const active = isActive(item.href, item.exact)
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold transition-all duration-200",
+                  active
+                    ? "sidebar-glow-active text-emerald-400 bg-emerald-500/10 shadow-sm"
+                    : "text-slate-400 hover:bg-slate-900/80 hover:text-slate-200"
+                )}
+              >
+                <div
+                  className={cn(
+                    "absolute right-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-l-full bg-emerald-400 transition-all duration-300",
+                    active ? "opacity-100 scale-100" : "opacity-0 scale-50"
+                  )}
+                />
+                <Icon
+                  className={cn(
+                    "h-4 w-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110",
+                    active ? "text-emerald-400" : item.color || "text-slate-400"
+                  )}
+                />
+                <span className="flex-1 truncate">{item.label}</span>
+              </Link>
+            )
+          })}
+        </div>
+
+        {/* SECTION 4: النظام والتنبيهات */}
+        <div className="space-y-1">
+          <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+            أدوات النظام
+          </p>
+          {[
+            { href: "/dashboard/alerts", label: "التنبيهات الذكية", icon: Bell, exact: false, color: "text-rose-400" },
+            { href: "/dashboard/my-activity", label: "سجل نشاطي", icon: ClipboardList, exact: false, color: "text-slate-400" },
+            { href: "/dashboard/trash", label: "سلة المهملات", icon: Trash2, exact: false, color: "text-slate-500" },
+            { href: "/dashboard/settings", label: "إعدادات النظام", icon: Settings, exact: false, color: "text-slate-400" },
+          ].map((item) => {
+            const Icon = item.icon
+            const active = isActive(item.href, item.exact)
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold transition-all duration-200",
+                  active
+                    ? "sidebar-glow-active text-emerald-400 bg-emerald-500/10 shadow-sm"
+                    : "text-slate-400 hover:bg-slate-900/80 hover:text-slate-200"
+                )}
+              >
+                <div
+                  className={cn(
+                    "absolute right-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-l-full bg-emerald-400 transition-all duration-300",
+                    active ? "opacity-100 scale-100" : "opacity-0 scale-50"
+                  )}
+                />
+                <Icon
+                  className={cn(
+                    "h-4 w-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110",
+                    active ? "text-emerald-400" : item.color || "text-slate-400"
                   )}
                 />
                 <span className="flex-1 truncate">{item.label}</span>

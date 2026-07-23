@@ -754,7 +754,7 @@ export function FamilyDetailsSheet({ family, open, onOpenChange }: FamilyDetails
                           <tbody className="divide-y divide-border">
                             {aidHistory.map((item: any) => (
                               <tr key={item.id} className="hover:bg-slate-900/20">
-                                <td className="p-3 font-semibold text-slate-200">{item.project.nameAr}</td>
+                                <td className="p-3 font-semibold text-slate-200">{item.project?.name || "—"}</td>
                                 <td className="p-3 text-slate-300">
                                   {item.beneficiary.fullName}
                                   <span className="text-[10px] text-slate-500 block">({item.beneficiary.relationshipToHead || "رب الأسرة"})</span>

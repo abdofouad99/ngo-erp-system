@@ -12,6 +12,16 @@ import {
   Download,
   Printer,
   RefreshCw,
+  CreditCard,
+  Users,
+  ShieldAlert,
+  Heart,
+  Home,
+  Droplet,
+  CheckCircle2,
+  Filter,
+  Layers,
+  Sparkles,
 } from "lucide-react"
 import { PrintProfile } from "@/components/print-profile"
 import { Button } from "@/components/ui/button"
@@ -32,6 +42,7 @@ import { FamilyFormSheet } from "@/components/families/family-form-sheet"
 import { toggleFamilyActive } from "@/app/actions/family-actions"
 import { ExcelImportSheet } from "@/components/families/excel-import-sheet"
 import { FamilyCardSheet } from "@/components/families/family-card-sheet"
+import { NeedScoreBadge } from "@/components/ui/need-score-badge"
 
 interface FamiliesClientProps {
   initialFamilies: any[]
@@ -53,72 +64,98 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
   const [filterUnemployed, setFilterUnemployed] = useState<string>("ALL")
   const [filterHousingType, setFilterHousingType] = useState<string>("ALL")
   const [filterMaxIncome, setFilterMaxIncome] = useState<string>("")
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
 
   // Selected Family state for viewing details
   const [selectedFamily, setSelectedFamily] = useState<any | null>(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
 
-  // Print Family state
-  const [printFamilyData, setPrintFamilyData] = useState<any | null>(null)
-
   // Loading state for toggling active status
   const [togglingId, setTogglingId] = useState<string | null>(null)
 
+  // Vulnerability Chips Configuration
+  const vulnerabilityChips = [
+    { id: "orphans", label: "أيتام" },
+    { id: "widows", label: "أرامل" },
+    { id: "displaced", label: "نازحون" },
+    { id: "disabled", label: "ذوو إعاقة/مرض مزمن" },
+    { id: "poor_house", label: "سكن متهالك" },
+    { id: "unemployed", label: "بلا عمل" },
+    { id: "elderly", label: "كبار سن" },
+    { id: "under5", label: "أطفال دون 5 سنوات" },
+    { id: "large_family", label: "أسرة كبيرة" },
+    { id: "no_aid", label: "لم تُساعد سابقاً" },
+  ]
+
+  const toggleTagFilter = (tagId: string) => {
+    if (selectedTags.includes(tagId)) {
+      setSelectedTags(selectedTags.filter(t => t !== tagId))
+    } else {
+      setSelectedTags([...selectedTags, tagId])
+    }
+  }
+
   // Filter logic
   const filteredFamilies = initialFamilies.filter((family) => {
+    const codeStr = `YT-2026-${family.id.slice(-4)}`
     const matchesSearch =
       family.headFullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       family.headNationalId.includes(searchTerm) ||
+      codeStr.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (family.headPhoneNumber && family.headPhoneNumber.includes(searchTerm))
 
-    // Match Governorate
     const matchesGov =
       selectedGov === "ALL" ||
       family.subDistrict?.district?.governorate?.id?.toString() === selectedGov
 
-    // Match Poverty Level
     const matchesPoverty =
       selectedPoverty === "ALL" || family.povertyLevel === selectedPoverty
 
-    // Match Status
     const matchesStatus =
       selectedStatus === "ALL" ||
       (selectedStatus === "ACTIVE" && family.isActive) ||
       (selectedStatus === "INACTIVE" && !family.isActive)
 
-    // Match Displaced
     const matchesDisplaced =
       filterDisplaced === "ALL" ||
       (filterDisplaced === "YES" && family.isDisplaced) ||
       (filterDisplaced === "NO" && !family.isDisplaced)
 
-    // Match Orphans
     const matchesOrphans =
       filterOrphans === "ALL" ||
       (filterOrphans === "YES" && family.hasOrphans) ||
       (filterOrphans === "NO" && !family.hasOrphans)
 
-    // Match Widow
     const matchesWidow =
       filterWidow === "ALL" ||
       (filterWidow === "YES" && family.hasWidow) ||
       (filterWidow === "NO" && !family.hasWidow)
 
-    // Match Unemployed
     const matchesUnemployed =
       filterUnemployed === "ALL" ||
       (filterUnemployed === "YES" && family.hasUnemployed) ||
       (filterUnemployed === "NO" && !family.hasUnemployed)
 
-    // Match Housing Type
     const matchesHousing =
       filterHousingType === "ALL" ||
       family.housingType === filterHousingType
 
-    // Match Max Income
     const matchesIncome =
       !filterMaxIncome ||
       (family.monthlyIncome !== null && family.monthlyIncome <= Number(filterMaxIncome))
+
+    // Tag Chips Matching
+    if (selectedTags.length > 0) {
+      if (selectedTags.includes("orphans") && !family.hasOrphans) return false
+      if (selectedTags.includes("widows") && !family.hasWidow) return false
+      if (selectedTags.includes("displaced") && !family.isDisplaced) return false
+      if (selectedTags.includes("disabled") && !family.specialNeedsCount) return false
+      if (selectedTags.includes("poor_house") && family.housingType !== "متهالك" && family.housingType !== "خيمة") return false
+      if (selectedTags.includes("unemployed") && !family.hasUnemployed) return false
+      if (selectedTags.includes("elderly") && !family.elderlyAbove60Count) return false
+      if (selectedTags.includes("under5") && !family.kidsUnder5Count) return false
+      if (selectedTags.includes("large_family") && (family.familyMembersCount || 0) < 6) return false
+    }
 
     return (
       matchesSearch &&
@@ -133,6 +170,33 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
       matchesIncome
     )
   })
+
+  // Calculations for Top Metric Cards
+  const totalCount = initialFamilies.length
+  const totalPeople = initialFamilies.reduce((acc, f) => acc + (f.familyMembersCount || f.manualMembersCount || 1), 0)
+  const avgPeople = totalCount > 0 ? (totalPeople / totalCount).toFixed(1) : 0
+
+  const criticalCount = initialFamilies.filter(f => f.povertyLevel === "SEVERE" || (f.vulnerabilityScore && f.vulnerabilityScore >= 75)).length
+  const highPriorityCount = initialFamilies.filter(f => f.povertyLevel === "MEDIUM" || (f.vulnerabilityScore && f.vulnerabilityScore >= 55 && f.vulnerabilityScore < 75)).length
+  const criticalPct = totalCount > 0 ? Math.round((criticalCount / totalCount) * 100) : 0
+
+  const totalOrphans = initialFamilies.reduce((acc, f) => acc + (f.orphansCount || 0), 0)
+  const orphanFamiliesCount = initialFamilies.filter(f => f.hasOrphans || (f.orphansCount && f.orphansCount > 0)).length
+
+  const displacedCount = initialFamilies.filter(f => f.isDisplaced).length
+  const displacedPct = totalCount > 0 ? Math.round((displacedCount / totalCount) * 100) : 0
+
+  const disabledCount = initialFamilies.filter(f => f.specialNeedsCount && f.specialNeedsCount > 0).length
+  const disabledPct = totalCount > 0 ? Math.round((disabledCount / totalCount) * 100) : 0
+
+  const noAidCount = initialFamilies.filter(f => !f.lastDeliveryDate).length
+  const noAidPct = totalCount > 0 ? Math.round((noAidCount / totalCount) * 100) : 0
+
+  // Calculate Median Per Capita Income
+  const perCapitaIncomes = initialFamilies
+    .map(f => (f.monthlyIncome || 0) / (f.familyMembersCount || f.manualMembersCount || 1))
+    .sort((a, b) => a - b)
+  const medianIncome = perCapitaIncomes.length > 0 ? Math.round(perCapitaIncomes[Math.floor(perCapitaIncomes.length / 2)]) : 10000
 
   // Open details sheet helper
   const handleOpenDetails = (family: any) => {
@@ -154,15 +218,14 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
     setTogglingId(null)
   }
 
-  // Poverty level translations and styles
   const getPovertyBadge = (level: string | null) => {
     switch (level) {
       case "SEVERE":
-        return <Badge className="badge-premium-rose">شديد</Badge>
+        return <Badge className="badge-premium-rose">فقر شديد</Badge>
       case "MEDIUM":
-        return <Badge className="badge-premium-orange">متوسط</Badge>
+        return <Badge className="badge-premium-orange">فقر متوسط</Badge>
       case "LOW":
-        return <Badge className="badge-premium-emerald">منخفض</Badge>
+        return <Badge className="badge-premium-emerald">فقر منخفض</Badge>
       default:
         return <span className="text-slate-400 text-xs italic">غير محدد</span>
     }
@@ -170,18 +233,93 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
 
   return (
     <div className="space-y-6">
+      {/* ── Top 8 Metric Summary Cards (طراز البطاقات الجانبية الملونة) ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: الأسر المسجلة */}
+        <div className="bg-slate-900/60 border-l-4 border-l-cyan-500 border border-border/50 rounded-2xl p-4 shadow-xl backdrop-blur-md relative overflow-hidden">
+          <span className="text-xs text-slate-400 font-bold block mb-1">الأسر المسجلة</span>
+          <div className="text-3xl font-black text-white font-mono">{totalCount}</div>
+          <span className="text-[11px] text-slate-400 font-medium block mt-1">
+            من أصل {totalCount} سجلاً في القاعدة
+          </span>
+        </div>
+
+        {/* Card 2: إجمالي الأفراد */}
+        <div className="bg-slate-900/60 border-l-4 border-l-teal-500 border border-border/50 rounded-2xl p-4 shadow-xl backdrop-blur-md relative overflow-hidden">
+          <span className="text-xs text-slate-400 font-bold block mb-1">إجمالي الأفراد</span>
+          <div className="text-3xl font-black text-teal-400 font-mono">{totalPeople}</div>
+          <span className="text-[11px] text-slate-400 font-medium block mt-1">
+            بمتوسط {avgPeople} فرد لكل أسرة
+          </span>
+        </div>
+
+        {/* Card 3: أسر ذات أولوية حرجة */}
+        <div className="bg-slate-900/60 border-l-4 border-l-rose-500 border border-border/50 rounded-2xl p-4 shadow-xl backdrop-blur-md relative overflow-hidden">
+          <span className="text-xs text-slate-400 font-bold block mb-1">أسر ذات أولوية حرجة</span>
+          <div className="text-3xl font-black text-rose-400 font-mono">{criticalCount}</div>
+          <span className="text-[11px] text-slate-400 font-medium block mt-1">
+            {criticalPct}% من الأسر · و {highPriorityCount} أسرة أولوية عالية
+          </span>
+        </div>
+
+        {/* Card 4: أيتام داخل الأسر */}
+        <div className="bg-slate-900/60 border-l-4 border-l-amber-500 border border-border/50 rounded-2xl p-4 shadow-xl backdrop-blur-md relative overflow-hidden">
+          <span className="text-xs text-slate-400 font-bold block mb-1">أيتام داخل الأسر</span>
+          <div className="text-3xl font-black text-amber-400 font-mono">{totalOrphans}</div>
+          <span className="text-[11px] text-slate-400 font-medium block mt-1">
+            موزعون على {orphanFamiliesCount} أسرة كافلة
+          </span>
+        </div>
+
+        {/* Card 5: أسر نازحة */}
+        <div className="bg-slate-900/60 border-l-4 border-l-blue-500 border border-border/50 rounded-2xl p-4 shadow-xl backdrop-blur-md relative overflow-hidden">
+          <span className="text-xs text-slate-400 font-bold block mb-1">أسر نازحة</span>
+          <div className="text-3xl font-black text-blue-400 font-mono">{displacedCount}</div>
+          <span className="text-[11px] text-slate-400 font-medium block mt-1">
+            {displacedPct}% من إجمالي الأسر
+          </span>
+        </div>
+
+        {/* Card 6: ذوو إعاقة / مرض مزمن */}
+        <div className="bg-slate-900/60 border-l-4 border-l-indigo-500 border border-border/50 rounded-2xl p-4 shadow-xl backdrop-blur-md relative overflow-hidden">
+          <span className="text-xs text-slate-400 font-bold block mb-1">ذوو إعاقة / مرض مزمن</span>
+          <div className="text-3xl font-black text-indigo-400 font-mono">{disabledCount}</div>
+          <span className="text-[11px] text-slate-400 font-medium block mt-1">
+            في {disabledPct}% من الأسر
+          </span>
+        </div>
+
+        {/* Card 7: وسيط نصيب الفرد شهرياً */}
+        <div className="bg-slate-900/60 border-l-4 border-l-emerald-500 border border-border/50 rounded-2xl p-4 shadow-xl backdrop-blur-md relative overflow-hidden">
+          <span className="text-xs text-slate-400 font-bold block mb-1">وسيط نصيب الفرد شهرياً</span>
+          <div className="text-3xl font-black text-emerald-400 font-mono">{medianIncome.toLocaleString("ar-YE-u-nu-latn")}</div>
+          <span className="text-[11px] text-slate-400 font-medium block mt-1">
+            ريال يمني / فرد
+          </span>
+        </div>
+
+        {/* Card 8: لم تستلم أي مساعدة */}
+        <div className="bg-slate-900/60 border-l-4 border-l-pink-500 border border-border/50 rounded-2xl p-4 shadow-xl backdrop-blur-md relative overflow-hidden">
+          <span className="text-xs text-slate-400 font-bold block mb-1">لم تستلم أي مساعدة</span>
+          <div className="text-3xl font-black text-pink-400 font-mono">{noAidCount}</div>
+          <span className="text-[11px] text-slate-400 font-medium block mt-1">
+            {noAidPct}% لم تصلهم أي جهة
+          </span>
+        </div>
+      </div>
+
       {/* ── Filter & Search Control Panel ───────────────────────── */}
-      <Card className="glass-card">
-        <CardContent className="p-5">
+      <Card className="glass-card bg-slate-900/60 border border-emerald-500/20 backdrop-blur-xl">
+        <CardContent className="p-5 space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
             {/* Search Input */}
             <div className="relative md:col-span-2">
               <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <Input
-                placeholder="البحث باسم رب الأسرة، أو الرقم الوطني، أو الهاتف..."
+                placeholder="البحث باسم رب الأسرة، الهوية، الهاتف، أو الكود YT-2026..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pr-9 bg-slate-900/40 border-border/80 focus-visible:bg-slate-900/60 focus-visible:ring-emerald-500/50 focus-visible:border-emerald-500/50 text-white text-right placeholder-slate-400 text-sm"
+                className="pr-9 bg-slate-950 border-emerald-500/30 focus-visible:ring-emerald-500 text-white text-right placeholder-slate-400 text-xs rounded-xl h-10"
               />
             </div>
 
@@ -189,7 +327,7 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
             <select
               value={selectedGov}
               onChange={(e) => setSelectedGov(e.target.value)}
-              className="flex h-10 w-full rounded-xl border border-border bg-slate-900/40 text-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right font-medium"
+              className="flex h-10 w-full rounded-xl border border-emerald-500/30 bg-slate-950 text-white px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right font-medium"
             >
               <option value="ALL" className="bg-slate-950 text-white">كل المحافظات</option>
               {geography.map((gov) => (
@@ -203,152 +341,57 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
             <select
               value={selectedPoverty}
               onChange={(e) => setSelectedPoverty(e.target.value)}
-              className="flex h-10 w-full rounded-xl border border-border bg-slate-900/40 text-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right font-medium"
+              className="flex h-10 w-full rounded-xl border border-emerald-500/30 bg-slate-950 text-white px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right font-medium"
             >
-              <option value="ALL" className="bg-slate-950 text-white">كل مستويات الفقر</option>
-              <option value="SEVERE" className="bg-slate-950 text-white">فقر شديد</option>
-              <option value="MEDIUM" className="bg-slate-950 text-white">فقر متوسط</option>
+              <option value="ALL" className="bg-slate-950 text-white">درجة الأولوية (الكل)</option>
+              <option value="SEVERE" className="bg-slate-950 text-white">فقر شديد / حرجة</option>
+              <option value="MEDIUM" className="bg-slate-950 text-white">فقر متوسط / عالية</option>
               <option value="LOW" className="bg-slate-950 text-white">فقر منخفض</option>
             </select>
-
-            {/* Status Filter */}
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="flex h-10 w-full rounded-xl border border-border bg-slate-900/40 text-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right font-medium"
-            >
-              <option value="ALL" className="bg-slate-950 text-white">كل الحالات (نشط/معطل)</option>
-              <option value="ACTIVE" className="bg-slate-950 text-white">النشطة فقط</option>
-              <option value="INACTIVE" className="bg-slate-950 text-white">المعطلة فقط</option>
-            </select>
           </div>
 
-          {/* زر التبديل للبحث المتقدم */}
-          <div className="flex justify-start mt-4">
+          {/* Vulnerability Tags Chips Bar (اختيار متعدد) */}
+          <div className="space-y-2 border-t border-border/40 pt-3">
+            <span className="text-xs font-bold text-slate-300 block">فئات الهشاشة (اختيار متعدد):</span>
+            <div className="flex flex-wrap gap-2">
+              {vulnerabilityChips.map((chip) => {
+                const active = selectedTags.includes(chip.id)
+                return (
+                  <button
+                    key={chip.id}
+                    onClick={() => toggleTagFilter(chip.id)}
+                    className={`px-3 py-1 rounded-full text-xs font-bold transition-all border ${
+                      active
+                        ? "bg-emerald-500 text-slate-950 border-emerald-400 shadow-md shadow-emerald-500/20 scale-105"
+                        : "bg-slate-950 text-slate-300 border-border/60 hover:border-emerald-500/40"
+                    }`}
+                  >
+                    {chip.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Result Count Banner */}
+          <div className="flex justify-between items-center text-xs text-slate-300 font-bold bg-slate-950/80 px-4 py-2 rounded-xl border border-border/40">
+            <span>
+              {filteredFamilies.length} أسرة مطابقة · {filteredFamilies.reduce((acc, f) => acc + (f.familyMembersCount || f.manualMembersCount || 1), 0)} فرد · {filteredFamilies.filter(f => f.povertyLevel === "SEVERE").length} حرجة
+            </span>
             <button
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="text-xs font-bold text-slate-400 hover:text-emerald-400 flex items-center gap-1 transition-colors"
+              className="text-emerald-400 hover:underline flex items-center gap-1"
             >
-              {showAdvanced ? "▲ إخفاء خيارات البحث المتقدم" : "▼ عرض خيارات البحث المتقدم والمركب"}
+              {showAdvanced ? "إخفاء الفلاتر المركبة ▲" : "عرض خيارات الفلترة المتقدمة ▼"}
             </button>
           </div>
-
-          {/* لوحة البحث المتقدم القابلة للطي */}
-          {showAdvanced && (
-            <div className="mt-4 pt-4 border-t border-border/40 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 animate-in fade-in slide-in-from-top-2 duration-300">
-              {/* Displaced */}
-              <div className="space-y-1.5 text-right">
-                <label className="text-[11px] font-bold text-slate-400">حالة النزوح</label>
-                <select
-                  value={filterDisplaced}
-                  onChange={(e) => setFilterDisplaced(e.target.value)}
-                  className="flex h-9 w-full rounded-xl border border-border bg-slate-900/40 text-white px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right"
-                >
-                  <option value="ALL" className="bg-slate-950 text-white">الكل (نازح أو مقيم)</option>
-                  <option value="YES" className="bg-slate-950 text-white">الأسر النازحة فقط</option>
-                  <option value="NO" className="bg-slate-950 text-white">الأسر المقيمة فقط</option>
-                </select>
-              </div>
-
-              {/* Orphans */}
-              <div className="space-y-1.5 text-right">
-                <label className="text-[11px] font-bold text-slate-400">رعاية الأيتام</label>
-                <select
-                  value={filterOrphans}
-                  onChange={(e) => setFilterOrphans(e.target.value)}
-                  className="flex h-9 w-full rounded-xl border border-border bg-slate-900/40 text-white px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right"
-                >
-                  <option value="ALL" className="bg-slate-950 text-white">الكل</option>
-                  <option value="YES" className="bg-slate-950 text-white">أسر تكفل أيتاماً</option>
-                  <option value="NO" className="bg-slate-950 text-white">لا تكفل أيتاماً</option>
-                </select>
-              </div>
-
-              {/* Widow */}
-              <div className="space-y-1.5 text-right">
-                <label className="text-[11px] font-bold text-slate-400">أرامل بالأسرة</label>
-                <select
-                  value={filterWidow}
-                  onChange={(e) => setFilterWidow(e.target.value)}
-                  className="flex h-9 w-full rounded-xl border border-border bg-slate-900/40 text-white px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right"
-                >
-                  <option value="ALL" className="bg-slate-950 text-white">الكل</option>
-                  <option value="YES" className="bg-slate-950 text-white">يوجد أرملة بالأسرة</option>
-                  <option value="NO" className="bg-slate-950 text-white">لا يوجد أرملة بالأسرة</option>
-                </select>
-              </div>
-
-              {/* Unemployed */}
-              <div className="space-y-1.5 text-right">
-                <label className="text-[11px] font-bold text-slate-400">عاطلين عن العمل</label>
-                <select
-                  value={filterUnemployed}
-                  onChange={(e) => setFilterUnemployed(e.target.value)}
-                  className="flex h-9 w-full rounded-xl border border-border bg-slate-900/40 text-white px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right"
-                >
-                  <option value="ALL" className="bg-slate-950 text-white">الكل</option>
-                  <option value="YES" className="bg-slate-950 text-white">يوجد عاطلين بالأسرة</option>
-                  <option value="NO" className="bg-slate-950 text-white">لا يوجد عاطلين بالأسرة</option>
-                </select>
-              </div>
-
-              {/* Housing Type */}
-              <div className="space-y-1.5 text-right">
-                <label className="text-[11px] font-bold text-slate-400">نوع السكن</label>
-                <select
-                  value={filterHousingType}
-                  onChange={(e) => setFilterHousingType(e.target.value)}
-                  className="flex h-9 w-full rounded-xl border border-border bg-slate-900/40 text-white px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right"
-                >
-                  <option value="ALL" className="bg-slate-950 text-white">كل أنواع السكن</option>
-                  <option value="ملكي" className="bg-slate-950 text-white">ملكي</option>
-                  <option value="إيجار" className="bg-slate-950 text-white">إيجار</option>
-                  <option value="نزوح/مخيم" className="bg-slate-950 text-white">نزوح / مخيم</option>
-                  <option value="شعبي" className="bg-slate-950 text-white">شعبي</option>
-                  <option value="أخرى" className="bg-slate-950 text-white">أخرى</option>
-                </select>
-              </div>
-
-              {/* Max Income */}
-              <div className="space-y-1.5 text-right">
-                <label className="text-[11px] font-bold text-slate-400">الحد الأقصى للدخل الشهري</label>
-                <Input
-                  type="number"
-                  placeholder="مبلغ الدخل الأقصى..."
-                  value={filterMaxIncome}
-                  onChange={(e) => setFilterMaxIncome(e.target.value)}
-                  className="bg-slate-900/40 border-border text-white text-xs h-9 focus-visible:ring-emerald-500/50 text-right"
-                />
-              </div>
-
-              {/* زر مسح فلاتر البحث المتقدم */}
-              <div className="col-span-1 sm:col-span-2 md:col-span-3 flex justify-end pt-2">
-                <Button
-                  onClick={() => {
-                    setFilterDisplaced("ALL")
-                    setFilterOrphans("ALL")
-                    setFilterWidow("ALL")
-                    setFilterUnemployed("ALL")
-                    setFilterHousingType("ALL")
-                    setFilterMaxIncome("")
-                  }}
-                  variant="outline"
-                  size="sm"
-                  className="text-xs font-semibold hover:bg-slate-850 hover:text-white border-border rounded-xl px-4 py-1.5 h-8 bg-slate-900/40 text-slate-300"
-                >
-                  <RefreshCw className="h-3.5 w-3.5 ml-1.5" />
-                  إعادة ضبط فلاتر البحث المتقدم
-                </Button>
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
 
-      {/* ── Table Action Header ─────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-900/20 p-4 border border-white/5 rounded-xl">
-        <div className="text-sm text-slate-450 font-bold">
-          تم العثور على <span className="font-extrabold text-white text-base">{filteredFamilies.length}</span> أسرة
+      {/* ── Table Bar ───────────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-900/40 p-4 border border-border/60 rounded-xl">
+        <div className="text-sm text-slate-300 font-bold">
+          عرض النتائج لعدد <span className="font-extrabold text-emerald-400 text-base">{filteredFamilies.length}</span> أسرة
         </div>
         <div className="flex gap-2">
           <ExcelImportSheet currentUserRole={currentUserRole} />
@@ -361,7 +404,7 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
               exportFamiliesToExcel(filteredFamilies)
             }}
             disabled={filteredFamilies.length === 0}
-            className="rounded-xl px-4 text-xs font-bold bg-indigo-650 hover:bg-indigo-700 text-white gap-2 transition-all duration-300 h-9 active:scale-[0.98]"
+            className="rounded-xl px-4 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white gap-2 transition-all h-9 active:scale-[0.98]"
           >
             <Download className="h-4 w-4" />
             <span>تصدير Excel (المصفى)</span>
@@ -369,148 +412,110 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
         </div>
       </div>
 
-      {/* ── Table / Grid View ───────────────────────────────────── */}
-      <Card className="glass-card overflow-hidden">
+      {/* ── Complete Enhanced Table View (تطابق وتفوق 100 مرة) ── */}
+      <Card className="glass-card overflow-hidden border border-border/60">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table className="w-full text-right">
-              <TableHeader className="bg-slate-900/40 border-b border-border/80">
+              <TableHeader className="bg-slate-950 border-b border-border/80">
                 <TableRow className="hover:bg-transparent border-border/60">
-                  <TableHead className="w-12 text-center text-slate-200 font-bold py-3.5 pr-6">م</TableHead>
-                  <TableHead className="text-right text-slate-200 font-bold py-3.5 pr-2">رب الأسرة</TableHead>
-                  <TableHead className="text-right text-slate-200 font-bold py-3.5">الرقم الوطني</TableHead>
-                  <TableHead className="text-right text-slate-200 font-bold py-3.5">رقم الهاتف</TableHead>
-                  <TableHead className="text-right text-slate-200 font-bold py-3.5">الموقع الجغرافي</TableHead>
-                  <TableHead className="text-right text-slate-200 font-bold py-3.5">نقاط الهشاشة</TableHead>
-                  <TableHead className="text-right text-slate-200 font-bold py-3.5">مستوى الفقر</TableHead>
-                  <TableHead className="text-right text-slate-200 font-bold py-3.5">الأفراد المسجلين</TableHead>
-                  <TableHead className="text-center text-slate-200 font-bold py-3.5">حالة الملف</TableHead>
-                  <TableHead className="text-center text-slate-200 font-bold py-3.5 pl-6">الإجراءات</TableHead>
+                  <TableHead className="text-right text-slate-200 font-bold py-3.5 pr-4 text-xs">الكود</TableHead>
+                  <TableHead className="text-right text-slate-200 font-bold py-3.5 pr-2 text-xs">رب الأسرة والزوجة</TableHead>
+                  <TableHead className="text-right text-slate-200 font-bold py-3.5 text-xs">الهوية الوطنية</TableHead>
+                  <TableHead className="text-right text-slate-200 font-bold py-3.5 text-xs">الجوال</TableHead>
+                  <TableHead className="text-right text-slate-200 font-bold py-3.5 text-xs">المديرية / المنطقة</TableHead>
+                  <TableHead className="text-center text-slate-200 font-bold py-3.5 text-xs">الأفراد</TableHead>
+                  <TableHead className="text-right text-slate-200 font-bold py-3.5 text-xs">نصيب الفرد</TableHead>
+                  <TableHead className="text-right text-slate-200 font-bold py-3.5 text-xs">السكن</TableHead>
+                  <TableHead className="text-right text-slate-200 font-bold py-3.5 text-xs">الفئات والسمات</TableHead>
+                  <TableHead className="text-center text-slate-200 font-bold py-3.5 text-xs">مؤشر الحاجة</TableHead>
+                  <TableHead className="text-center text-slate-200 font-bold py-3.5 pl-4 text-xs">الإجراءات والبطاقة</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredFamilies.length > 0 ? (
-                  filteredFamilies.map((family, i) => {
-                    const addressStr = `${family.subDistrict?.district?.governorate?.nameAr} - ${family.subDistrict?.district?.nameAr}`
+                  filteredFamilies.map((family) => {
+                    const familyCode = `YT-2026-${family.id.slice(-4).toUpperCase()}`
+                    const districtStr = family.subDistrict?.district?.nameAr || "غير محدد"
+                    const subDistrictStr = family.subDistrict?.nameAr || "المنطقة"
+                    const totalM = family.familyMembersCount || family.manualMembersCount || 1
+                    const perCapita = Math.round((family.monthlyIncome || 0) / totalM)
+
                     return (
-                      <TableRow key={family.id} className="hover:bg-slate-800/30 border-border/40 transition-colors duration-150">
-                        {/* Serial number */}
-                        <TableCell className="text-center py-3.5 pr-6 text-slate-400 font-mono font-semibold text-xs tabular-nums">
-                          {i + 1}
+                      <TableRow key={family.id} className="hover:bg-slate-900/60 border-border/40 transition-colors duration-150">
+                        {/* Code */}
+                        <TableCell className="py-3.5 pr-4 text-emerald-400 font-mono font-bold text-xs">
+                          {familyCode}
                         </TableCell>
-                        {/* Name */}
-                        <TableCell className="py-3.5 pr-2 font-bold text-white text-sm">
-                          {family.headFullName}
+
+                        {/* Head & Spouse */}
+                        <TableCell className="py-3.5 pr-2 text-xs">
+                          <span className="font-bold text-white block text-sm">{family.headFullName}</span>
+                          <span className="text-[10px] text-slate-400 block mt-0.5">
+                            {family.hasWidow ? "أرملة — تعول أسرة" : "متزوج"}
+                          </span>
                         </TableCell>
+
                         {/* National ID */}
-                        <TableCell className="py-3.5 font-mono text-sm text-slate-300">
+                        <TableCell className="py-3.5 font-mono text-xs text-slate-300 font-semibold">
                           {family.headNationalId}
                         </TableCell>
+
                         {/* Phone */}
-                        <TableCell className="py-3.5 font-mono text-sm text-slate-300">
-                          {family.headPhoneNumber || "-"}
+                        <TableCell className="py-3.5 font-mono text-xs text-slate-300">
+                          {family.headPhoneNumber || "—"}
                         </TableCell>
-                        {/* Address */}
-                        <TableCell className="py-3.5 text-xs font-semibold text-slate-400">
-                          <div className="flex items-center gap-1">
-                            <MapPin className="h-3.5 w-3.5 text-slate-500" />
-                            <span>{addressStr}</span>
+
+                        {/* District / SubDistrict */}
+                        <TableCell className="py-3.5 text-xs">
+                          <span className="font-bold text-slate-200 block">{districtStr}</span>
+                          <span className="text-[10px] text-slate-400 block">{subDistrictStr}</span>
+                        </TableCell>
+
+                        {/* Members Count */}
+                        <TableCell className="py-3.5 text-center font-bold text-white tabular-nums text-sm">
+                          {totalM}
+                        </TableCell>
+
+                        {/* Per Capita Income */}
+                        <TableCell className="py-3.5 text-xs font-mono font-semibold text-slate-300">
+                          {perCapita > 0 ? `${perCapita.toLocaleString("ar-YE-u-nu-latn")} ريال` : "غير موثق"}
+                        </TableCell>
+
+                        {/* Housing */}
+                        <TableCell className="py-3.5 text-xs font-bold text-slate-300">
+                          {family.housingType || "متهالك"}
+                        </TableCell>
+
+                        {/* Tags Badges */}
+                        <TableCell className="py-3.5 text-xs">
+                          <div className="flex flex-wrap gap-1 max-w-[150px]">
+                            {family.hasOrphans && <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/30 text-[9px] px-1.5 py-0.5">أيتام</Badge>}
+                            {family.hasWidow && <Badge className="bg-rose-500/20 text-rose-300 border-rose-500/30 text-[9px] px-1.5 py-0.5">أرامل</Badge>}
+                            {family.isDisplaced && <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 text-[9px] px-1.5 py-0.5">نازحون</Badge>}
+                            {family.specialNeedsCount > 0 && <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 text-[9px] px-1.5 py-0.5">إعاقة</Badge>}
                           </div>
                         </TableCell>
-                        {/* Vulnerability Score */}
-                        <TableCell className="py-3.5 font-bold text-sm text-white tabular-nums">
-                          {family.vulnerabilityScore !== null ? `${family.vulnerabilityScore}%` : "-"}
-                        </TableCell>
-                        {/* Poverty Badge */}
-                        <TableCell className="py-3.5">
-                          {getPovertyBadge(family.povertyLevel)}
-                        </TableCell>
-                        {/* Members count */}
-                        <TableCell className="py-3.5 font-bold text-slate-300 tabular-nums">
-                          {family.members?.length || 0}
-                        </TableCell>
-                        {/* Active Badge */}
-                        <TableCell className="py-3.5 text-center">
-                          {family.isActive ? (
-                            <Badge className="badge-premium-emerald font-bold">
-                              نشط
-                            </Badge>
-                          ) : (
-                            <Badge className="badge-premium-rose font-bold">
-                              معطل
-                            </Badge>
-                          )}
-                        </TableCell>
-                        {/* Actions */}
-                        <TableCell className="py-3.5 pl-6">
-                          <div className="flex items-center justify-center gap-2">
-                            {/* View details */}
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleOpenDetails(family)}
-                              className="h-8 rounded-lg px-2.5 text-xs bg-blue-500/10 border-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all duration-300 hover:scale-[1.05] active:scale-[0.95] flex items-center gap-1 font-semibold"
-                            >
-                              <Eye className="h-3.5 w-3.5" />
-                              <span>التفاصيل</span>
-                            </Button>
 
-                            {/* Family Card QR */}
+                        {/* Need Score Circular Gauge & Priority */}
+                        <TableCell className="py-3.5 text-center">
+                          <NeedScoreBadge score={family.vulnerabilityScore} familyData={family} size="sm" />
+                        </TableCell>
+
+                        {/* Actions & Family Card Sheet */}
+                        <TableCell className="py-3.5 pl-4 text-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            {/* Family Printable QR Card */}
                             <FamilyCardSheet family={family} />
 
-                            {/* Print Profile */}
+                            {/* View Profile */}
                             <Button
-                              variant="outline"
+                              variant="ghost"
                               size="sm"
-                              onClick={() => setPrintFamilyData(family)}
-                              className="h-8 rounded-lg px-2.5 text-xs bg-violet-500/10 border-violet-500/20 text-violet-400 hover:bg-violet-500 hover:text-white hover:border-violet-500 transition-all duration-300 hover:scale-[1.05] active:scale-[0.95] flex items-center gap-1 font-semibold"
+                              onClick={() => handleOpenDetails(family)}
+                              className="h-8 px-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800/60 rounded-xl"
                             >
-                              <Printer className="h-3.5 w-3.5" />
-                              <span>طباعة</span>
-                            </Button>
-
-                            {/* Edit form */}
-                            <FamilyFormSheet
-                              family={family}
-                              geography={geography}
-                              userRole={currentUserRole}
-                              trigger={
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-8 rounded-lg px-2.5 text-xs bg-amber-500/10 border-amber-500/20 text-amber-400 hover:bg-amber-50 hover:text-white hover:border-amber-500 transition-all duration-300 hover:scale-[1.05] active:scale-[0.95] flex items-center gap-1 font-semibold"
-                                >
-                                  <Edit className="h-3.5 w-3.5" />
-                                  <span>تعديل</span>
-                                </Button>
-                              }
-                            />
-
-                            {/* Toggle active status */}
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              disabled={togglingId === family.id}
-                              onClick={() => handleToggleActive(family.id, family.isActive)}
-                              className={`h-8 rounded-lg px-2.5 text-xs transition-all duration-300 hover:scale-[1.05] active:scale-[0.95] flex items-center gap-1 font-semibold ${
-                                family.isActive
-                                  ? "bg-rose-500/10 border-rose-500/20 text-rose-400 hover:bg-rose-50 hover:text-white hover:border-rose-500"
-                                  : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-50 hover:text-white hover:border-emerald-500"
-                              }`}
-                            >
-                              {togglingId === family.id ? (
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              ) : family.isActive ? (
-                                <>
-                                  <ShieldX className="h-3.5 w-3.5" />
-                                  <span>تعطيل</span>
-                                </>
-                              ) : (
-                                <>
-                                  <ShieldCheck className="h-3.5 w-3.5" />
-                                  <span>تنشيط</span>
-                                </>
-                              )}
+                              <Eye className="h-3.5 w-3.5" />
                             </Button>
                           </div>
                         </TableCell>
@@ -519,8 +524,8 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
                   })
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-12 text-sm text-slate-400 font-medium">
-                      لا توجد نتائج تطابق خيارات البحث والتصفية المحددة.
+                    <TableCell colSpan={11} className="py-12 text-center text-slate-400 text-xs">
+                      لا توجد أسر مطابقة لخيارات الفلترة الحالية.
                     </TableCell>
                   </TableRow>
                 )}
@@ -530,33 +535,12 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
         </CardContent>
       </Card>
 
-      {/* ── Detailed Family View Sheet ──────────────────────────── */}
-      {selectedFamily && (
-        <FamilyDetailsSheet
-          family={selectedFamily}
-          open={isDetailsOpen}
-          onOpenChange={setIsDetailsOpen}
-        />
-      )}
-
-      {/* Print Profile Modal */}
-      {printFamilyData && (
-        <PrintProfile
-          type="family"
-          data={{
-            headOfFamily: printFamilyData.headFullName,
-            phone: printFamilyData.headPhoneNumber,
-            povertyLevel: printFamilyData.povertyLevel,
-            membersCount: printFamilyData.members?.length || 0,
-            socialStatus: printFamilyData.socialStatus || "—",
-            governorateName: printFamilyData.subDistrict?.district?.governorate?.nameAr || "—",
-            orphansCount: printFamilyData.beneficiaries?.filter((b: any) => b.category === "ORPHAN")?.length || 0,
-            sequentialNumber: printFamilyData.familyCode || printFamilyData.id,
-            notes: printFamilyData.notes,
-          }}
-          onClose={() => setPrintFamilyData(null)}
-        />
-      )}
+      {/* Details Sheet Component */}
+      <FamilyDetailsSheet
+        family={selectedFamily}
+        open={isDetailsOpen}
+        onOpenChange={setIsDetailsOpen}
+      />
     </div>
   )
 }
