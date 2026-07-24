@@ -200,11 +200,14 @@ export default async function DashboardPage() {
                 لوحة التحكم الإدارية الموحدة — 2026
               </span>
             </div>
-            <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-2">
-              مرحباً بك في نظام إدارة المنظمة الذكي 👋
+            <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white p-1 shadow-lg ring-2 ring-emerald-500/30 overflow-hidden flex-shrink-0">
+                <img src="/logo.jpg" alt="جمعية اليتامى التنموية" className="h-full w-full object-contain" />
+              </span>
+              <span>مرحباً بك في جمعية اليتامى التنموية 👋</span>
             </h2>
             <p className="text-xs md:text-sm text-slate-300 max-w-2xl font-medium leading-relaxed">
-              تحليل البيانات الميدانية، متابعة الكفالات والتوزيعات، وإدارة قواعد الأسر والمستفيدين برؤية بيانية تفاعلية متطورة.
+              Orphans Development — النظام الإلكتروني المتكامل لإدارة المستفيدين والأيتام ومتابعة الكفالات والمشاريع والرؤى البيانية.
             </p>
           </div>
 

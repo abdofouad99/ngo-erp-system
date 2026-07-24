@@ -82,12 +82,17 @@ export function FamilyCardSheet({ family, trigger }: FamilyCardSheetProps) {
 
             {/* الهيدر */}
             <div className="flex justify-between items-start gap-4 mb-4">
-              <div>
-                <h3 className="text-sm font-bold text-white leading-tight">المؤسسة الخيرية لرعاية الأسر</h3>
-                <p className="text-[10px] text-emerald-400 font-bold">بطاقة تعريف مستفيد موحدة</p>
+              <div className="flex items-center gap-2">
+                <div className="h-9 w-9 rounded-lg bg-white p-0.5 shadow overflow-hidden flex-shrink-0">
+                  <img src="/logo.jpg" alt="جمعية اليتامى التنموية" className="h-full w-full object-contain" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black text-white leading-tight">جمعية اليتامى التنموية</h3>
+                  <p className="text-[9px] text-teal-400 font-bold uppercase tracking-wider">ORPHANS DEVELOPMENT</p>
+                </div>
               </div>
-              <div className="text-[10px] text-slate-400 font-mono text-left">
-                ID: {family.id.slice(-8).toUpperCase()}
+              <div className="text-[10px] text-slate-400 font-mono text-left font-bold">
+                YT-2026-{family.id.slice(-4).toUpperCase()}
               </div>
             </div>
 

@@ -152,15 +152,15 @@ export function AppSidebar({ className }: AppSidebarProps) {
       )}
     >
       {/* ── Brand / Logo ──────────────────────────────────────────── */}
-      <div className="flex h-16 flex-shrink-0 items-center gap-3 border-b border-slate-800/60 px-5">
-        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 shadow-lg shadow-emerald-900/30">
-          <Heart className="h-5 w-5 text-white" fill="white" />
+      <div className="flex h-20 flex-shrink-0 items-center gap-3 border-b border-border/60 px-4 bg-slate-900/40 backdrop-blur-md">
+        <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-white/95 p-1 shadow-lg shadow-teal-900/30 overflow-hidden ring-2 ring-emerald-500/30">
+          <img src="/logo.jpg" alt="جمعية اليتامى التنموية" className="h-full w-full object-contain" />
         </div>
         <div className="min-w-0">
-          <p className="truncate text-sm font-bold tracking-wide text-white">
-            نظام إدارة المنظمة
+          <p className="truncate text-sm font-black tracking-wide text-white">
+            اليتامى التنموية
           </p>
-          <p className="text-xs text-emerald-400/70">NGO ERP System</p>
+          <p className="text-[10px] font-bold text-teal-400 uppercase tracking-wider">ORPHANS DEVELOPMENT</p>
         </div>
       </div>
 

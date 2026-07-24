@@ -8,8 +8,8 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  title: "نظام إدارة المنظمة | NGO ERP System",
-  description: "نظام إدارة متكامل للمنظمات غير الحكومية — إدارة المستفيدين والمشاريع والتوزيعات والرعايات",
+  title: "جمعية اليتامى التنموية | ORPHANS DEVELOPMENT",
+  description: "النظام الإلكتروني الشامل لإدارة المستفيدين والأيتام والمشاريع والكفالات — جمعية اليتامى التنموية",
 };
 
 export default function RootLayout({

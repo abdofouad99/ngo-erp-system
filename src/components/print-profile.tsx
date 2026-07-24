@@ -36,17 +36,32 @@ export function PrintProfile({ type, data, onClose }: PrintProfileProps) {
             padding: 40px;
           }
           .header {
-            border-bottom: 3px solid #10b981;
+            border-bottom: 3px solid #00a896;
             padding-bottom: 16px;
             margin-bottom: 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
           }
+          .brand-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+          }
+          .brand-logo {
+            height: 55px;
+            width: auto;
+          }
           .org-name {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 800;
-            color: #10b981;
+            color: #1b365d;
+          }
+          .org-sub {
+            font-size: 11px;
+            font-weight: 700;
+            color: #00a896;
+            letter-spacing: 1px;
           }
           .doc-title {
             font-size: 16px;
@@ -180,15 +195,19 @@ export function PrintProfile({ type, data, onClose }: PrintProfileProps) {
         <div className="p-6">
           <div ref={printRef}>
             {/* Header */}
-            <div className="header" style={{ borderBottom: "3px solid #10b981", paddingBottom: "16px", marginBottom: "24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <div className="org-name" style={{ fontSize: "22px", fontWeight: 800, color: "#10b981" }}>نظام إدارة المنظمة</div>
-                <div className="doc-title" style={{ fontSize: "16px", fontWeight: 600, color: "#475569" }}>{title}</div>
+            <div className="header" style={{ borderBottom: "3px solid #00a896", paddingBottom: "16px", marginBottom: "24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <img src="/logo.jpg" alt="جمعية اليتامى التنموية" style={{ height: "55px", width: "auto" }} />
+                <div>
+                  <div className="org-name" style={{ fontSize: "20px", fontWeight: 800, color: "#1b365d" }}>جمعية اليتامى التنموية</div>
+                  <div className="org-sub" style={{ fontSize: "11px", fontWeight: 700, color: "#00a896", letterSpacing: "1px" }}>ORPHANS DEVELOPMENT</div>
+                  <div className="doc-title" style={{ fontSize: "14px", fontWeight: 600, color: "#475569", marginTop: "2px" }}>{title}</div>
+                </div>
               </div>
               <div style={{ textAlign: "left" }}>
                 <div className="date" style={{ fontSize: "12px", color: "#94a3b8" }}>تاريخ الطباعة: {printDate}</div>
                 {data.sequentialNumber && (
-                  <div className="badge" style={{ display: "inline-block", background: "#dcfce7", color: "#166534", borderRadius: "6px", padding: "3px 10px", fontSize: "12px", fontWeight: 700 }}>
+                  <div className="badge" style={{ display: "inline-block", background: "#ccfbf1", color: "#0f766e", borderRadius: "6px", padding: "3px 10px", fontSize: "12px", fontWeight: 700, marginTop: "4px" }}>
                     #{data.sequentialNumber}
                   </div>
                 )}

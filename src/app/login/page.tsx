@@ -50,12 +50,12 @@ export default function LoginPage() {
       {/* ── Login Card ───────────────────────────────────────────── */}
       <Card className="relative w-full max-w-md border-white/5 bg-slate-900/40 backdrop-blur-xl shadow-2xl rounded-2xl p-4 overflow-hidden">
         <CardHeader className="text-center pb-6">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 shadow-lg shadow-emerald-500/20">
-            <Heart className="h-6 w-6 text-white animate-pulse" fill="white" />
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white p-1.5 shadow-xl shadow-teal-500/20 ring-2 ring-emerald-500/30 overflow-hidden">
+            <img src="/logo.jpg" alt="جمعية اليتامى التنموية" className="h-full w-full object-contain" />
           </div>
-          <CardTitle className="text-xl font-extrabold text-white">NGO ERP SYSTEM</CardTitle>
-          <CardDescription className="text-xs text-slate-400 mt-1.5 font-medium">
-            بوابة تسجيل الدخول لنظام إدارة المساعدات والأيتام
+          <CardTitle className="text-xl font-black text-white">جمعية اليتامى التنموية</CardTitle>
+          <CardDescription className="text-xs text-teal-400 font-bold uppercase tracking-wider mt-1">
+            ORPHANS DEVELOPMENT — بوابة الإدارة الموحدة
           </CardDescription>
         </CardHeader>
         <CardContent>
