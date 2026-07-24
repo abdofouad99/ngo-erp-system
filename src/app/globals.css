@@ -7,36 +7,42 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* ── Light Mode Identity Colors (الجمعية - اليتامى التنموية) ── */
+    --background: 210 40% 98%;         /* #F8FAFC - أبيض نقي مع خلفية مريحة */
+    --foreground: 218 54% 24%;         /* #1C355E - أزرق داكن كحلي للنصوص */
+    --card: 0 0% 100%;                  /* #FFFFFF - كروت بيضاء ناصعة */
+    --card-foreground: 218 54% 24%;    /* #1C355E */
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 158 64% 40%;          /* Emerald — NGO brand color */
+    --popover-foreground: 218 54% 24%;
+    --primary: 176 100% 35%;           /* #00B2A9 - التركواز المعتمد */
     --primary-foreground: 0 0% 100%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 218 54% 94%;
+    --secondary-foreground: 218 54% 24%;
     --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 176 100% 95%;
+    --accent-foreground: 176 100% 25%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 158 64% 40%;
-    --radius: 0.625rem;
+    --border: 214 32% 90%;
+    --input: 214 32% 90%;
+    --ring: 176 100% 35%;
+    --radius: 0.75rem;
+
+    /* Custom Brand Variables */
+    --navy-main: #1C355E;
+    --teal-main: #00B2A9;
   }
 
   .dark {
+    /* ── Dark Mode Futuristic Theme ── */
     --background: 224 71% 4%;
     --foreground: 210 40% 98%;
     --card: 224 71% 6.5%;
     --card-foreground: 210 40% 98%;
     --popover: 224 71% 8%;
     --popover-foreground: 210 40% 98%;
-    --primary: 158 64% 52%;
+    --primary: 176 100% 40%;           /* #00B2A9 */
     --primary-foreground: 222.2 47.4% 11.2%;
     --secondary: 224 30% 12%;
     --secondary-foreground: 210 40% 98%;
@@ -48,7 +54,11 @@
     --destructive-foreground: 210 40% 98%;
     --border: 224 30% 15%;
     --input: 224 30% 15%;
-    --ring: 158 64% 52%;
+    --ring: 176 100% 40%;
+
+    /* Custom Brand Variables in Dark */
+    --navy-main: #1C355E;
+    --teal-main: #00B2A9;
   }
 }
 
@@ -63,13 +73,29 @@
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-foreground antialiased transition-colors duration-300;
     font-feature-settings: "rlig" 1, "calt" 1;
-    background-image: 
-      radial-gradient(at 0% 0%, hsla(158, 64%, 52%, 0.05) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, hsla(224, 71%, 8%, 0.3) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, hsla(180, 60%, 50%, 0.03) 0px, transparent 50%);
     background-attachment: fixed;
+  }
+
+  /* Light Mode Background Mesh */
+  html:not(.dark) body {
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(0, 178, 169, 0.06) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(28, 53, 94, 0.05) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(0, 178, 169, 0.04) 0px, transparent 50%);
+    background-color: #F8FAFC;
+    color: #1C355E;
+  }
+
+  /* Dark Mode Background Mesh */
+  html.dark body {
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(0, 178, 169, 0.08) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(28, 53, 94, 0.2) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(0, 178, 169, 0.05) 0px, transparent 50%);
+    background-color: #07090e;
+    color: #F8FAFC;
   }
 
   /* Scrollbar styling */
@@ -81,124 +107,56 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-slate-800/80 hover:bg-slate-700/80 transition-colors;
+    @apply rounded-full bg-teal-500/30 hover:bg-teal-500/60 transition-colors;
   }
 }
 
-/* ── Custom Premium Utilities ────────────────────────────────────────────── */
+/* ── Custom Utilities for Dual Themes (Light & Dark) ────────────────────────── */
 @layer utilities {
+  /* Dynamic Glass Cards */
   .glass-card {
-    @apply bg-card/40 backdrop-blur-md border border-border/60 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:border-primary/40 hover:shadow-[0_8px_30px_rgba(16,185,129,0.12)] transition-all duration-300;
+    @apply bg-white/90 dark:bg-slate-900/60 backdrop-blur-xl border border-[#00B2A9]/20 shadow-lg shadow-teal-950/5 dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:border-[#00B2A9]/50 transition-all duration-300;
   }
   
   .glass-panel {
-    @apply bg-card/65 backdrop-blur-lg border border-border/80 shadow-2xl;
+    @apply bg-white/95 dark:bg-slate-900/80 backdrop-blur-xl border border-[#00B2A9]/30 shadow-2xl;
+  }
+
+  /* Brand Typography & Gradients */
+  .text-brand-navy {
+    color: #1C355E;
+  }
+  .dark .text-brand-navy {
+    color: #E2E8F0;
+  }
+
+  .text-brand-teal {
+    color: #00B2A9;
+  }
+
+  .bg-brand-navy {
+    background-color: #1C355E;
+  }
+
+  .bg-brand-teal {
+    background-color: #00B2A9;
   }
 
   .sidebar-glow-active {
-    background: linear-gradient(90deg, rgba(16, 185, 129, 0.15) 0%, rgba(20, 184, 166, 0.05) 100%);
-    border-right: 3px solid #10b981;
-    box-shadow: inset -5px 0 15px -5px rgba(16, 185, 129, 0.3);
+    background: linear-gradient(90deg, rgba(0, 178, 169, 0.15) 0%, rgba(28, 53, 94, 0.05) 100%);
+    border-right: 4px solid #00B2A9;
   }
 
-  .neon-glow-emerald {
-    box-shadow: 0 0 20px -5px rgba(16, 185, 129, 0.25);
-  }
-  
-  .neon-glow-primary {
-    box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.3);
+  /* Buttons */
+  .btn-brand-primary {
+    @apply relative overflow-hidden rounded-xl bg-gradient-to-r from-[#00B2A9] to-[#008C85] px-4 py-2 text-sm font-bold text-white shadow-lg shadow-[#00B2A9]/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#00B2A9]/35 active:translate-y-0 active:scale-[0.98];
   }
 
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 via-teal-400 to-sky-400;
+  .badge-brand-teal {
+    @apply bg-[#00B2A9]/10 text-[#00B2A9] border border-[#00B2A9]/30 px-2.5 py-0.5 rounded-full text-xs font-bold;
   }
 
-  .btn-premium {
-    @apply relative overflow-hidden rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-500/35 active:translate-y-0 active:scale-[0.98];
-  }
-
-  .btn-premium::after {
-    content: "";
-    @apply absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000;
-  }
-
-  .btn-premium:hover::after {
-    @apply translate-x-full;
-  }
-
-  .btn-premium-blue {
-    @apply relative overflow-hidden rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-500/35 active:translate-y-0 active:scale-[0.98];
-  }
-  
-  .btn-premium-blue::after {
-    content: "";
-    @apply absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000;
-  }
-  
-  .btn-premium-blue:hover::after {
-    @apply translate-x-full;
-  }
-
-  .btn-premium-rose {
-    @apply relative overflow-hidden rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-rose-500/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-rose-500/35 active:translate-y-0 active:scale-[0.98];
-  }
-  
-  .btn-premium-rose::after {
-    content: "";
-    @apply absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000;
-  }
-  
-  .btn-premium-rose:hover::after {
-    @apply translate-x-full;
-  }
-
-  .btn-premium-orange {
-    @apply relative overflow-hidden rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-amber-500/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-amber-500/35 active:translate-y-0 active:scale-[0.98];
-  }
-  
-  .btn-premium-orange::after {
-    content: "";
-    @apply absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000;
-  }
-  
-  .btn-premium-orange:hover::after {
-    @apply translate-x-full;
-  }
-
-  .btn-premium-outline {
-    @apply relative overflow-hidden rounded-xl border border-border/80 bg-slate-900/30 px-4 py-2 text-sm font-semibold text-slate-200 transition-all duration-300 hover:border-primary/40 hover:bg-slate-900/60 hover:text-white hover:-translate-y-0.5 hover:shadow-[0_0_15px_rgba(16,185,129,0.1)] active:translate-y-0 active:scale-[0.98];
-  }
-
-  .btn-premium-outline-blue {
-    @apply relative overflow-hidden rounded-xl border border-blue-500/20 bg-slate-900/30 px-4 py-2 text-sm font-semibold text-blue-400 transition-all duration-300 hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-200 hover:-translate-y-0.5 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] active:translate-y-0 active:scale-[0.98];
-  }
-
-  .btn-premium-outline-rose {
-    @apply relative overflow-hidden rounded-xl border border-rose-500/20 bg-slate-900/30 px-4 py-2 text-sm font-semibold text-rose-400 transition-all duration-300 hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-200 hover:-translate-y-0.5 hover:shadow-[0_0_15px_rgba(244,63,94,0.15)] active:translate-y-0 active:scale-[0.98];
-  }
-
-  .btn-premium-outline-orange {
-    @apply relative overflow-hidden rounded-xl border border-orange-500/20 bg-slate-900/30 px-4 py-2 text-sm font-semibold text-orange-400 transition-all duration-300 hover:border-orange-500/40 hover:bg-orange-500/10 hover:text-orange-200 hover:-translate-y-0.5 hover:shadow-[0_0_15px_rgba(245,158,11,0.15)] active:translate-y-0 active:scale-[0.98];
-  }
-
-  .table-row-hover {
-    @apply hover:bg-slate-800/40 transition-colors duration-150;
-  }
-  
-  .badge-premium-emerald {
-    @apply bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded-full text-xs font-semibold shadow-[0_0_10px_rgba(16,185,129,0.05)];
-  }
-  
-  .badge-premium-blue {
-    @apply bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2.5 py-0.5 rounded-full text-xs font-semibold shadow-[0_0_10px_rgba(59,130,246,0.05)];
-  }
-
-  .badge-premium-rose {
-    @apply bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2.5 py-0.5 rounded-full text-xs font-semibold shadow-[0_0_10px_rgba(244,63,94,0.05)];
-  }
-
-  .badge-premium-orange {
-    @apply bg-orange-500/10 text-orange-400 border border-orange-500/20 px-2.5 py-0.5 rounded-full text-xs font-semibold shadow-[0_0_10px_rgba(245,158,11,0.05)];
+  .badge-brand-navy {
+    @apply bg-[#1C355E]/10 text-[#1C355E] dark:bg-slate-800 dark:text-slate-200 border border-[#1C355E]/20 dark:border-slate-700 px-2.5 py-0.5 rounded-full text-xs font-bold;
   }
 }
-

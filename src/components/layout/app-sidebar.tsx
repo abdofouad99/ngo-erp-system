@@ -21,6 +21,7 @@ import {
   Stethoscope,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 // =============================================================================
 // Navigation Configuration
@@ -152,16 +153,19 @@ export function AppSidebar({ className }: AppSidebarProps) {
       )}
     >
       {/* ── Brand / Logo ──────────────────────────────────────────── */}
-      <div className="flex h-20 flex-shrink-0 items-center gap-3 border-b border-border/60 px-4 bg-slate-900/40 backdrop-blur-md">
-        <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-white/95 p-1 shadow-lg shadow-teal-900/30 overflow-hidden ring-2 ring-emerald-500/30">
-          <img src="/logo.jpg" alt="جمعية اليتامى التنموية" className="h-full w-full object-contain" />
+      <div className="flex h-20 flex-shrink-0 items-center justify-between gap-2 border-b border-border/60 px-3 bg-slate-900/40 backdrop-blur-md">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-white p-1 shadow-lg shadow-teal-900/30 overflow-hidden ring-2 ring-[#00B2A9]/40">
+            <img src="/logo.jpg" alt="جمعية اليتامى التنموية" className="h-full w-full object-contain" />
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-black tracking-wide text-white dark:text-white light:text-[#1C355E]">
+              اليتامى التنموية
+            </p>
+            <p className="text-[9px] font-bold text-[#00B2A9] uppercase tracking-wider">ORPHANS DEV</p>
+          </div>
         </div>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-black tracking-wide text-white">
-            اليتامى التنموية
-          </p>
-          <p className="text-[10px] font-bold text-teal-400 uppercase tracking-wider">ORPHANS DEVELOPMENT</p>
-        </div>
+        <ThemeToggle />
       </div>
 
       {/* ── Navigation ────────────────────────────────────────────── */}
