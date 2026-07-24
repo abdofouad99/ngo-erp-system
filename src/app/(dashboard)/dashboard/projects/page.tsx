@@ -141,7 +141,40 @@ export default async function ProjectsPage() {
         </Card>
 
         {/* Delivered Count */}
-            <div className="mt-2 text-xs text-purple-700/70 font-medium">
+        <Card className="border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 dark:from-emerald-950/40 dark:to-emerald-900/20 shadow-sm">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">التسليمات الميدانية</p>
+                <p className="mt-2 text-2xl font-bold text-[#1C355E] dark:text-white tabular-nums">
+                  {deliveredCount.toLocaleString("ar-SA-u-nu-latn")}
+                </p>
+              </div>
+              <div className="rounded-xl bg-emerald-500/10 p-2.5 text-emerald-600 dark:text-emerald-400">
+                <CheckCircle className="h-5 w-5" />
+              </div>
+            </div>
+            <div className="mt-2 text-xs text-emerald-700/70 dark:text-emerald-300/70 font-medium">
+              عمليات التوزيع المسلمة فعلياً للأفراد
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Total Progress */}
+        <Card className="border border-purple-500/20 bg-gradient-to-br from-purple-500/10 to-purple-600/5 dark:from-purple-950/40 dark:to-purple-900/20 shadow-sm">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-purple-600 dark:text-purple-400">نسبة الإنجاز الإجمالية</p>
+                <p className="mt-2 text-2xl font-bold text-[#1C355E] dark:text-white tabular-nums">
+                  {deliveryProgress.toLocaleString("ar-SA-u-nu-latn")}%
+                </p>
+              </div>
+              <div className="rounded-xl bg-purple-500/10 p-2.5 text-purple-600 dark:text-purple-400">
+                <Percent className="h-5 w-5" />
+              </div>
+            </div>
+            <div className="mt-2 text-xs text-purple-700/70 dark:text-purple-300/70 font-medium">
               مؤشر تسليم المساعدات العام
             </div>
           </CardContent>
