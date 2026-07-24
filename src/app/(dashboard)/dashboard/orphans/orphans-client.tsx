@@ -702,26 +702,26 @@ export function OrphansClient({
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             {/* Search Input */}
             <div className="relative flex-1">
-              <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#1C355E]/40 dark:text-slate-400" />
               <Input
                 placeholder="البحث باسم اليتيم أو الرقم الوطني أو كود الملف..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pr-9 bg-slate-900/40 border-border/80 focus-visible:bg-slate-900/60 focus-visible:ring-emerald-500/50 focus-visible:border-emerald-500/50 text-white text-right placeholder-slate-400 text-sm"
+                className="pr-9 bg-white dark:bg-slate-900/40 border-[#1C355E]/20 dark:border-border/80 focus-visible:bg-white dark:focus-visible:bg-slate-900/60 focus-visible:ring-[#00B2A9] dark:focus-visible:ring-emerald-500/50 focus-visible:border-[#00B2A9] dark:focus-visible:border-emerald-500/50 text-[#1C355E] dark:text-white text-right placeholder:text-[#1C355E]/40 dark:placeholder-slate-400 text-sm"
               />
             </div>
             {/* Filter Buttons */}
             {/* Filter Buttons */}
             <div className="flex flex-wrap items-center gap-3">
               {/* Gender Filter Group */}
-              <div className="flex items-center gap-1 bg-slate-950/40 p-1 rounded-xl border border-border/60">
+              <div className="flex items-center gap-1 bg-[#1C355E]/5 dark:bg-slate-950/40 p-1 rounded-xl border border-[#1C355E]/10 dark:border-border/60">
                 <Button
                   onClick={() => setSelectedGender("ALL")}
                   variant="ghost"
                   className={`rounded-lg h-8 px-3.5 text-xs font-bold transition-all duration-300 ${
                     selectedGender === "ALL"
-                      ? "bg-emerald-500 text-white shadow-sm"
-                      : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+                      ? "bg-[#00B2A9] text-white dark:bg-emerald-500 dark:text-white shadow-sm"
+                      : "text-[#1C355E]/70 dark:text-slate-400 hover:text-[#1C355E] dark:hover:text-white hover:bg-[#1C355E]/10 dark:hover:bg-slate-800/40"
                   }`}
                 >
                   الكل (الجنس)
@@ -731,8 +731,8 @@ export function OrphansClient({
                   variant="ghost"
                   className={`rounded-lg h-8 px-3.5 text-xs font-bold transition-all duration-300 ${
                     selectedGender === "MALE"
-                      ? "bg-emerald-500 text-white shadow-sm"
-                      : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+                      ? "bg-[#00B2A9] text-white dark:bg-emerald-500 dark:text-white shadow-sm"
+                      : "text-[#1C355E]/70 dark:text-slate-400 hover:text-[#1C355E] dark:hover:text-white hover:bg-[#1C355E]/10 dark:hover:bg-slate-800/40"
                   }`}
                 >
                   ذكور
@@ -742,8 +742,8 @@ export function OrphansClient({
                   variant="ghost"
                   className={`rounded-lg h-8 px-3.5 text-xs font-bold transition-all duration-300 ${
                     selectedGender === "FEMALE"
-                      ? "bg-emerald-500 text-white shadow-sm"
-                      : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+                      ? "bg-[#00B2A9] text-white dark:bg-emerald-500 dark:text-white shadow-sm"
+                      : "text-[#1C355E]/70 dark:text-slate-400 hover:text-[#1C355E] dark:hover:text-white hover:bg-[#1C355E]/10 dark:hover:bg-slate-800/40"
                   }`}
                 >
                   إناث
@@ -751,14 +751,14 @@ export function OrphansClient({
               </div>
 
               {/* Verification Status Filter Group */}
-              <div className="flex items-center gap-1 bg-slate-950/40 p-1 rounded-xl border border-border/60">
+              <div className="flex items-center gap-1 bg-[#1C355E]/5 dark:bg-slate-950/40 p-1 rounded-xl border border-[#1C355E]/10 dark:border-border/60">
                 <Button
                   onClick={() => setSelectedStatus("ALL")}
                   variant="ghost"
                   className={`rounded-lg h-8 px-3.5 text-xs font-bold transition-all duration-300 ${
                     selectedStatus === "ALL"
-                      ? "bg-emerald-500 text-white shadow-sm"
-                      : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+                      ? "bg-[#00B2A9] text-white dark:bg-emerald-500 dark:text-white shadow-sm"
+                      : "text-[#1C355E]/70 dark:text-slate-400 hover:text-[#1C355E] dark:hover:text-white hover:bg-[#1C355E]/10 dark:hover:bg-slate-800/40"
                   }`}
                 >
                   الكل (الاعتماد)
@@ -768,8 +768,8 @@ export function OrphansClient({
                   variant="ghost"
                   className={`rounded-lg h-8 px-3.5 text-xs font-bold transition-all duration-300 ${
                     selectedStatus === "APPROVED"
-                      ? "bg-emerald-500 text-white shadow-sm"
-                      : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+                      ? "bg-[#00B2A9] text-white dark:bg-emerald-500 dark:text-white shadow-sm"
+                      : "text-[#1C355E]/70 dark:text-slate-400 hover:text-[#1C355E] dark:hover:text-white hover:bg-[#1C355E]/10 dark:hover:bg-slate-800/40"
                   }`}
                 >
                   معتمد ومقبول
@@ -779,8 +779,8 @@ export function OrphansClient({
                   variant="ghost"
                   className={`rounded-lg h-8 px-3.5 text-xs font-bold transition-all duration-300 ${
                     selectedStatus === "PENDING"
-                      ? "bg-emerald-500 text-white shadow-sm"
-                      : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+                      ? "bg-[#00B2A9] text-white dark:bg-emerald-500 dark:text-white shadow-sm"
+                      : "text-[#1C355E]/70 dark:text-slate-400 hover:text-[#1C355E] dark:hover:text-white hover:bg-[#1C355E]/10 dark:hover:bg-slate-800/40"
                   }`}
                 >
                   طلبات معلقة
@@ -790,8 +790,8 @@ export function OrphansClient({
                   variant="ghost"
                   className={`rounded-lg h-8 px-3.5 text-xs font-bold transition-all duration-300 ${
                     selectedStatus === "REJECTED"
-                      ? "bg-emerald-500 text-white shadow-sm"
-                      : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+                      ? "bg-[#00B2A9] text-white dark:bg-emerald-500 dark:text-white shadow-sm"
+                      : "text-[#1C355E]/70 dark:text-slate-400 hover:text-[#1C355E] dark:hover:text-white hover:bg-[#1C355E]/10 dark:hover:bg-slate-800/40"
                   }`}
                 >
                   طلبات مرفوضة
@@ -894,26 +894,26 @@ export function OrphansClient({
       <Card className="glass-card overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
-            <TableHeader className="bg-slate-900/40 border-b border-border/80">
+            <TableHeader className="bg-[#1C355E] dark:bg-slate-950 border-b border-[#1C355E]/20 dark:border-border/80">
             <TableRow className="hover:bg-transparent border-border/60">
                 <TableHead className="w-12 text-center py-3.5 pr-4">
                   <input
                     type="checkbox"
                     checked={filteredOrphans.length > 0 && filteredOrphans.every(o => selectedIds.includes(o.id))}
                     onChange={handleSelectAllToggle}
-                    className="h-4 w-4 rounded border-slate-700 bg-slate-900/40 text-emerald-500 focus:ring-emerald-500 cursor-pointer"
+                    className="h-4 w-4 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900/40 text-[#00B2A9] dark:text-emerald-500 focus:ring-[#00B2A9] cursor-pointer"
                   />
                 </TableHead>
-                <TableHead className="w-12 text-center font-bold text-slate-200 py-3.5">م</TableHead>
-                <TableHead className="text-right font-bold text-slate-200 py-3.5 pr-2">كود اليتيم</TableHead>
-                <TableHead className="text-right font-bold text-slate-200 py-3.5">الاسم الكامل</TableHead>
-                <TableHead className="text-right font-bold text-slate-200 py-3.5">اسم رب الأسرة</TableHead>
-                <TableHead className="text-right font-bold text-slate-200 py-3.5">الجنس</TableHead>
-                <TableHead className="text-right font-bold text-slate-200 py-3.5">العمر</TableHead>
-                <TableHead className="text-right font-bold text-slate-200 py-3.5">التصنيفات</TableHead>
-                <TableHead className="text-right font-bold text-slate-200 py-3.5">المرفقات</TableHead>
-                <TableHead className="text-right font-bold text-slate-200 py-3.5">الحالة</TableHead>
-                <TableHead className="text-center font-bold text-slate-200 py-3.5 pl-6">الإجراءات</TableHead>
+                <TableHead className="w-12 text-center font-bold text-white dark:text-slate-200 py-3.5">م</TableHead>
+                <TableHead className="text-right font-bold text-white dark:text-slate-200 py-3.5 pr-2">كود اليتيم</TableHead>
+                <TableHead className="text-right font-bold text-white dark:text-slate-200 py-3.5">الاسم الكامل</TableHead>
+                <TableHead className="text-right font-bold text-white dark:text-slate-200 py-3.5">اسم رب الأسرة</TableHead>
+                <TableHead className="text-right font-bold text-white dark:text-slate-200 py-3.5">الجنس</TableHead>
+                <TableHead className="text-right font-bold text-white dark:text-slate-200 py-3.5">العمر</TableHead>
+                <TableHead className="text-right font-bold text-white dark:text-slate-200 py-3.5">التصنيفات</TableHead>
+                <TableHead className="text-right font-bold text-white dark:text-slate-200 py-3.5">المرفقات</TableHead>
+                <TableHead className="text-right font-bold text-white dark:text-slate-200 py-3.5">الحالة</TableHead>
+                <TableHead className="text-center font-bold text-white dark:text-slate-200 py-3.5 pl-6">الإجراءات</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -927,27 +927,27 @@ export function OrphansClient({
                 paginatedOrphans.map((orphan, i) => (
                   <TableRow
                     key={orphan.id}
-                    className="hover:bg-slate-800/30 border-border/40 transition-colors duration-150"
+                    className="hover:bg-[#1C355E]/5 dark:hover:bg-slate-800/30 border-[#1C355E]/10 dark:border-border/40 transition-colors duration-150"
                   >
                     <TableCell className="text-center py-3.5 pr-4">
                       <input
                         type="checkbox"
                         checked={selectedIds.includes(orphan.id)}
                         onChange={() => handleSelectRow(orphan.id)}
-                        className="h-4 w-4 rounded border-slate-700 bg-slate-900/40 text-emerald-500 focus:ring-emerald-500 cursor-pointer"
+                        className="h-4 w-4 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900/40 text-[#00B2A9] dark:text-emerald-500 focus:ring-[#00B2A9] cursor-pointer"
                       />
                     </TableCell>
-                    <TableCell className="text-center text-slate-400 font-mono font-semibold text-xs tabular-nums py-3.5">
+                    <TableCell className="text-center text-[#1C355E]/60 dark:text-slate-400 font-mono font-semibold text-xs tabular-nums py-3.5">
                       {(currentPage - 1) * pageSize + i + 1}
                     </TableCell>
-                    <TableCell className="font-mono text-xs font-semibold text-emerald-400 tabular-nums pr-2">
+                    <TableCell className="font-mono text-xs font-semibold text-[#00B2A9] dark:text-emerald-400 tabular-nums pr-2">
                       {orphan.orphanCode || "—"}
                     </TableCell>
-                    <TableCell className="font-bold text-white">{orphan.fullName}</TableCell>
-                    <TableCell className="text-slate-300 font-medium">
+                    <TableCell className="font-bold text-[#1C355E] dark:text-white">{orphan.fullName}</TableCell>
+                    <TableCell className="text-[#1C355E]/80 dark:text-slate-300 font-medium">
                       <a
                         href={`/dashboard/families?search=${encodeURIComponent(orphan.family.headFullName)}`}
-                        className="hover:text-emerald-400 hover:underline transition-colors duration-200"
+                        className="hover:text-[#00B2A9] dark:hover:text-emerald-400 hover:underline transition-colors duration-200"
                       >
                         {orphan.family.headFullName}
                       </a>
@@ -963,7 +963,7 @@ export function OrphansClient({
                         </Badge>
                       )}
                     </TableCell>
-                    <TableCell className="text-slate-300 tabular-nums font-semibold">
+                    <TableCell className="text-[#1C355E]/80 dark:text-slate-300 tabular-nums font-semibold">
                       {calculateAge(orphan.birthdate).toLocaleString("ar-SA-u-nu-latn")} سنة
                     </TableCell>
                     {/* Tags Column */}
