@@ -319,7 +319,7 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
                 placeholder="البحث باسم رب الأسرة، الهوية، الهاتف، أو الكود YT-2026..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pr-9 bg-slate-950 border-emerald-500/30 focus-visible:ring-emerald-500 text-white text-right placeholder-slate-400 text-xs rounded-xl h-10"
+                className="pr-9 bg-white dark:bg-slate-950 border-[#1C355E]/20 dark:border-emerald-500/30 focus-visible:ring-[#00B2A9] dark:focus-visible:ring-emerald-500 text-[#1C355E] dark:text-white text-right placeholder:text-[#1C355E]/40 dark:placeholder-slate-400 text-xs rounded-xl h-10"
               />
             </div>
 
@@ -327,11 +327,11 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
             <select
               value={selectedGov}
               onChange={(e) => setSelectedGov(e.target.value)}
-              className="flex h-10 w-full rounded-xl border border-emerald-500/30 bg-slate-950 text-white px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right font-medium"
+              className="flex h-10 w-full rounded-xl border border-[#1C355E]/20 dark:border-emerald-500/30 bg-white dark:bg-slate-950 text-[#1C355E] dark:text-white px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00B2A9] text-right font-medium"
             >
-              <option value="ALL" className="bg-slate-950 text-white">كل المحافظات</option>
+              <option value="ALL" className="bg-white dark:bg-slate-950 text-[#1C355E] dark:text-white">كل المحافظات</option>
               {geography.map((gov) => (
-                <option key={gov.id} value={gov.id.toString()} className="bg-slate-950 text-white">
+                <option key={gov.id} value={gov.id.toString()} className="bg-white dark:bg-slate-950 text-[#1C355E] dark:text-white">
                   {gov.nameAr}
                 </option>
               ))}
@@ -341,18 +341,18 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
             <select
               value={selectedPoverty}
               onChange={(e) => setSelectedPoverty(e.target.value)}
-              className="flex h-10 w-full rounded-xl border border-emerald-500/30 bg-slate-950 text-white px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right font-medium"
+              className="flex h-10 w-full rounded-xl border border-[#1C355E]/20 dark:border-emerald-500/30 bg-white dark:bg-slate-950 text-[#1C355E] dark:text-white px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00B2A9] text-right font-medium"
             >
-              <option value="ALL" className="bg-slate-950 text-white">درجة الأولوية (الكل)</option>
-              <option value="SEVERE" className="bg-slate-950 text-white">فقر شديد / حرجة</option>
-              <option value="MEDIUM" className="bg-slate-950 text-white">فقر متوسط / عالية</option>
-              <option value="LOW" className="bg-slate-950 text-white">فقر منخفض</option>
+              <option value="ALL" className="bg-white dark:bg-slate-950 text-[#1C355E] dark:text-white">درجة الأولوية (الكل)</option>
+              <option value="SEVERE" className="bg-white dark:bg-slate-950 text-[#1C355E] dark:text-white">فقر شديد / حرجة</option>
+              <option value="MEDIUM" className="bg-white dark:bg-slate-950 text-[#1C355E] dark:text-white">فقر متوسط / عالية</option>
+              <option value="LOW" className="bg-white dark:bg-slate-950 text-[#1C355E] dark:text-white">فقر منخفض</option>
             </select>
           </div>
 
           {/* Vulnerability Tags Chips Bar (اختيار متعدد) */}
           <div className="space-y-2 border-t border-border/40 pt-3">
-            <span className="text-xs font-bold text-slate-300 block">فئات الهشاشة (اختيار متعدد):</span>
+            <span className="text-xs font-bold text-[#1C355E]/70 dark:text-slate-300 block">فئات الهشاشة (اختيار متعدد):</span>
             <div className="flex flex-wrap gap-2">
               {vulnerabilityChips.map((chip) => {
                 const active = selectedTags.includes(chip.id)
@@ -362,8 +362,8 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
                     onClick={() => toggleTagFilter(chip.id)}
                     className={`px-3 py-1 rounded-full text-xs font-bold transition-all border ${
                       active
-                        ? "bg-emerald-500 text-slate-950 border-emerald-400 shadow-md shadow-emerald-500/20 scale-105"
-                        : "bg-slate-950 text-slate-300 border-border/60 hover:border-emerald-500/40"
+                        ? "bg-[#00B2A9] text-white dark:bg-emerald-500 dark:text-slate-950 border-[#00B2A9] dark:border-emerald-400 shadow-md scale-105"
+                        : "bg-white dark:bg-slate-950 text-[#1C355E]/70 dark:text-slate-300 border-[#1C355E]/20 dark:border-border/60 hover:border-[#00B2A9]/40 dark:hover:border-emerald-500/40"
                     }`}
                   >
                     {chip.label}
@@ -374,7 +374,7 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
           </div>
 
           {/* Result Count Banner */}
-          <div className="flex justify-between items-center text-xs text-slate-300 font-bold bg-slate-950/80 px-4 py-2 rounded-xl border border-border/40">
+          <div className="flex justify-between items-center text-xs text-[#1C355E]/70 dark:text-slate-300 font-bold bg-[#1C355E]/4 dark:bg-slate-950/80 px-4 py-2 rounded-xl border border-[#1C355E]/10 dark:border-border/40">
             <span>
               {filteredFamilies.length} أسرة مطابقة · {filteredFamilies.reduce((acc, f) => acc + (f.familyMembersCount || f.manualMembersCount || 1), 0)} فرد · {filteredFamilies.filter(f => f.povertyLevel === "SEVERE").length} حرجة
             </span>
@@ -389,8 +389,8 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
       </Card>
 
       {/* ── Table Bar ───────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-900/40 p-4 border border-border/60 rounded-xl">
-        <div className="text-sm text-slate-300 font-bold">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white dark:bg-slate-900/40 p-4 border border-[#1C355E]/10 dark:border-border/60 rounded-xl">
+        <div className="text-sm text-[#1C355E]/80 dark:text-slate-300 font-bold">
           عرض النتائج لعدد <span className="font-extrabold text-emerald-400 text-base">{filteredFamilies.length}</span> أسرة
         </div>
         <div className="flex gap-2">
@@ -417,10 +417,10 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table className="w-full text-right">
-              <TableHeader className="bg-slate-950 border-b border-border/80">
+              <TableHeader className="bg-[#1C355E] dark:bg-slate-950 border-b border-[#1C355E]/20 dark:border-border/80">
                 <TableRow className="hover:bg-transparent border-border/60">
-                  <TableHead className="text-right text-slate-200 font-bold py-3.5 pr-4 text-xs">الكود</TableHead>
-                  <TableHead className="text-right text-slate-200 font-bold py-3.5 pr-2 text-xs">رب الأسرة والزوجة</TableHead>
+                  <TableHead className="text-right text-white font-bold py-3.5 pr-4 text-xs">الكود</TableHead>
+                  <TableHead className="text-right text-white font-bold py-3.5 pr-2 text-xs">رب الأسرة والزوجة</TableHead>
                   <TableHead className="text-right text-slate-200 font-bold py-3.5 text-xs">الهوية الوطنية</TableHead>
                   <TableHead className="text-right text-slate-200 font-bold py-3.5 text-xs">الجوال</TableHead>
                   <TableHead className="text-right text-slate-200 font-bold py-3.5 text-xs">المديرية / المنطقة</TableHead>
@@ -429,7 +429,7 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
                   <TableHead className="text-right text-slate-200 font-bold py-3.5 text-xs">السكن</TableHead>
                   <TableHead className="text-right text-slate-200 font-bold py-3.5 text-xs">الفئات والسمات</TableHead>
                   <TableHead className="text-center text-slate-200 font-bold py-3.5 text-xs">مؤشر الحاجة</TableHead>
-                  <TableHead className="text-center text-slate-200 font-bold py-3.5 pl-4 text-xs">الإجراءات والبطاقة</TableHead>
+                  <TableHead className="text-center text-white font-bold py-3.5 pl-4 text-xs">الإجراءات والبطاقة</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -442,58 +442,58 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
                     const perCapita = Math.round((family.monthlyIncome || 0) / totalM)
 
                     return (
-                      <TableRow key={family.id} className="hover:bg-slate-900/60 border-border/40 transition-colors duration-150">
+                      <TableRow key={family.id} className="hover:bg-[#1C355E]/4 dark:hover:bg-slate-900/60 border-[#1C355E]/8 dark:border-border/40 transition-colors duration-150">
                         {/* Code */}
-                        <TableCell className="py-3.5 pr-4 text-emerald-400 font-mono font-bold text-xs">
+                        <TableCell className="py-3.5 pr-4 text-[#00B2A9] font-mono font-bold text-xs">
                           {familyCode}
                         </TableCell>
 
                         {/* Head & Spouse */}
                         <TableCell className="py-3.5 pr-2 text-xs">
-                          <span className="font-bold text-white block text-sm">{family.headFullName}</span>
-                          <span className="text-[10px] text-slate-400 block mt-0.5">
+                          <span className="font-bold text-[#1C355E] dark:text-white block text-sm">{family.headFullName}</span>
+                          <span className="text-[10px] text-[#1C355E]/50 dark:text-slate-400 block mt-0.5">
                             {family.hasWidow ? "أرملة — تعول أسرة" : "متزوج"}
                           </span>
                         </TableCell>
 
                         {/* National ID */}
-                        <TableCell className="py-3.5 font-mono text-xs text-slate-300 font-semibold">
+                        <TableCell className="py-3.5 font-mono text-xs text-[#1C355E]/80 dark:text-slate-300 font-semibold">
                           {family.headNationalId}
                         </TableCell>
 
                         {/* Phone */}
-                        <TableCell className="py-3.5 font-mono text-xs text-slate-300">
+                        <TableCell className="py-3.5 font-mono text-xs text-[#1C355E]/80 dark:text-slate-300">
                           {family.headPhoneNumber || "—"}
                         </TableCell>
 
                         {/* District / SubDistrict */}
                         <TableCell className="py-3.5 text-xs">
-                          <span className="font-bold text-slate-200 block">{districtStr}</span>
-                          <span className="text-[10px] text-slate-400 block">{subDistrictStr}</span>
+                          <span className="font-bold text-[#1C355E] dark:text-slate-200 block">{districtStr}</span>
+                          <span className="text-[10px] text-[#1C355E]/50 dark:text-slate-400 block">{subDistrictStr}</span>
                         </TableCell>
 
                         {/* Members Count */}
-                        <TableCell className="py-3.5 text-center font-bold text-white tabular-nums text-sm">
+                        <TableCell className="py-3.5 text-center font-bold text-[#1C355E] dark:text-white tabular-nums text-sm">
                           {totalM}
                         </TableCell>
 
                         {/* Per Capita Income */}
-                        <TableCell className="py-3.5 text-xs font-mono font-semibold text-slate-300">
+                        <TableCell className="py-3.5 text-xs font-mono font-semibold text-[#1C355E]/80 dark:text-slate-300">
                           {perCapita > 0 ? `${perCapita.toLocaleString("ar-YE-u-nu-latn")} ريال` : "غير موثق"}
                         </TableCell>
 
                         {/* Housing */}
-                        <TableCell className="py-3.5 text-xs font-bold text-slate-300">
+                        <TableCell className="py-3.5 text-xs font-bold text-[#1C355E]/80 dark:text-slate-300">
                           {family.housingType || "متهالك"}
                         </TableCell>
 
                         {/* Tags Badges */}
                         <TableCell className="py-3.5 text-xs">
                           <div className="flex flex-wrap gap-1 max-w-[150px]">
-                            {family.hasOrphans && <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/30 text-[9px] px-1.5 py-0.5">أيتام</Badge>}
-                            {family.hasWidow && <Badge className="bg-rose-500/20 text-rose-300 border-rose-500/30 text-[9px] px-1.5 py-0.5">أرامل</Badge>}
-                            {family.isDisplaced && <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 text-[9px] px-1.5 py-0.5">نازحون</Badge>}
-                            {family.specialNeedsCount > 0 && <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 text-[9px] px-1.5 py-0.5">إعاقة</Badge>}
+                            {family.hasOrphans && <Badge className="bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/30 text-[9px] px-1.5 py-0.5">أيتام</Badge>}
+                            {family.hasWidow && <Badge className="bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/30 text-[9px] px-1.5 py-0.5">أرامل</Badge>}
+                            {family.isDisplaced && <Badge className="bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30 text-[9px] px-1.5 py-0.5">نازحون</Badge>}
+                            {family.specialNeedsCount > 0 && <Badge className="bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/30 text-[9px] px-1.5 py-0.5">إعاقة</Badge>}
                           </div>
                         </TableCell>
 
@@ -513,7 +513,7 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
                               variant="ghost"
                               size="sm"
                               onClick={() => handleOpenDetails(family)}
-                              className="h-8 px-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800/60 rounded-xl"
+                              className="h-8 px-2 text-xs font-bold text-[#1C355E]/70 dark:text-slate-300 hover:text-[#1C355E] dark:hover:text-white hover:bg-[#1C355E]/6 dark:hover:bg-slate-800/60 rounded-xl"
                             >
                               <Eye className="h-3.5 w-3.5" />
                             </Button>
