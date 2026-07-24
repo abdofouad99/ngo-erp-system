@@ -6,157 +6,347 @@
 @import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&family=Cairo:wght@300;400;500;600;700;800&display=swap');
 
 @layer base {
+  /* ══════════════════════════════════════════════════════════════
+     LIGHT MODE (default) — أبيض ناصع + كحلي + تركواز
+  ══════════════════════════════════════════════════════════════ */
   :root {
-    /* ── Light Mode Identity Colors (الجمعية - اليتامى التنموية) ── */
-    --background: 210 40% 98%;         /* #F8FAFC - أبيض نقي مع خلفية مريحة */
-    --foreground: 218 54% 24%;         /* #1C355E - أزرق داكن كحلي للنصوص */
-    --card: 0 0% 100%;                  /* #FFFFFF - كروت بيضاء ناصعة */
-    --card-foreground: 218 54% 24%;    /* #1C355E */
+    --background: 210 40% 98%;           /* #F8FAFC */
+    --foreground: 218 54% 20%;           /* #1C355E أزرق داكن */
+    --card: 0 0% 100%;                   /* #FFFFFF أبيض */
+    --card-foreground: 218 54% 20%;      /* #1C355E */
     --popover: 0 0% 100%;
-    --popover-foreground: 218 54% 24%;
-    --primary: 176 100% 35%;           /* #00B2A9 - التركواز المعتمد */
+    --popover-foreground: 218 54% 20%;
+    --primary: 176 100% 35%;             /* #00B2A9 تركواز */
     --primary-foreground: 0 0% 100%;
-    --secondary: 218 54% 94%;
-    --secondary-foreground: 218 54% 24%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 176 100% 95%;
+    --secondary: 218 40% 93%;            /* خلفية ثانوية فاتحة */
+    --secondary-foreground: 218 54% 20%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 218 20% 50%;
+    --accent: 176 80% 93%;               /* تركواز فاتح */
     --accent-foreground: 176 100% 25%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214 32% 90%;
-    --input: 214 32% 90%;
+    --destructive: 0 84% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 88%;               /* حدود فاتحة */
+    --input: 214 32% 88%;
     --ring: 176 100% 35%;
     --radius: 0.75rem;
 
-    /* Custom Brand Variables */
+    /* Custom Brand */
     --navy-main: #1C355E;
     --teal-main: #00B2A9;
+
+    /* Sidebar Light */
+    --sidebar-bg: #1C355E;
+    --sidebar-text: rgba(255,255,255,0.85);
+    --sidebar-active-bg: rgba(0,178,169,0.15);
+    --sidebar-active-text: #00B2A9;
+    --sidebar-border: rgba(0,178,169,0.2);
+    --sidebar-hover: rgba(255,255,255,0.06);
   }
 
+  /* ══════════════════════════════════════════════════════════════
+     DARK MODE — أسود + تركواز نيوني
+  ══════════════════════════════════════════════════════════════ */
   .dark {
-    /* ── Dark Mode Futuristic Theme ── */
-    --background: 224 71% 4%;
-    --foreground: 210 40% 98%;
-    --card: 224 71% 6.5%;
-    --card-foreground: 210 40% 98%;
-    --popover: 224 71% 8%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 176 100% 40%;           /* #00B2A9 */
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --background: 224 71% 4%;            /* #060810 أسود عميق */
+    --foreground: 210 40% 96%;           /* أبيض ناصع */
+    --card: 224 50% 7%;                  /* #0D1220 */
+    --card-foreground: 210 40% 96%;
+    --popover: 224 60% 8%;
+    --popover-foreground: 210 40% 96%;
+    --primary: 176 100% 42%;             /* #00D4CA تركواز ساطع */
+    --primary-foreground: 224 71% 4%;
     --secondary: 224 30% 12%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 224 30% 12%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 224 30% 12%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 224 30% 15%;
-    --input: 224 30% 15%;
-    --ring: 176 100% 40%;
+    --secondary-foreground: 210 40% 96%;
+    --muted: 224 30% 11%;
+    --muted-foreground: 215 20% 62%;
+    --accent: 224 30% 13%;
+    --accent-foreground: 210 40% 96%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 96%;
+    --border: 224 30% 14%;
+    --input: 224 30% 14%;
+    --ring: 176 100% 42%;
 
-    /* Custom Brand Variables in Dark */
+    /* Custom Brand Dark */
     --navy-main: #1C355E;
-    --teal-main: #00B2A9;
+    --teal-main: #00D4CA;
+
+    /* Sidebar Dark */
+    --sidebar-bg: #0a0e1a;
+    --sidebar-text: rgba(255,255,255,0.8);
+    --sidebar-active-bg: rgba(0,178,169,0.12);
+    --sidebar-active-text: #00D4CA;
+    --sidebar-border: rgba(0,178,169,0.15);
+    --sidebar-hover: rgba(255,255,255,0.04);
   }
 }
 
+/* ══════════════════════════════════════════════════════════════
+   BASE STYLES
+══════════════════════════════════════════════════════════════ */
 @layer base {
   * {
     @apply border-border;
   }
 
   html {
-    font-family: 'Almarai', 'Cairo', system-ui, sans-serif;
+    font-family: 'Cairo', 'Almarai', system-ui, sans-serif;
     scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-background text-foreground antialiased transition-colors duration-300;
+    @apply bg-background text-foreground antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
     font-feature-settings: "rlig" 1, "calt" 1;
-    background-attachment: fixed;
   }
 
-  /* Light Mode Background Mesh */
+  /* ─── LIGHT MODE BODY ─────────────────────────────────────── */
   html:not(.dark) body {
-    background-image: 
-      radial-gradient(at 0% 0%, rgba(0, 178, 169, 0.06) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, rgba(28, 53, 94, 0.05) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, rgba(0, 178, 169, 0.04) 0px, transparent 50%);
-    background-color: #F8FAFC;
+    background-color: #F0F4F8;
+    background-image:
+      radial-gradient(at 0% 0%, rgba(0,178,169,0.07) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(28,53,94,0.06) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(0,178,169,0.05) 0px, transparent 50%);
     color: #1C355E;
   }
 
-  /* Dark Mode Background Mesh */
+  /* ─── DARK MODE BODY ──────────────────────────────────────── */
   html.dark body {
-    background-image: 
-      radial-gradient(at 0% 0%, rgba(0, 178, 169, 0.08) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, rgba(28, 53, 94, 0.2) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, rgba(0, 178, 169, 0.05) 0px, transparent 50%);
-    background-color: #07090e;
-    color: #F8FAFC;
+    background-color: #060810;
+    background-image:
+      radial-gradient(at 0% 0%, rgba(0,178,169,0.09) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(28,53,94,0.25) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(0,178,169,0.06) 0px, transparent 50%);
+    color: #F0F4F8;
   }
 
-  /* Scrollbar styling */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  html:not(.dark) ::-webkit-scrollbar-thumb {
+    background: rgba(28,53,94,0.2);
+    border-radius: 99px;
   }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-teal-500/30 hover:bg-teal-500/60 transition-colors;
+  html.dark ::-webkit-scrollbar-thumb {
+    background: rgba(0,178,169,0.3);
+    border-radius: 99px;
   }
 }
 
-/* ── Custom Utilities for Dual Themes (Light & Dark) ────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   LIGHT MODE COMPONENT OVERRIDES
+   — كل ما كان يبدو مظلماً في الوضع الفاتح يُصلح هنا
+══════════════════════════════════════════════════════════════ */
+
+/* ─── CARDS ─────────────────────────────────────────────────── */
+html:not(.dark) .card,
+html:not(.dark) [class*="bg-slate-9"],
+html:not(.dark) [class*="bg-gray-9"],
+html:not(.dark) [class*="bg-zinc-9"] {
+  background-color: #FFFFFF !important;
+  color: #1C355E !important;
+  border-color: rgba(28,53,94,0.12) !important;
+}
+
+/* ─── GLASS CARDS ────────────────────────────────────────────── */
+html:not(.dark) .glass-card {
+  background: rgba(255,255,255,0.95) !important;
+  border: 1px solid rgba(28,53,94,0.1) !important;
+  box-shadow: 0 2px 20px rgba(28,53,94,0.06), 0 1px 4px rgba(28,53,94,0.04) !important;
+}
+
+html:not(.dark) .glass-panel {
+  background: rgba(255,255,255,0.98) !important;
+  border: 1px solid rgba(28,53,94,0.12) !important;
+}
+
+/* ─── SIDEBAR LIGHT ──────────────────────────────────────────── */
+html:not(.dark) [data-sidebar],
+html:not(.dark) aside {
+  background-color: #1C355E !important;
+  border-color: rgba(0,178,169,0.2) !important;
+}
+
+/* ─── DARK BACKGROUNDS (كروت إحصائيات) ─────────────────────── */
+html:not(.dark) [class*="bg-slate-8"],
+html:not(.dark) [class*="bg-slate-7"],
+html:not(.dark) [class*="bg-gray-8"],
+html:not(.dark) [class*="bg-gray-7"] {
+  background-color: #FFFFFF !important;
+  color: #1C355E !important;
+}
+
+/* ─── TABLE ──────────────────────────────────────────────────── */
+html:not(.dark) table,
+html:not(.dark) thead,
+html:not(.dark) tbody,
+html:not(.dark) tr,
+html:not(.dark) th,
+html:not(.dark) td {
+  background-color: transparent;
+  border-color: rgba(28,53,94,0.08);
+  color: #1C355E;
+}
+
+html:not(.dark) thead tr {
+  background-color: rgba(28,53,94,0.04) !important;
+}
+
+html:not(.dark) tbody tr:hover {
+  background-color: rgba(0,178,169,0.04) !important;
+}
+
+/* ─── INPUTS / SELECTS ───────────────────────────────────────── */
+html:not(.dark) input,
+html:not(.dark) select,
+html:not(.dark) textarea {
+  background-color: #FFFFFF !important;
+  border-color: rgba(28,53,94,0.2) !important;
+  color: #1C355E !important;
+}
+
+html:not(.dark) input::placeholder,
+html:not(.dark) textarea::placeholder {
+  color: rgba(28,53,94,0.4) !important;
+}
+
+html:not(.dark) input:focus,
+html:not(.dark) select:focus,
+html:not(.dark) textarea:focus {
+  border-color: #00B2A9 !important;
+  box-shadow: 0 0 0 3px rgba(0,178,169,0.1) !important;
+}
+
+/* ─── BUTTONS ────────────────────────────────────────────────── */
+html:not(.dark) button[class*="outline"] {
+  background-color: #FFFFFF !important;
+  border-color: rgba(28,53,94,0.2) !important;
+  color: #1C355E !important;
+}
+
+/* ─── DROPDOWNS / POPOVERS ───────────────────────────────────── */
+html:not(.dark) [role="listbox"],
+html:not(.dark) [role="menu"],
+html:not(.dark) [data-radix-popper-content-wrapper] > * {
+  background-color: #FFFFFF !important;
+  border-color: rgba(28,53,94,0.12) !important;
+  color: #1C355E !important;
+  box-shadow: 0 8px 30px rgba(28,53,94,0.12), 0 2px 8px rgba(28,53,94,0.06) !important;
+}
+
+/* ─── BADGES TEXT ────────────────────────────────────────────── */
+html:not(.dark) [class*="text-slate-4"],
+html:not(.dark) [class*="text-gray-4"],
+html:not(.dark) [class*="text-slate-3"],
+html:not(.dark) [class*="text-gray-3"] {
+  color: rgba(28,53,94,0.6) !important;
+}
+
+/* ─── DIVIDERS / BORDERS ─────────────────────────────────────── */
+html:not(.dark) [class*="border-slate"],
+html:not(.dark) [class*="border-gray"],
+html:not(.dark) hr {
+  border-color: rgba(28,53,94,0.1) !important;
+}
+
+/* ─── STAT CARDS WITH COLORED BACKGROUNDS ────────────────────── */
+html:not(.dark) [class*="bg-slate-900"],
+html:not(.dark) [class*="bg-slate-800"],
+html:not(.dark) [class*="bg-gray-900"],
+html:not(.dark) [class*="bg-gray-800"],
+html:not(.dark) [class*="bg-zinc-900"],
+html:not(.dark) [class*="bg-zinc-800"],
+html:not(.dark) [class*="bg-neutral-900"],
+html:not(.dark) [class*="bg-neutral-800"] {
+  background-color: #FFFFFF !important;
+  color: #1C355E !important;
+  border: 1px solid rgba(28,53,94,0.10) !important;
+  box-shadow: 0 2px 12px rgba(28,53,94,0.06) !important;
+}
+
+/* ─── THEME TOGGLE BUTTON LIGHT ──────────────────────────────── */
+html:not(.dark) .theme-toggle-btn {
+  background: rgba(28,53,94,0.06) !important;
+  border-color: rgba(28,53,94,0.2) !important;
+  color: #1C355E !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SHARED UTILITIES
+══════════════════════════════════════════════════════════════ */
 @layer utilities {
-  /* Dynamic Glass Cards */
+
+  /* Glass Cards */
   .glass-card {
-    @apply bg-white/90 dark:bg-slate-900/60 backdrop-blur-xl border border-[#00B2A9]/20 shadow-lg shadow-teal-950/5 dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:border-[#00B2A9]/50 transition-all duration-300;
+    @apply bg-white dark:bg-slate-900/60 backdrop-blur-xl;
+    border: 1px solid rgba(0,178,169,0.15);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
   }
-  
+  .glass-card:hover {
+    border-color: rgba(0,178,169,0.35);
+    box-shadow: 0 8px 32px rgba(0,178,169,0.1);
+  }
+
   .glass-panel {
-    @apply bg-white/95 dark:bg-slate-900/80 backdrop-blur-xl border border-[#00B2A9]/30 shadow-2xl;
+    @apply bg-white/98 dark:bg-slate-900/80 backdrop-blur-xl;
+    border: 1px solid rgba(0,178,169,0.2);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.08);
   }
 
-  /* Brand Typography & Gradients */
-  .text-brand-navy {
-    color: #1C355E;
-  }
-  .dark .text-brand-navy {
-    color: #E2E8F0;
-  }
+  /* Brand Colors */
+  .text-brand-navy { color: #1C355E; }
+  .dark .text-brand-navy { color: #E2E8F0; }
+  .text-brand-teal { color: #00B2A9; }
+  .dark .text-brand-teal { color: #00D4CA; }
+  .bg-brand-navy { background-color: #1C355E; }
+  .bg-brand-teal { background-color: #00B2A9; }
 
-  .text-brand-teal {
-    color: #00B2A9;
-  }
-
-  .bg-brand-navy {
-    background-color: #1C355E;
-  }
-
-  .bg-brand-teal {
-    background-color: #00B2A9;
-  }
-
+  /* Sidebar Active */
   .sidebar-glow-active {
-    background: linear-gradient(90deg, rgba(0, 178, 169, 0.15) 0%, rgba(28, 53, 94, 0.05) 100%);
-    border-right: 4px solid #00B2A9;
+    background: linear-gradient(90deg, rgba(0,178,169,0.15) 0%, rgba(28,53,94,0.05) 100%);
+    border-right: 3px solid #00B2A9;
   }
 
-  /* Buttons */
+  /* Primary Button */
   .btn-brand-primary {
-    @apply relative overflow-hidden rounded-xl bg-gradient-to-r from-[#00B2A9] to-[#008C85] px-4 py-2 text-sm font-bold text-white shadow-lg shadow-[#00B2A9]/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#00B2A9]/35 active:translate-y-0 active:scale-[0.98];
+    @apply relative overflow-hidden rounded-xl px-4 py-2 text-sm font-bold text-white;
+    background: linear-gradient(135deg, #00B2A9, #008C85);
+    box-shadow: 0 4px 14px rgba(0,178,169,0.35);
+    transition: all 0.3s ease;
+  }
+  .btn-brand-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0,178,169,0.45);
   }
 
+  /* Badges */
   .badge-brand-teal {
-    @apply bg-[#00B2A9]/10 text-[#00B2A9] border border-[#00B2A9]/30 px-2.5 py-0.5 rounded-full text-xs font-bold;
+    @apply px-2.5 py-0.5 rounded-full text-xs font-bold;
+    background: rgba(0,178,169,0.12);
+    color: #00B2A9;
+    border: 1px solid rgba(0,178,169,0.3);
   }
 
   .badge-brand-navy {
-    @apply bg-[#1C355E]/10 text-[#1C355E] dark:bg-slate-800 dark:text-slate-200 border border-[#1C355E]/20 dark:border-slate-700 px-2.5 py-0.5 rounded-full text-xs font-bold;
+    @apply px-2.5 py-0.5 rounded-full text-xs font-bold;
+    background: rgba(28,53,94,0.08);
+    color: #1C355E;
+    border: 1px solid rgba(28,53,94,0.2);
+  }
+  .dark .badge-brand-navy {
+    background: rgba(255,255,255,0.08);
+    color: #E2E8F0;
+    border-color: rgba(255,255,255,0.15);
+  }
+
+  /* Animation: slow spin */
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .animate-spin-slow {
+    animation: spin-slow 4s linear infinite;
   }
 }

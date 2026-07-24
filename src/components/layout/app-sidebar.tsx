@@ -148,12 +148,13 @@ export function AppSidebar({ className }: AppSidebarProps) {
   return (
     <aside
       className={cn(
-        "flex h-full w-64 flex-col bg-slate-950",
+        "flex h-full w-64 flex-col",
+        "bg-[#1C355E] dark:bg-[#080c18]",
         className
       )}
     >
       {/* ── Brand / Logo ──────────────────────────────────────────── */}
-      <div className="flex h-20 flex-shrink-0 items-center justify-between gap-2 border-b border-border/60 px-3 bg-slate-900/40 backdrop-blur-md">
+      <div className="flex h-20 flex-shrink-0 items-center justify-between gap-2 border-b border-white/10 dark:border-white/5 px-3 bg-black/10 dark:bg-black/20 backdrop-blur-md">
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-white p-1 shadow-lg shadow-teal-900/30 overflow-hidden ring-2 ring-[#00B2A9]/40">
             <img src="/logo.jpg" alt="جمعية اليتامى التنموية" className="h-full w-full object-contain" />
@@ -169,11 +170,11 @@ export function AppSidebar({ className }: AppSidebarProps) {
       </div>
 
       {/* ── Navigation ────────────────────────────────────────────── */}
-      <nav className="flex-1 overflow-y-auto px-3 py-5 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-700">
+      <nav className="flex-1 overflow-y-auto px-3 py-5 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20">
 
         {/* SECTION 1: الرئيسية والاستهداف */}
         <div className="mb-5 space-y-1">
-          <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-widest text-emerald-500/80">
+          <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-widest text-teal-300/70">
             الرئيسية والتحليلات
           </p>
           {[
@@ -191,16 +192,11 @@ export function AppSidebar({ className }: AppSidebarProps) {
                 className={cn(
                   "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold transition-all duration-200",
                   active
-                    ? "sidebar-glow-active text-emerald-400 bg-emerald-500/10 shadow-sm"
-                    : "text-slate-400 hover:bg-slate-900/80 hover:text-slate-200"
+                    ? "bg-white/15 text-[#00D4CA] shadow-sm border-r-2 border-[#00B2A9]"
+                    : "text-white/70 hover:bg-white/8 hover:text-white"
                 )}
               >
-                <div
-                  className={cn(
-                    "absolute right-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-l-full bg-emerald-400 transition-all duration-300",
-                    active ? "opacity-100 scale-100" : "opacity-0 scale-50"
-                  )}
-                />
+
                 <Icon
                   className={cn(
                     "h-4 w-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110",
@@ -220,7 +216,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
 
         {/* SECTION 2: إدارة الفئات والأسر */}
         <div className="mb-5 space-y-1">
-          <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-widest text-teal-500/80">
+          <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-widest text-teal-300/70">
             إدارة المستفيدين
           </p>
           {[
@@ -239,20 +235,14 @@ export function AppSidebar({ className }: AppSidebarProps) {
                 className={cn(
                   "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold transition-all duration-200",
                   active
-                    ? "sidebar-glow-active text-emerald-400 bg-emerald-500/10 shadow-sm"
-                    : "text-slate-400 hover:bg-slate-900/80 hover:text-slate-200"
+                    ? "bg-white/15 text-[#00D4CA] shadow-sm border-r-2 border-[#00B2A9]"
+                    : "text-white/70 hover:bg-white/8 hover:text-white"
                 )}
               >
-                <div
-                  className={cn(
-                    "absolute right-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-l-full bg-emerald-400 transition-all duration-300",
-                    active ? "opacity-100 scale-100" : "opacity-0 scale-50"
-                  )}
-                />
                 <Icon
                   className={cn(
                     "h-4 w-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110",
-                    active ? "text-emerald-400" : item.color || "text-slate-400"
+                    active ? "text-[#00D4CA]" : "text-white/60 group-hover:text-white"
                   )}
                 />
                 <span className="flex-1 truncate">{item.label}</span>
@@ -263,7 +253,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
 
         {/* SECTION 3: الكفالات والمشاريع */}
         <div className="mb-5 space-y-1">
-          <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-widest text-sky-500/80">
+          <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-widest text-teal-300/70">
             الكفالات والتوزيعات
           </p>
           {[
@@ -280,20 +270,14 @@ export function AppSidebar({ className }: AppSidebarProps) {
                 className={cn(
                   "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold transition-all duration-200",
                   active
-                    ? "sidebar-glow-active text-emerald-400 bg-emerald-500/10 shadow-sm"
-                    : "text-slate-400 hover:bg-slate-900/80 hover:text-slate-200"
+                    ? "bg-white/15 text-[#00D4CA] shadow-sm border-r-2 border-[#00B2A9]"
+                    : "text-white/70 hover:bg-white/8 hover:text-white"
                 )}
               >
-                <div
-                  className={cn(
-                    "absolute right-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-l-full bg-emerald-400 transition-all duration-300",
-                    active ? "opacity-100 scale-100" : "opacity-0 scale-50"
-                  )}
-                />
                 <Icon
                   className={cn(
                     "h-4 w-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110",
-                    active ? "text-emerald-400" : item.color || "text-slate-400"
+                    active ? "text-[#00D4CA]" : "text-white/60 group-hover:text-white"
                   )}
                 />
                 <span className="flex-1 truncate">{item.label}</span>
@@ -304,7 +288,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
 
         {/* SECTION 4: النظام والتنبيهات */}
         <div className="space-y-1">
-          <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+          <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-widest text-teal-300/70">
             أدوات النظام
           </p>
           {[
@@ -322,20 +306,14 @@ export function AppSidebar({ className }: AppSidebarProps) {
                 className={cn(
                   "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold transition-all duration-200",
                   active
-                    ? "sidebar-glow-active text-emerald-400 bg-emerald-500/10 shadow-sm"
-                    : "text-slate-400 hover:bg-slate-900/80 hover:text-slate-200"
+                    ? "bg-white/15 text-[#00D4CA] shadow-sm border-r-2 border-[#00B2A9]"
+                    : "text-white/70 hover:bg-white/8 hover:text-white"
                 )}
               >
-                <div
-                  className={cn(
-                    "absolute right-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-l-full bg-emerald-400 transition-all duration-300",
-                    active ? "opacity-100 scale-100" : "opacity-0 scale-50"
-                  )}
-                />
                 <Icon
                   className={cn(
                     "h-4 w-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110",
-                    active ? "text-emerald-400" : item.color || "text-slate-400"
+                    active ? "text-[#00D4CA]" : "text-white/60 group-hover:text-white"
                   )}
                 />
                 <span className="flex-1 truncate">{item.label}</span>
@@ -346,18 +324,18 @@ export function AppSidebar({ className }: AppSidebarProps) {
       </nav>
 
       {/* ── User Footer ───────────────────────────────────────────── */}
-      <div className="flex-shrink-0 border-t border-slate-800/60 p-3">
-        <div className="flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-slate-800/40">
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-sm font-bold text-white shadow">
+      <div className="flex-shrink-0 border-t border-white/10 p-3">
+        <div className="flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-white/8">
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#00B2A9] to-[#1C355E] text-sm font-bold text-white shadow-lg">
             م
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-slate-200">
+            <p className="truncate text-sm font-semibold text-white">
               مشرف النظام
             </p>
-            <p className="truncate text-xs text-slate-500">admin@ngo.com</p>
+            <p className="truncate text-xs text-white/50">admin@ngo.com</p>
           </div>
-          <ChevronLeft className="h-4 w-4 flex-shrink-0 text-slate-600" />
+          <ChevronLeft className="h-4 w-4 flex-shrink-0 text-white/30" />
         </div>
       </div>
     </aside>
