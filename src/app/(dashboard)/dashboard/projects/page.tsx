@@ -101,79 +101,46 @@ export default async function ProjectsPage() {
       {/* ── KPI Summary Cards ─────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Active Projects */}
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100/50">
+        <Card className="border border-blue-500/20 bg-gradient-to-br from-blue-500/10 to-blue-600/5 dark:from-blue-950/40 dark:to-blue-900/20 shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-semibold text-blue-600">المشاريع النشطة</p>
-                <p className="mt-2 text-2xl font-bold text-blue-900 tabular-nums">
+                <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">المشاريع النشطة</p>
+                <p className="mt-2 text-2xl font-bold text-[#1C355E] dark:text-white tabular-nums">
                   {activeProjectsCount.toLocaleString("ar-SA-u-nu-latn")}
                 </p>
               </div>
-              <div className="rounded-xl bg-blue-500/10 p-2.5 text-blue-600">
+              <div className="rounded-xl bg-blue-500/10 p-2.5 text-blue-600 dark:text-blue-400">
                 <Folder className="h-5 w-5" />
               </div>
             </div>
-            <div className="mt-2 text-xs text-blue-700/70 font-medium">
+            <div className="mt-2 text-xs text-blue-700/70 dark:text-blue-300/70 font-medium">
               المشاريع الجاري تنفيذها ميدانياً
             </div>
           </CardContent>
         </Card>
 
         {/* Total Target Beneficiaries */}
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50 to-amber-100/50">
+        <Card className="border border-amber-500/20 bg-gradient-to-br from-amber-500/10 to-amber-600/5 dark:from-amber-950/40 dark:to-amber-900/20 shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-semibold text-amber-600">المستهدفون الإجمالي</p>
-                <p className="mt-2 text-2xl font-bold text-amber-900 tabular-nums">
+                <p className="text-sm font-semibold text-amber-600 dark:text-amber-400">المستهدفون الإجمالي</p>
+                <p className="mt-2 text-2xl font-bold text-[#1C355E] dark:text-white tabular-nums">
                   {totalTarget.toLocaleString("ar-SA-u-nu-latn")}
                 </p>
               </div>
-              <div className="rounded-xl bg-amber-500/10 p-2.5 text-amber-600">
+              <div className="rounded-xl bg-amber-500/10 p-2.5 text-amber-600 dark:text-amber-400">
                 <Target className="h-5 w-5" />
               </div>
             </div>
-            <div className="mt-2 text-xs text-amber-700/70 font-medium">
+            <div className="mt-2 text-xs text-amber-700/70 dark:text-amber-300/70 font-medium">
               إجمالي عدد المستهدفين في المشاريع
             </div>
           </CardContent>
         </Card>
 
         {/* Delivered Count */}
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-emerald-100/50">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-emerald-600">التسليمات الميدانية</p>
-                <p className="mt-2 text-2xl font-bold text-emerald-900 tabular-nums">
-                  {deliveredCount.toLocaleString("ar-SA-u-nu-latn")}
-                </p>
-              </div>
-              <div className="rounded-xl bg-emerald-500/10 p-2.5 text-emerald-600">
-                <CheckCircle className="h-5 w-5" />
-              </div>
-            </div>
-            <div className="mt-2 text-xs text-emerald-700/70 font-medium">
-              عمليات التوزيع المسلمة فعلياً للأفراد
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Total Progress */}
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50 to-purple-100/50">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-purple-600">نسبة الإنجاز الإجمالية</p>
-                <p className="mt-2 text-2xl font-bold text-purple-900 tabular-nums">
-                  {deliveryProgress.toLocaleString("ar-SA-u-nu-latn")}%
-                </p>
-              </div>
-              <div className="rounded-xl bg-purple-500/10 p-2.5 text-purple-600">
-                <Percent className="h-5 w-5" />
-              </div>
-            </div>
             <div className="mt-2 text-xs text-purple-700/70 font-medium">
               مؤشر تسليم المساعدات العام
             </div>

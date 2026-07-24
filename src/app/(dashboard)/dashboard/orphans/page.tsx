@@ -86,48 +86,48 @@ export default async function OrphansPage() {
 
       {/* ── Stats Summary ───────────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Card className="glass-card border border-blue-500/20 shadow-[0_0_20px_rgba(59,130,246,0.02)] hover:border-blue-500/40 hover:-translate-y-0.5 transition-all duration-300">
+        <Card className="glass-card border border-blue-500/20 shadow-sm hover:border-blue-500/40 hover:-translate-y-0.5 transition-all duration-300">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-bold text-blue-400">إجمالي الأيتام</p>
-                <p className="mt-2 text-2xl font-extrabold text-white tabular-nums">
+                <p className="text-sm font-bold text-blue-600 dark:text-blue-400">إجمالي الأيتام</p>
+                <p className="mt-2 text-2xl font-extrabold text-[#1C355E] dark:text-white tabular-nums">
                   {orphans.length.toLocaleString("ar-SA-u-nu-latn")}
                 </p>
               </div>
-              <div className="rounded-xl bg-blue-500/10 p-2.5 text-blue-400">
+              <div className="rounded-xl bg-blue-500/10 p-2.5 text-blue-600 dark:text-blue-400">
                 <Baby className="h-5 w-5" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="glass-card border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.02)] hover:border-emerald-500/40 hover:-translate-y-0.5 transition-all duration-300">
+        <Card className="glass-card border border-emerald-500/20 shadow-sm hover:border-emerald-500/40 hover:-translate-y-0.5 transition-all duration-300">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-bold text-emerald-400">الأيتام الذكور</p>
-                <p className="mt-2 text-2xl font-extrabold text-white tabular-nums">
+                <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">الأيتام الذكور</p>
+                <p className="mt-2 text-2xl font-extrabold text-[#1C355E] dark:text-white tabular-nums">
                   {orphans.filter(o => o.gender === "MALE").length.toLocaleString("ar-SA-u-nu-latn")}
                 </p>
               </div>
-              <div className="rounded-xl bg-emerald-500/10 p-2.5 text-emerald-400">
+              <div className="rounded-xl bg-emerald-500/10 p-2.5 text-emerald-600 dark:text-emerald-400">
                 <Baby className="h-5 w-5" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="glass-card border border-rose-500/20 shadow-[0_0_20px_rgba(244,63,94,0.02)] hover:border-rose-500/40 hover:-translate-y-0.5 transition-all duration-300">
+        <Card className="glass-card border border-rose-500/20 shadow-sm hover:border-rose-500/40 hover:-translate-y-0.5 transition-all duration-300">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-bold text-rose-400">الأيتام الإناث</p>
-                <p className="mt-2 text-2xl font-extrabold text-white tabular-nums">
+                <p className="text-sm font-bold text-rose-600 dark:text-rose-400">الأيتام الإناث</p>
+                <p className="mt-2 text-2xl font-extrabold text-[#1C355E] dark:text-white tabular-nums">
                   {orphans.filter(o => o.gender === "FEMALE").length.toLocaleString("ar-SA-u-nu-latn")}
                 </p>
               </div>
-              <div className="rounded-xl bg-rose-500/10 p-2.5 text-rose-400">
+              <div className="rounded-xl bg-rose-500/10 p-2.5 text-rose-600 dark:text-rose-400">
                 <Heart className="h-5 w-5" fill="currentColor" />
               </div>
             </div>

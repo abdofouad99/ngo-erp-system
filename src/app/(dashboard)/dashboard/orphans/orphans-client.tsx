@@ -1087,18 +1087,18 @@ export function OrphansClient({
 
         {/* ── Pagination controls ──────────────────────────────────── */}
         {filteredOrphans.length > 0 && (
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-6 py-4 border-t border-white/5 bg-slate-900/10">
-            <div className="text-xs text-slate-400 font-medium">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-6 py-4 border-t border-[#1C355E]/10 dark:border-white/5 bg-white/50 dark:bg-slate-900/10">
+            <div className="text-xs text-[#1C355E]/70 dark:text-slate-400 font-medium">
               عرض{" "}
-              <span className="text-white font-bold tabular-nums">
+              <span className="text-[#1C355E] dark:text-white font-bold tabular-nums">
                 {Math.min((currentPage - 1) * pageSize + 1, filteredOrphans.length).toLocaleString("ar-YE-u-nu-latn")}
               </span>{" "}
               إلى{" "}
-              <span className="text-white font-bold tabular-nums">
+              <span className="text-[#1C355E] dark:text-white font-bold tabular-nums">
                 {Math.min(currentPage * pageSize, filteredOrphans.length).toLocaleString("ar-YE-u-nu-latn")}
               </span>{" "}
               من أصل{" "}
-              <span className="text-white font-bold tabular-nums">
+              <span className="text-[#1C355E] dark:text-white font-bold tabular-nums">
                 {filteredOrphans.length.toLocaleString("ar-YE-u-nu-latn")}
               </span>{" "}
               يتيم
@@ -1107,17 +1107,17 @@ export function OrphansClient({
             <div className="flex items-center gap-4 justify-between sm:justify-end">
               {/* Page size selector */}
               <div className="flex items-center gap-2">
-                <span className="text-[10px] text-slate-400 whitespace-nowrap">الصفوف لكل صفحة:</span>
+                <span className="text-[10px] text-[#1C355E]/60 dark:text-slate-400 whitespace-nowrap">الصفوف لكل صفحة:</span>
                 <select
                   value={pageSize}
                   onChange={(e) => {
                     setPageSize(Number(e.target.value))
                     setCurrentPage(1)
                   }}
-                  className="bg-slate-950 border border-white/10 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-emerald-500/50 cursor-pointer"
+                  className="bg-white dark:bg-slate-950 border border-[#1C355E]/20 dark:border-white/10 rounded-lg px-2 py-1 text-xs text-[#1C355E] dark:text-white focus:outline-none focus:border-[#00B2A9] dark:focus:border-emerald-500/50 cursor-pointer"
                 >
-                  <option value={10}>١٠</option>
-                  <option value={25}>٢٥</option>
+                  <option value={10} className="bg-white dark:bg-slate-950 text-[#1C355E] dark:text-white">١٠</option>
+                  <option value={25} className="bg-white dark:bg-slate-950 text-[#1C355E] dark:text-white">٢٥</option>
                   <option value={50}>٥٠</option>
                   <option value={100}>١٠٠</option>
                 </select>
