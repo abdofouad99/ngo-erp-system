@@ -233,12 +233,12 @@ export function DashboardCharts({
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-slate-900/95 backdrop-blur-xl border border-emerald-500/30 p-3 rounded-xl shadow-2xl text-right space-y-1">
-          <p className="text-xs font-bold text-slate-200 border-b border-border/40 pb-1">{label}</p>
+        <div className="bg-white dark:bg-slate-900/95 backdrop-blur-xl border border-[#00B2A9]/30 dark:border-emerald-500/30 p-3 rounded-xl shadow-2xl text-right space-y-1">
+          <p className="text-xs font-bold text-[#1C355E] dark:text-slate-200 border-b border-[#1C355E]/10 dark:border-border/40 pb-1">{label}</p>
           {payload.map((entry: any, index: number) => (
             <div key={index} className="flex items-center justify-between gap-4 text-xs">
-              <span className="font-bold font-mono text-emerald-400">{entry.value}</span>
-              <span className="text-slate-300 font-medium" style={{ color: entry.color }}>
+              <span className="font-bold font-mono text-[#00B2A9] dark:text-emerald-400">{entry.value}</span>
+              <span className="text-[#1C355E]/70 dark:text-slate-300 font-medium" style={{ color: entry.color }}>
                 {entry.name}
               </span>
             </div>
