@@ -397,7 +397,7 @@ export default async function DashboardPage() {
               ].map((item) => (
                 <div
                   key={item.label}
-                  className="flex items-center justify-between rounded-lg bg-slate-900/40 border border-border/40 px-3 py-2.5 hover:border-slate-800 transition-colors"
+                  className="flex items-center justify-between rounded-lg bg-[#1C355E]/4 dark:bg-slate-900/40 border border-[#1C355E]/8 dark:border-border/40 px-3 py-2.5 hover:border-[#00B2A9]/20 dark:hover:border-slate-800 transition-colors"
                 >
                   <span className="text-sm text-foreground/80">{item.label}</span>
                   <div className="flex items-center gap-2">

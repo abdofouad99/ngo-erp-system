@@ -252,10 +252,10 @@ export function DashboardCharts({
   return (
     <div className="space-y-6">
       {/* ── Filter Bar ────────────────────────────────────────── */}
-      <Card className="bg-slate-900/60 border border-emerald-500/20 backdrop-blur-xl shadow-xl">
+      <Card className="bg-white dark:bg-slate-900/60 border border-[#1C355E]/10 dark:border-emerald-500/20 backdrop-blur-xl shadow-sm dark:shadow-xl">
         <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5 text-sm text-slate-200 font-bold">
-            <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400">
+          <div className="flex items-center gap-2.5 text-sm text-[#1C355E] dark:text-slate-200 font-bold">
+            <div className="p-1.5 rounded-lg bg-[#00B2A9]/10 dark:bg-emerald-500/20 text-[#00B2A9] dark:text-emerald-400">
               <Filter className="h-4 w-4" />
             </div>
             <span>تصفية وتحليل لوحة البيانات بالكامل جغرافياً:</span>
@@ -265,11 +265,11 @@ export function DashboardCharts({
             <select
               value={selectedGov}
               onChange={(e) => setSelectedGov(e.target.value)}
-              className="flex h-10 w-full sm:w-60 rounded-xl border border-emerald-500/30 bg-slate-950 px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right text-emerald-300 font-bold cursor-pointer transition-all shadow-inner"
+              className="flex h-10 w-full sm:w-60 rounded-xl border border-[#1C355E]/20 dark:border-emerald-500/30 bg-white dark:bg-slate-950 px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00B2A9] text-right text-[#1C355E] dark:text-emerald-300 font-bold cursor-pointer transition-all shadow-inner"
             >
-              <option value="ALL" className="bg-slate-950 text-white">كل المحافظات (عرض كلي)</option>
+              <option value="ALL" className="bg-white dark:bg-slate-950 text-[#1C355E] dark:text-white">كل المحافظات (عرض كلي)</option>
               {governorates.map((gov) => (
-                <option key={gov.id} value={gov.id.toString()} className="bg-slate-950 text-white">
+                <option key={gov.id} value={gov.id.toString()} className="bg-white dark:bg-slate-950 text-[#1C355E] dark:text-white">
                   {gov.nameAr}
                 </option>
               ))}
@@ -284,8 +284,8 @@ export function DashboardCharts({
           const Icon = card.icon
           return (
             <Link key={card.title} href={card.href}>
-              <Card className="group cursor-pointer bg-slate-900/40 border border-border/60 hover:border-emerald-500/40 hover:bg-slate-900/70 transition-all duration-300 shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl group-hover:bg-emerald-500/10 transition-all" />
+              <Card className="group cursor-pointer bg-white dark:bg-slate-900/40 border border-[#1C355E]/10 dark:border-border/60 hover:border-[#00B2A9]/40 dark:hover:border-emerald-500/40 hover:shadow-lg dark:hover:bg-slate-900/70 transition-all duration-300 shadow-sm dark:shadow-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-[#00B2A9]/5 rounded-full blur-xl group-hover:bg-[#00B2A9]/10 transition-all" />
                 <CardContent className="p-5 relative">
                   <div className="flex items-start justify-between">
                     <div className={`rounded-xl ${card.iconBg} p-2.5 shadow-md`}>
@@ -299,13 +299,13 @@ export function DashboardCharts({
 
                   <div className="flex items-end justify-between mt-4">
                     <div>
-                      <p className="text-3xl font-black tabular-nums text-white group-hover:text-emerald-400 transition-colors">
+                      <p className="text-3xl font-black tabular-nums text-[#1C355E] dark:text-white group-hover:text-[#00B2A9] dark:group-hover:text-emerald-400 transition-colors">
                         {card.value.toLocaleString("ar-YE-u-nu-latn")}
                       </p>
-                      <p className="mt-1 text-xs font-bold text-slate-300">
+                      <p className="mt-1 text-xs font-bold text-[#1C355E]/80 dark:text-slate-300">
                         {card.title}
                       </p>
-                      <p className="text-[10px] text-slate-400 font-medium">{card.description}</p>
+                      <p className="text-[10px] text-[#1C355E]/60 dark:text-slate-400 font-medium">{card.description}</p>
                     </div>
 
                     {/* Sparkline chart */}
@@ -342,16 +342,16 @@ export function DashboardCharts({
       {/* ── Main Charts Grid ────────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* ── Chart 0: Monthly Bar Chart ─────────────────────────── */}
-        <Card className="bg-slate-900/50 border border-border/60 backdrop-blur-xl md:col-span-2 shadow-2xl">
-          <CardHeader className="pb-2 border-b border-border/40 flex flex-row items-center justify-between">
+        <Card className="bg-white dark:bg-slate-900/50 border border-[#1C355E]/10 dark:border-border/60 md:col-span-2 shadow-sm dark:shadow-2xl">
+          <CardHeader className="pb-2 border-b border-[#1C355E]/8 dark:border-border/40 flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-sm font-bold text-emerald-400 flex items-center gap-2">
-                <BarChart2 className="h-4 w-4 text-emerald-400" />
+              <CardTitle className="text-sm font-bold text-[#00B2A9] dark:text-emerald-400 flex items-center gap-2">
+                <BarChart2 className="h-4 w-4" />
                 التسجيلات الشهرية للمستفيدين والأسر
               </CardTitle>
-              <CardDescription className="text-xs text-slate-400">مقارنة شهرية متدرجة لأعمدة التسجيل الجديد (آخر 6 أشهر).</CardDescription>
+              <CardDescription className="text-xs text-[#1C355E]/60 dark:text-slate-400">مقارنة شهرية متدرجة لأعمدة التسجيل الجديد (آخر 6 أشهر).</CardDescription>
             </div>
-            <span className="text-[10px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 px-2 py-1 rounded-lg font-bold">
+            <span className="text-[10px] bg-[#00B2A9]/10 dark:bg-emerald-500/10 text-[#00B2A9] dark:text-emerald-300 border border-[#00B2A9]/20 dark:border-emerald-500/20 px-2 py-1 rounded-lg font-bold">
               تحديث تلقائي
             </span>
           </CardHeader>
@@ -368,10 +368,10 @@ export function DashboardCharts({
                     <stop offset="100%" stopColor="#059669" stopOpacity={0.6}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
-                <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={{ stroke: "#334155" }} />
-                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={{ stroke: "#334155" }} />
-                <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(16, 185, 129, 0.05)" }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#94a3b8" opacity={0.2} />
+                <XAxis dataKey="name" stroke="#64748b" fontSize={11} tickLine={false} axisLine={{ stroke: "#94a3b8" }} />
+                <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={{ stroke: "#94a3b8" }} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(0, 178, 169, 0.05)" }} />
                 <Legend verticalAlign="top" height={36} iconType="circle" />
                 <Bar dataKey="الأيتام" fill="url(#barOrphGrad)" radius={[8, 8, 0, 0]} maxBarSize={36} />
                 <Bar dataKey="الأسر" fill="url(#barFamGrad)" radius={[8, 8, 0, 0]} maxBarSize={36} />
@@ -381,14 +381,14 @@ export function DashboardCharts({
         </Card>
 
         {/* ── Chart 0b: Monthly Line/Area Chart ──────────────────── */}
-        <Card className="bg-slate-900/50 border border-border/60 backdrop-blur-xl md:col-span-2 shadow-2xl">
-          <CardHeader className="pb-2 border-b border-border/40 flex flex-row items-center justify-between">
+        <Card className="bg-white dark:bg-slate-900/50 border border-[#1C355E]/10 dark:border-border/60 md:col-span-2 shadow-sm dark:shadow-2xl">
+          <CardHeader className="pb-2 border-b border-[#1C355E]/8 dark:border-border/40 flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-sm font-bold text-cyan-400 flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-cyan-400" />
-                معدل النمو السنوي التراكمي (مخطط نيون مشع)
+              <CardTitle className="text-sm font-bold text-[#00B2A9] dark:text-cyan-400 flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                معدل النمو السنوي التراكمي
               </CardTitle>
-              <CardDescription className="text-xs text-slate-400">رصد نمو إدراج المستفيدين عبر مسار 12 شهراً متصلة.</CardDescription>
+              <CardDescription className="text-xs text-[#1C355E]/60 dark:text-slate-400">رصد نمو إدراج المستفيدين عبر مسار 12 شهراً متصلة.</CardDescription>
             </div>
           </CardHeader>
           <CardContent className="h-80 pt-4">
@@ -404,9 +404,9 @@ export function DashboardCharts({
                     <stop offset="95%" stopColor="#06b6d4" stopOpacity={0.0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
-                <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} />
-                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#94a3b8" opacity={0.2} />
+                <XAxis dataKey="name" stroke="#64748b" fontSize={11} tickLine={false} />
+                <YAxis stroke="#64748b" fontSize={11} tickLine={false} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend verticalAlign="top" height={36} iconType="circle" />
                 <Area type="monotone" dataKey="الأيتام" stroke="#10b981" fillOpacity={1} fill="url(#areaOrphans)" strokeWidth={3} />
@@ -417,9 +417,9 @@ export function DashboardCharts({
         </Card>
 
         {/* ── Chart 1: Poverty Levels ────────────────────────────── */}
-        <Card className="bg-slate-900/50 border border-border/60 backdrop-blur-xl shadow-xl">
-          <CardHeader className="pb-2 border-b border-border/40">
-            <CardTitle className="text-sm font-bold text-slate-100 flex items-center gap-2">
+        <Card className="bg-white dark:bg-slate-900/50 border border-[#1C355E]/10 dark:border-border/60 shadow-sm dark:shadow-xl">
+          <CardHeader className="pb-2 border-b border-[#1C355E]/8 dark:border-border/40">
+            <CardTitle className="text-sm font-bold text-[#1C355E] dark:text-slate-100 flex items-center gap-2">
               <Layers className="h-4 w-4 text-purple-400" />
               توزيع الأسر حسب شريحة الفقر
             </CardTitle>
@@ -443,9 +443,9 @@ export function DashboardCharts({
         </Card>
 
         {/* ── Chart 2: Orphan Genders ───────────────────────────── */}
-        <Card className="bg-slate-900/50 border border-border/60 backdrop-blur-xl shadow-xl">
-          <CardHeader className="pb-2 border-b border-border/40">
-            <CardTitle className="text-sm font-bold text-slate-100 flex items-center gap-2">
+        <Card className="bg-white dark:bg-slate-900/50 border border-[#1C355E]/10 dark:border-border/60 shadow-sm dark:shadow-xl">
+          <CardHeader className="pb-2 border-b border-[#1C355E]/8 dark:border-border/40">
+            <CardTitle className="text-sm font-bold text-[#1C355E] dark:text-slate-100 flex items-center gap-2">
               <PieIcon className="h-4 w-4 text-pink-400" />
               نسبة الأيتام (ذكور / إناث)
             </CardTitle>
