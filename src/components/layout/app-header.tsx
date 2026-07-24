@@ -110,7 +110,7 @@ export function AppHeader({ isMarketer }: AppHeaderProps) {
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="flex items-center gap-2 rounded-full px-2 hover:bg-slate-800/60"
+              className="flex items-center gap-2 rounded-full px-2 hover:bg-[#1C355E]/6 dark:hover:bg-slate-800/60"
             >
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-gradient-to-br from-emerald-400 to-teal-600 text-sm font-bold text-white">
