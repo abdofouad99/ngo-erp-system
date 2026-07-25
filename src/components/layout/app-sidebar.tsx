@@ -229,6 +229,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
           {[
             { href: "/dashboard/families", label: "إدارة الأسر المستفيدة", icon: Users, exact: false, color: "text-blue-400" },
             { href: "/dashboard/orphans", label: "إدارة الأيتام", icon: Baby, exact: false, color: "text-purple-400" },
+            { href: "/dashboard/quran-program", label: "برنامج القرآن والدعاة", icon: BookOpen, exact: false, color: "text-emerald-400", badge: "جديد" },
             { href: "/dashboard/patients", label: "إدارة المرضى", icon: Stethoscope, exact: false, color: "text-rose-400" },
             { href: "/dashboard/update-requests", label: "طلبات التحديث الذاتي", icon: RefreshCw, exact: false, color: "text-amber-400" },
             { href: "/dashboard/kanban", label: "لوحة الكانبان", icon: ArrowLeftRight, exact: false, color: "text-indigo-400" },
@@ -253,6 +254,11 @@ export function AppSidebar({ className }: AppSidebarProps) {
                   )}
                 />
                 <span className="flex-1 truncate">{item.label}</span>
+                {item.badge && (
+                  <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[9px] px-1.5 py-0.5 rounded-full font-bold">
+                    {item.badge}
+                  </span>
+                )}
               </Link>
             )
           })}
