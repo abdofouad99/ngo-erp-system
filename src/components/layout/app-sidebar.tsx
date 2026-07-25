@@ -19,6 +19,7 @@ import {
   ClipboardList,
   Bell,
   Stethoscope,
+  BookOpen,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -44,6 +45,12 @@ const mainNavItems = [
     href: "/dashboard/orphans",
     label: "إدارة الأيتام",
     icon: Baby,
+    exact: false,
+  },
+  {
+    href: "/dashboard/quran-program",
+    label: "برنامج القرآن والدعاة",
+    icon: BookOpen,
     exact: false,
   },
   {
