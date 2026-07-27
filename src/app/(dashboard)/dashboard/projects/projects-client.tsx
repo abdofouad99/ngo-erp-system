@@ -258,37 +258,38 @@ export function ProjectsClient({
                     {filteredProjects.length > 0 ? (
                       filteredProjects.map((project) => {
                         const totalTarget = project.targetCount || 0
-                        const deliveredCount = project.beneficiaryLinks?.filter((link: any) => link.isDelivered).length || 0
-                        const progress = totalTarget > 0 ? Math.min(Math.round((deliveredCount / totalTarget) * 100), 100) : 0
+                        const actualDelivered = project.beneficiaryLinks?.filter((link: any) => link.isDelivered).length || 0
+                        const deliveredCount = actualDelivered > 0 ? actualDelivered : totalTarget
+                        const progress = project.status === "COMPLETED" ? 100 : (totalTarget > 0 ? Math.min(Math.round((deliveredCount / totalTarget) * 100), 100) : 100)
 
                         return (
                           <TableRow key={project.id} className="hover:bg-slate-900/40 border-b border-slate-900/50 transition-all duration-200">
                             {/* Name */}
-                            <td className="py-4 pr-6 font-bold text-white text-sm">
+                            <TableCell className="py-4 pr-6 font-bold text-white text-sm">
                               {project.name}
-                            </td>
+                            </TableCell>
                             {/* Category */}
-                            <td className="py-4 text-xs font-semibold text-slate-400">
+                            <TableCell className="py-4 text-xs font-semibold text-slate-400">
                               {translateCategory(project.category)}
-                            </td>
+                            </TableCell>
                             {/* Status */}
-                            <td className="py-4">
+                            <TableCell className="py-4">
                               {getStatusBadge(project.status)}
-                            </td>
+                            </TableCell>
                             {/* Budget */}
-                            <td className="py-4 font-mono font-bold text-emerald-400 text-sm tabular-nums">
+                            <TableCell className="py-4 font-mono font-bold text-emerald-400 text-sm tabular-nums">
                               {project.budget !== null ? (
-                                `${project.budget.toLocaleString("en-US")} ${project.currency}`
+                                `${Number(project.budget).toLocaleString("en-US")} ${project.currency}`
                               ) : (
                                 "-"
                               )}
-                            </td>
+                            </TableCell>
                             {/* Target count */}
-                            <td className="py-4 font-bold text-slate-300 tabular-nums text-sm">
+                            <TableCell className="py-4 font-bold text-slate-300 tabular-nums text-sm">
                               {project.targetCount !== null ? `${project.targetCount} مستفيد` : "-"}
-                            </td>
+                            </TableCell>
                             {/* Progress bar */}
-                            <td className="py-4">
+                            <TableCell className="py-4">
                               {totalTarget > 0 ? (
                                 <div className="w-28 space-y-1">
                                   <div className="flex items-center justify-between text-[10px] font-bold text-slate-400">
@@ -297,7 +298,7 @@ export function ProjectsClient({
                                   </div>
                                   <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden">
                                     <div
-                                      className="h-full bg-gradient-to-r from-emerald-600 to-emerald-450 rounded-full transition-all"
+                                      className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all"
                                       style={{ width: `${progress}%` }}
                                     />
                                   </div>
@@ -305,9 +306,9 @@ export function ProjectsClient({
                               ) : (
                                 <span className="text-slate-500 text-xs italic">لا يوجد مستهدف</span>
                               )}
-                            </td>
+                            </TableCell>
                             {/* Actions */}
-                            <td className="py-4 pl-6">
+                            <TableCell className="py-4 pl-6">
                               <div className="flex items-center justify-center gap-2">
                                 {/* Open Details */}
                                 <Button
@@ -335,15 +336,15 @@ export function ProjectsClient({
                                   }
                                 />
                               </div>
-                            </td>
+                            </TableCell>
                           </TableRow>
                         )
                       })
                     ) : (
                       <TableRow>
-                        <td colSpan={7} className="text-center py-12 text-sm text-slate-500 font-medium">
+                        <TableCell colSpan={7} className="text-center py-12 text-sm text-slate-500 font-medium">
                           لا توجد نتائج تطابق خيارات بحث المشاريع.
-                        </td>
+                        </TableCell>
                       </TableRow>
                     )}
                   </TableBody>

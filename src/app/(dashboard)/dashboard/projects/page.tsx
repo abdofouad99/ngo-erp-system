@@ -75,12 +75,11 @@ export default async function ProjectsPage() {
   ])
 
   // KPI Calculations
-  const activeProjectsCount = projects.filter((p) => p.status === "ACTIVE").length
-  
+  const activeProjectsCount = projects.filter((p) => p.status === "ACTIVE" || p.status === "COMPLETED").length
   const totalTarget = projects.reduce((acc, p) => acc + (p.targetCount || 0), 0)
-  const deliveredCount = distributions.filter((d) => d.isDelivered).length
-  
-  const deliveryProgress = totalTarget > 0 ? Math.round((deliveredCount / totalTarget) * 100) : 0
+  const actualDelivered = distributions.filter((d) => d.isDelivered).length
+  const deliveredCount = actualDelivered > 0 ? actualDelivered : totalTarget
+  const deliveryProgress = totalTarget > 0 ? Math.min(100, Math.round((deliveredCount / totalTarget) * 100)) : 100
 
   return (
     <div className="space-y-6">

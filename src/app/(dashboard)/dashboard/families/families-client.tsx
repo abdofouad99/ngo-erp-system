@@ -508,6 +508,9 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
                             {(family.povertyLevel === "SEVERE" || perCapita < 25000) && (
                               <Badge className="bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-[9px] px-1.5 py-0.5 font-bold">فقراء</Badge>
                             )}
+                            {family.socialStatus && (
+                              <Badge className="bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 text-[9px] px-1.5 py-0.5 font-bold">{family.socialStatus}</Badge>
+                            )}
                           </div>
                         </TableCell>
 
