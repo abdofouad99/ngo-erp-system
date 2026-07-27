@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import {
   Sheet,
   SheetContent,
@@ -9,6 +10,7 @@ import {
 } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import {
@@ -25,6 +27,7 @@ import {
   Banknote,
   Phone,
   CreditCard,
+  Search,
 } from "lucide-react"
 
 // =============================================================================
@@ -115,6 +118,8 @@ function exportBank(project: any) {
 }
 
 export function ProjectDetailsSheet({ project, open, onOpenChange }: ProjectDetailsSheetProps) {
+  const [beneficiarySearch, setBeneficiarySearch] = useState("")
+
   if (!project) return null
 
   // Calculations
@@ -123,6 +128,15 @@ export function ProjectDetailsSheet({ project, open, onOpenChange }: ProjectDeta
   
   const targetCount = project.targetCount || 0
   const progressPercent = project.status === "COMPLETED" ? 100 : (targetCount > 0 ? Math.min(Math.round((deliveredCount / targetCount) * 100), 100) : 100)
+
+  const filteredLinks = (project.beneficiaryLinks || []).filter((link: any) => {
+    if (!beneficiarySearch) return true
+    const name = link.beneficiary?.fullName || ""
+    const item = link.deliveredItem || ""
+    const phone = link.beneficiary?.family?.headPhoneNumber || ""
+    const search = beneficiarySearch.toLowerCase()
+    return name.toLowerCase().includes(search) || item.toLowerCase().includes(search) || phone.includes(search)
+  })
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -260,7 +274,7 @@ export function ProjectDetailsSheet({ project, open, onOpenChange }: ProjectDeta
               <div className="flex items-center justify-between mb-2">
                 <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
                   <CheckCircle2 className="h-4.5 w-4.5 text-emerald-400" />
-                  سجل الاستلام الميداني للمستفيدين
+                  سجل الاستلام الميداني للمستفيدين ({totalDeliveries})
                 </h4>
                 <div className="flex gap-2">
                   <span className="text-xs bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold px-2 py-1 rounded-lg">
@@ -272,27 +286,40 @@ export function ProjectDetailsSheet({ project, open, onOpenChange }: ProjectDeta
                 </div>
               </div>
 
-              {project.beneficiaryLinks && project.beneficiaryLinks.length > 0 ? (
-                <div className="overflow-hidden border border-slate-800 rounded-xl bg-slate-950/40">
+              {/* Search box inside sheet */}
+              {totalDeliveries > 0 && (
+                <div className="relative">
+                  <Search className="absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    placeholder="البحث باسم المستفيد، الهاتف، أو المادة..."
+                    value={beneficiarySearch}
+                    onChange={(e) => setBeneficiarySearch(e.target.value)}
+                    className="pr-8 h-9 text-xs bg-slate-900/60 border-slate-800 focus-visible:ring-emerald-500 text-white placeholder:text-slate-500"
+                  />
+                </div>
+              )}
+
+              {filteredLinks.length > 0 ? (
+                <div className="overflow-y-auto max-h-[420px] border border-slate-800 rounded-xl bg-slate-950/40">
                   <table className="w-full text-right text-xs">
-                    <thead className="bg-slate-900 text-slate-300 font-bold border-b border-slate-800">
+                    <thead className="bg-slate-900 text-slate-300 font-bold border-b border-slate-800 sticky top-0 z-10">
                       <tr>
                         <th className="p-3">المستفيد</th>
                         <th className="p-3">الدفعة</th>
                         <th className="p-3">المادة المسلمة</th>
-                        <th className="p-3">الكمية</th>
+                        <th className="p-3">الكمية/القيمة</th>
                         <th className="p-3">تاريخ التسليم</th>
                         <th className="p-3 text-center">الحالة</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800/50 text-slate-300">
-                      {project.beneficiaryLinks.map((link: any) => (
+                      {filteredLinks.map((link: any) => (
                         <tr key={link.id} className="hover:bg-slate-900/30 transition-all duration-150">
                           <td className="p-3">
                             <p className="font-bold text-white">{link.beneficiary?.fullName || "-"}</p>
                             {link.beneficiary?.family?.headPhoneNumber && (
-                              <p className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
-                                <Phone className="h-2.5 w-2.5" />{link.beneficiary.family.headPhoneNumber}
+                              <p className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5 font-mono">
+                                <Phone className="h-2.5 w-2.5 text-slate-500" />{link.beneficiary.family.headPhoneNumber}
                               </p>
                             )}
                           </td>
@@ -324,7 +351,9 @@ export function ProjectDetailsSheet({ project, open, onOpenChange }: ProjectDeta
               ) : (
                 <div className="text-center py-12 bg-slate-900/20 rounded-xl border border-dashed border-slate-800">
                   <ShoppingBag className="h-8 w-8 text-slate-600 mx-auto mb-2 animate-bounce" />
-                  <p className="text-slate-450 text-xs">لا توجد عمليات توزيع أو تسليمات مسجلة لهذا المشروع بعد.</p>
+                  <p className="text-slate-450 text-xs">
+                    {beneficiarySearch ? "لا توجد نتائج تطابق بحثك داخل هذا المشروع." : "لا توجد عمليات توزيع أو تسليمات مسجلة لهذا المشروع بعد."}
+                  </p>
                 </div>
               )}
             </TabsContent>
