@@ -52,7 +52,7 @@ async function getDashboardStats() {
 }
 
 async function getDashboardRawData() {
-  const [families, beneficiaries, governorates] = await Promise.all([
+  const [families, beneficiaries, governorates, sponsors] = await Promise.all([
     prisma.family.findMany({
       where: { deletedAt: null },
       select: {
@@ -104,12 +104,15 @@ async function getDashboardRawData() {
         },
         sponsorships: {
           where: { status: "ACTIVE", deletedAt: null },
-          select: { id: true }
+          select: { id: true, sponsorId: true, sponsor: { select: { fullName: true } } }
         }
       }
     }),
     prisma.governorate.findMany({
       select: { id: true, nameAr: true }
+    }),
+    prisma.sponsor.findMany({
+      select: { id: true, fullName: true }
     })
   ])
 
@@ -130,6 +133,8 @@ async function getDashboardRawData() {
     gender: b.gender,
     isActive: b.isActive,
     isSponsored: b.sponsorships.length > 0,
+    sponsorId: b.sponsorships[0]?.sponsorId || null,
+    sponsorName: b.sponsorships[0]?.sponsor?.fullName || null,
     governorateId: b.family?.subDistrict?.district?.governorate?.id || null,
     governorateName: b.family?.subDistrict?.district?.governorate?.nameAr || "أخرى"
   }))
@@ -137,7 +142,8 @@ async function getDashboardRawData() {
   return {
     families: formattedFamilies,
     beneficiaries: formattedBeneficiaries,
-    governorates
+    governorates,
+    sponsors
   }
 }
 
