@@ -8,6 +8,7 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import {
@@ -20,6 +21,10 @@ import {
   Users,
   CheckCircle2,
   AlertCircle,
+  Printer,
+  Banknote,
+  Phone,
+  CreditCard,
 } from "lucide-react"
 
 // =============================================================================
@@ -73,6 +78,42 @@ interface ProjectDetailsSheetProps {
   onOpenChange: (open: boolean) => void
 }
 
+function printVoucher(project: any) {
+  const links = project.beneficiaryLinks || []
+  const beneficiaryRows = links.map((l: any, i: number) => `
+    <tr style="border-bottom:1px solid #e2e8f0;">
+      <td style="padding:6px 8px;text-align:center;">${i+1}</td>
+      <td style="padding:6px 8px;font-weight:bold;">${l.beneficiary?.fullName||'-'}</td>
+      <td style="padding:6px 8px;text-align:center;">دفعة ${l.batchNumber}</td>
+      <td style="padding:6px 8px;">${l.deliveredItem}</td>
+      <td style="padding:6px 8px;text-align:center;">${l.unitValue?`${l.unitValue} ${l.currency}`:'-'}</td>
+      <td style="padding:6px 8px;text-align:center;">${l.isDelivered?'✅ تم':'⏳ انتظار'}</td>
+      <td style="padding:6px 8px;border:1px solid #ccc;min-width:80px;"></td>
+    </tr>`).join('')
+  const html=`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"/><title>سند استلام - ${project.name}</title>
+  <style>body{font-family:Arial,sans-serif;direction:rtl;padding:20px;color:#1a202c;font-size:12px;}
+  h2{color:#1c355e;border-bottom:3px solid #10b981;padding-bottom:8px;}
+  table{width:100%;border-collapse:collapse;} thead tr{background:#1c355e;color:white;} th{padding:7px;}
+  .footer{margin-top:30px;display:flex;gap:40px;} .sign{text-align:center;border-top:1px solid #ccc;padding-top:6px;font-size:11px;color:#718096;min-width:120px;}
+  </style></head><body>
+  <h2>🕊️ منظمة إغاثة وتنمية المجتمع - سند استلام مساعدات</h2>
+  <p><b>المشروع:</b> ${project.name} &nbsp;|&nbsp; <b>الحالة:</b> ${project.status==='COMPLETED'?'مكتمل ✅':'نشط'} &nbsp;|&nbsp; <b>الميزانية:</b> ${project.budget?Number(project.budget).toLocaleString('en-US')+' '+project.currency:'غير محدد'}</p>
+  <p><b>المستهدف:</b> ${project.targetCount||'-'} مستفيد &nbsp;|&nbsp; <b>تاريخ الطباعة:</b> ${new Date().toLocaleDateString('ar-YE-u-nu-latn')}</p>
+  <table><thead><tr><th>#</th><th>اسم المستفيد</th><th>الدفعة</th><th>المساعدة</th><th>القيمة</th><th>الحالة</th><th>التوقيع</th></tr></thead>
+  <tbody>${beneficiaryRows||'<tr><td colspan=7 style="text-align:center;padding:16px;color:#999;">لا توجد توزيعات</td></tr>'}</tbody></table>
+  <div class="footer"><div class="sign">توقيع مسؤول التوزيع<br/><br/>_____________</div><div class="sign">ختم المنظمة<br/><br/>_____________</div><div class="sign">توقيع الجهة الممولة<br/><br/>_____________</div></div>
+  </body></html>`
+  const w=window.open('','_blank','width=900,height=700');if(w){w.document.write(html);w.document.close();w.print()}
+}
+
+function exportBank(project: any) {
+  const links = project.beneficiaryLinks || []
+  const rows = [["م","الاسم","الحساب البنكي","الهاتف","المبلغ","العملة","الدفعة"],[...links.map((l:any,i:number)=>[i+1,l.beneficiary?.fullName||'-',l.beneficiary?.bankAccountNumber||'-',l.beneficiary?.family?.headPhoneNumber||'-',l.unitValue||'-',l.currency||project.currency||'YER',l.batchNumber])]]
+  const csv="\uFEFF"+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n')
+  const b=new Blob([csv],{type:'text/csv;charset=utf-8;'})
+  const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=`تحويلات_${project.name.slice(0,25)}.csv`;a.click();URL.revokeObjectURL(u)
+}
+
 export function ProjectDetailsSheet({ project, open, onOpenChange }: ProjectDetailsSheetProps) {
   if (!project) return null
 
@@ -81,7 +122,7 @@ export function ProjectDetailsSheet({ project, open, onOpenChange }: ProjectDeta
   const deliveredCount = project.beneficiaryLinks?.filter((link: any) => link.isDelivered).length || 0
   
   const targetCount = project.targetCount || 0
-  const progressPercent = targetCount > 0 ? Math.min(Math.round((deliveredCount / targetCount) * 100), 100) : 0
+  const progressPercent = project.status === "COMPLETED" ? 100 : (targetCount > 0 ? Math.min(Math.round((deliveredCount / targetCount) * 100), 100) : 100)
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -247,10 +288,20 @@ export function ProjectDetailsSheet({ project, open, onOpenChange }: ProjectDeta
                     <tbody className="divide-y divide-slate-800/50 text-slate-300">
                       {project.beneficiaryLinks.map((link: any) => (
                         <tr key={link.id} className="hover:bg-slate-900/30 transition-all duration-150">
-                          <td className="p-3 font-bold text-white">{link.beneficiary?.fullName || "-"}</td>
+                          <td className="p-3">
+                            <p className="font-bold text-white">{link.beneficiary?.fullName || "-"}</p>
+                            {link.beneficiary?.family?.headPhoneNumber && (
+                              <p className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
+                                <Phone className="h-2.5 w-2.5" />{link.beneficiary.family.headPhoneNumber}
+                              </p>
+                            )}
+                          </td>
                           <td className="p-3 font-semibold text-slate-400 tabular-nums">دفعة {link.batchNumber}</td>
                           <td className="p-3">{link.deliveredItem}</td>
-                          <td className="p-3 font-bold text-slate-200 tabular-nums">{link.quantity}</td>
+                          <td className="p-3 font-bold text-slate-200 tabular-nums">
+                            {link.quantity}
+                            {link.unitValue && <div className="text-[10px] text-emerald-400">{link.unitValue} {link.currency}</div>}
+                          </td>
                           <td className="p-3 font-mono text-slate-400">
                             {link.isDelivered ? formatDate(link.deliveryDate) : "-"}
                           </td>
@@ -281,16 +332,36 @@ export function ProjectDetailsSheet({ project, open, onOpenChange }: ProjectDeta
         </div>
 
         {/* --- Footer Panel --- */}
-        <div className="p-4 border-t border-slate-900 flex-shrink-0 flex items-center justify-between bg-slate-950">
-          <div className="text-[10px] text-slate-500 font-medium">
-            تاريخ الإضافة: {formatDate(project.createdAt)}
+        <div className="p-4 border-t border-slate-900 flex-shrink-0 bg-slate-950">
+          <div className="flex flex-wrap items-center gap-2 justify-between">
+            <div className="text-[10px] text-slate-500 font-medium">
+              تاريخ الإضافة: {formatDate(project.createdAt)}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                onClick={() => printVoucher(project)}
+                className="h-8 rounded-xl px-3 text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white gap-1.5 transition-all duration-300"
+              >
+                <Printer className="h-3.5 w-3.5" />
+                طباعة السند
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => exportBank(project)}
+                className="h-8 rounded-xl px-3 text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white gap-1.5 transition-all duration-300"
+              >
+                <Banknote className="h-3.5 w-3.5" />
+                كشف بنكي
+              </Button>
+              <button
+                onClick={() => onOpenChange(false)}
+                className="bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-200 hover:text-white rounded-xl px-4 py-1.5 text-xs font-bold shadow-sm transition-all duration-300"
+              >
+                إغلاق
+              </button>
+            </div>
           </div>
-          <button
-            onClick={() => onOpenChange(false)}
-            className="bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-200 hover:text-white rounded-xl px-5 py-2 text-xs font-bold shadow-sm transition-all duration-300 hover:scale-[1.05] active:scale-[0.95]"
-          >
-            إغلاق النافذة
-          </button>
         </div>
       </SheetContent>
     </Sheet>
