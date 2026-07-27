@@ -489,11 +489,25 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
 
                         {/* Tags Badges */}
                         <TableCell className="py-3.5 text-xs">
-                          <div className="flex flex-wrap gap-1 max-w-[150px]">
-                            {family.hasOrphans && <Badge className="bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/30 text-[9px] px-1.5 py-0.5">أيتام</Badge>}
-                            {family.hasWidow && <Badge className="bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/30 text-[9px] px-1.5 py-0.5">أرامل</Badge>}
-                            {family.isDisplaced && <Badge className="bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30 text-[9px] px-1.5 py-0.5">نازحون</Badge>}
-                            {family.specialNeedsCount > 0 && <Badge className="bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/30 text-[9px] px-1.5 py-0.5">إعاقة</Badge>}
+                          <div className="flex flex-wrap gap-1 max-w-[180px]">
+                            {(family.hasOrphans || (family.orphansCount && family.orphansCount > 0)) && (
+                              <Badge className="bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[9px] px-1.5 py-0.5 font-bold">أيتام</Badge>
+                            )}
+                            {(family.hasWidow || family.headFullName?.includes("أرمل") || family.socialStatus?.includes("أرمل")) && (
+                              <Badge className="bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/30 text-[9px] px-1.5 py-0.5 font-bold">أرامل</Badge>
+                            )}
+                            {(family.isDisplaced || family.subDistrict?.nameAr?.includes("نازح")) && (
+                              <Badge className="bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-500/30 text-[9px] px-1.5 py-0.5 font-bold">نازحون</Badge>
+                            )}
+                            {family.specialNeedsCount > 0 && (
+                              <Badge className="bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/30 text-[9px] px-1.5 py-0.5 font-bold">ذوو إعاقة</Badge>
+                            )}
+                            {totalM >= 5 && (
+                              <Badge className="bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 text-[9px] px-1.5 py-0.5 font-bold">5+</Badge>
+                            )}
+                            {(family.povertyLevel === "SEVERE" || perCapita < 25000) && (
+                              <Badge className="bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-[9px] px-1.5 py-0.5 font-bold">فقراء</Badge>
+                            )}
                           </div>
                         </TableCell>
 
