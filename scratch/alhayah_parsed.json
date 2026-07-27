@@ -1,0 +1,127 @@
+{
+  "sponsor": "مؤسسة الحياة الخيرية",
+  "totalFamilies": 3,
+  "totalMembers": 12,
+  "totalWidows": 3,
+  "families": [
+    {
+      "headName": "أشواق عبدالعزيز علي محمد",
+      "headRole": "الأم",
+      "nationality": "اليمن",
+      "housingType": "إيجار",
+      "rentAmount": "٣٥٠ ر،س",
+      "phone": "777930032",
+      "address": "تعز - حارة عمار",
+      "statusSummary": "أسرة متعففة فقيرة جداً ، ومتراكمة عليها الديون بسبب عدم الحصول على عمل للزوج ، في ظل الوضع الاقتصادي الصعب",
+      "members": [
+        {
+          "name": "عمرعبدالوهاب",
+          "birthYear": 2019,
+          "relation": "ابن",
+          "educationStage": "أول ابتدائي"
+        },
+        {
+          "name": "انس عبدالوهاب",
+          "birthYear": 2022,
+          "relation": "ابن",
+          "educationStage": "طفل"
+        },
+        {
+          "name": "سيف عبدالوهاب",
+          "birthYear": 2024,
+          "relation": "ابن",
+          "educationStage": "طفل"
+        }
+      ]
+    },
+    {
+      "headName": "عبير عبده غالب وهبة",
+      "headRole": "الأم",
+      "nationality": "اليمن",
+      "housingType": "إيجار",
+      "rentAmount": "٣٠٠ ر.س",
+      "phone": "773045967",
+      "address": "تعز - الحوض",
+      "statusSummary": "من الأسر المتعففة الفقيرة ، ورب الأسرة يعاني من مرض نفسي وعاطل عن العمل، ووضعهم المادي صعب خصوصاً مع كثرة عدد أفراد الأسرة",
+      "members": [
+        {
+          "name": "شذى",
+          "birthYear": 2008,
+          "relation": "بنت",
+          "educationStage": "خريجة ثانوية"
+        },
+        {
+          "name": "رياض",
+          "birthYear": 2007,
+          "relation": "ابن",
+          "educationStage": "ثالث ثانوي"
+        },
+        {
+          "name": "شهد",
+          "birthYear": 2010,
+          "relation": "بنت",
+          "educationStage": "ثاني ثانوي"
+        },
+        {
+          "name": "ريماس",
+          "birthYear": 2013,
+          "relation": "بنت",
+          "educationStage": "ثامن"
+        },
+        {
+          "name": "قصي",
+          "birthYear": 2019,
+          "relation": "ابن",
+          "educationStage": "أول"
+        },
+        {
+          "name": "نور",
+          "birthYear": 2016,
+          "relation": "بنت",
+          "educationStage": "سادس"
+        },
+        {
+          "name": "كنان",
+          "birthYear": 2024,
+          "relation": "ابن",
+          "educationStage": "طفل"
+        }
+      ]
+    },
+    {
+      "headName": "بشرى عبدالله غالب",
+      "headRole": "الأم",
+      "nationality": "اليمن",
+      "housingType": "إيجار",
+      "rentAmount": "٣٠٠ ر.س",
+      "phone": "783316533",
+      "address": "تعز - جوة سنان",
+      "statusSummary": "الأم مطلقة ويتيمة وهي التي تصرف على أولادها وليس لها أي دخل مادي",
+      "members": [
+        {
+          "name": "أمير",
+          "birthYear": 2021,
+          "relation": "ابن",
+          "educationStage": "طفل"
+        },
+        {
+          "name": "عدي",
+          "birthYear": 2024,
+          "relation": "ابن",
+          "educationStage": "طفل"
+        }
+      ]
+    }
+  ],
+  "widows": [
+    {
+      "name": "زينب محمد الحاج"
+    },
+    {
+      "name": "نافعة عبده محمد"
+    },
+    {
+      "name": "راوية حمود"
+    }
+  ]
+}
