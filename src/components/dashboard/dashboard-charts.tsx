@@ -308,7 +308,7 @@ export function DashboardCharts({
               <select
                 value={selectedGov}
                 onChange={(e) => setSelectedGov(e.target.value)}
-                className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-bold text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                className="w-full bg-gray-50 dark:bg-slate-900/90 border border-gray-200 dark:border-slate-700/80 rounded-xl px-3 py-2 text-xs font-bold text-gray-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
               >
                 <option value="ALL">كل المحافظات (عرض كلي)</option>
                 {governorates.map((g) => (
@@ -328,7 +328,7 @@ export function DashboardCharts({
               <select
                 value={selectedSponsor}
                 onChange={(e) => setSelectedSponsor(e.target.value)}
-                className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-bold text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+                className="w-full bg-gray-50 dark:bg-slate-900/90 border border-gray-200 dark:border-slate-700/80 rounded-xl px-3 py-2 text-xs font-bold text-gray-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
               >
                 <option value="ALL">جميع الجهات الكافلة (كل الكفلاء)</option>
                 {sponsors.map((sp) => (
@@ -348,7 +348,7 @@ export function DashboardCharts({
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-bold text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                className="w-full bg-gray-50 dark:bg-slate-900/90 border border-gray-200 dark:border-slate-700/80 rounded-xl px-3 py-2 text-xs font-bold text-gray-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
               >
                 <option value="ALL">جميع التصنيفات (أيتام، حفاظ، أسر)</option>
                 <option value="ORPHAN">أيتام ومكفولين (ORPHAN)</option>
@@ -366,7 +366,7 @@ export function DashboardCharts({
               <select
                 value={selectedPoverty}
                 onChange={(e) => setSelectedPoverty(e.target.value)}
-                className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-bold text-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-500/50"
+                className="w-full bg-gray-50 dark:bg-slate-900/90 border border-gray-200 dark:border-slate-700/80 rounded-xl px-3 py-2 text-xs font-bold text-gray-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-500/50"
               >
                 <option value="ALL">جميع مستويات الفقر والاحتياج</option>
                 <option value="SEVERE">فقر شديد / أولوية حرجة (SEVERE)</option>

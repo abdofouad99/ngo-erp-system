@@ -173,23 +173,23 @@ export function PatientsClient({ initialPatients, geography, currentUserRole }: 
       </div>
 
       {/* Filters */}
-      <Card className="border border-border/60 bg-slate-900/30 shadow-none">
+      <Card className="border border-border/60 bg-gray-50 dark:bg-slate-900/30 shadow-none">
         <CardContent className="p-4 space-y-4">
           {/* Search + Basic Filters */}
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-slate-500" />
               <Input
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
                 placeholder="بحث بالاسم، الرقم الوطني، رقم الهاتف، أو التشخيص..."
-                className="pr-9 bg-slate-900/60 border-border text-slate-100 placeholder:text-slate-600 text-right"
+                className="pr-9 bg-white dark:bg-slate-900/60 border-border text-gray-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-600 text-right"
               />
             </div>
             <select
               value={filterSeverity}
               onChange={e => setFilterSeverity(e.target.value)}
-              className="bg-slate-900/60 border border-border text-slate-300 text-right rounded-md px-3 py-2 text-sm min-w-[150px]"
+              className="bg-white dark:bg-slate-900/60 border border-border text-gray-600 dark:text-slate-300 text-right rounded-md px-3 py-2 text-sm min-w-[150px]"
             >
               <option value="ALL">جميع الحالات</option>
               <option value="CRITICAL">🔴 حرج</option>
@@ -200,7 +200,7 @@ export function PatientsClient({ initialPatients, geography, currentUserRole }: 
             <select
               value={filterStatus}
               onChange={e => setFilterStatus(e.target.value)}
-              className="bg-slate-900/60 border border-border text-slate-300 text-right rounded-md px-3 py-2 text-sm min-w-[150px]"
+              className="bg-white dark:bg-slate-900/60 border border-border text-gray-600 dark:text-slate-300 text-right rounded-md px-3 py-2 text-sm min-w-[150px]"
             >
               <option value="ALL">جميع الملفات</option>
               <option value="ACTIVE">🩺 قيد العلاج</option>
@@ -214,20 +214,20 @@ export function PatientsClient({ initialPatients, geography, currentUserRole }: 
           <button
             type="button"
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className="flex items-center gap-1.5 text-[11px] text-slate-400 hover:text-slate-200 transition-colors font-medium"
+            className="flex items-center gap-1.5 text-[11px] text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 transition-colors font-medium"
           >
             {showAdvanced ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
             {showAdvanced ? "إخفاء الفلاتر المتقدمة" : "عرض الفلاتر المتقدمة"}
           </button>
 
           {showAdvanced && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2 border-t border-border/40">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2 border-t border-gray-100 dark:border-border/40">
               <div>
-                <p className="text-[10px] font-bold text-slate-400 mb-1.5">المحافظة</p>
+                <p className="text-[10px] font-bold text-gray-500 dark:text-slate-400 mb-1.5">المحافظة</p>
                 <select
                   value={filterGov}
                   onChange={e => setFilterGov(e.target.value)}
-                  className="w-full bg-slate-900/60 border border-border text-slate-300 text-right rounded-md px-3 py-2 text-xs"
+                  className="w-full bg-white dark:bg-slate-900/60 border border-border text-gray-600 dark:text-slate-300 text-right rounded-md px-3 py-2 text-xs"
                 >
                   <option value="ALL">جميع المحافظات</option>
                   {geography.map((g: any) => (
@@ -238,52 +238,52 @@ export function PatientsClient({ initialPatients, geography, currentUserRole }: 
             </div>
           )}
 
-          <div className="flex items-center justify-between text-[11px] text-slate-400">
-            <span>عدد النتائج: <span className="font-bold text-slate-200">{filteredPatients.length}</span> مريض</span>
+          <div className="flex items-center justify-between text-[11px] text-gray-500 dark:text-slate-400">
+            <span>عدد النتائج: <span className="font-bold text-gray-700 dark:text-slate-200">{filteredPatients.length}</span> مريض</span>
           </div>
         </CardContent>
       </Card>
 
       {/* Table */}
-      <Card className="border border-border/60 bg-slate-900/20 shadow-none overflow-hidden">
+      <Card className="border border-border/60 bg-white dark:bg-slate-900/20 shadow-none overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="border-border/40 bg-slate-900/50 hover:bg-slate-900/50">
-                <TableHead className="text-right text-xs font-bold text-slate-300 py-3 px-4">المريض</TableHead>
-                <TableHead className="text-right text-xs font-bold text-slate-300 py-3 px-4">التشخيص</TableHead>
-                <TableHead className="text-right text-xs font-bold text-slate-300 py-3 px-4">المنطقة</TableHead>
-                <TableHead className="text-right text-xs font-bold text-slate-300 py-3 px-4">درجة الخطورة</TableHead>
-                <TableHead className="text-right text-xs font-bold text-slate-300 py-3 px-4">حالة الملف</TableHead>
-                <TableHead className="text-right text-xs font-bold text-slate-300 py-3 px-4">التكلفة / شهر</TableHead>
-                <TableHead className="text-right text-xs font-bold text-slate-300 py-3 px-4">الإجراءات</TableHead>
+              <TableRow className="border-gray-100 dark:border-border/40 bg-gray-50 dark:bg-slate-900/50 hover:bg-gray-50 dark:hover:bg-slate-900/50">
+                <TableHead className="text-right text-xs font-bold text-gray-600 dark:text-slate-300 py-3 px-4">المريض</TableHead>
+                <TableHead className="text-right text-xs font-bold text-gray-600 dark:text-slate-300 py-3 px-4">التشخيص</TableHead>
+                <TableHead className="text-right text-xs font-bold text-gray-600 dark:text-slate-300 py-3 px-4">المنطقة</TableHead>
+                <TableHead className="text-right text-xs font-bold text-gray-600 dark:text-slate-300 py-3 px-4">درجة الخطورة</TableHead>
+                <TableHead className="text-right text-xs font-bold text-gray-600 dark:text-slate-300 py-3 px-4">حالة الملف</TableHead>
+                <TableHead className="text-right text-xs font-bold text-gray-600 dark:text-slate-300 py-3 px-4">التكلفة / شهر</TableHead>
+                <TableHead className="text-right text-xs font-bold text-gray-600 dark:text-slate-300 py-3 px-4">الإجراءات</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredPatients.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-14 text-slate-500 text-sm">
+                  <TableCell colSpan={7} className="text-center py-14 text-gray-400 dark:text-slate-500 text-sm">
                     <Stethoscope className="h-10 w-10 mx-auto mb-3 opacity-20" />
                     <p className="font-medium">لا توجد سجلات مرضى مطابقة</p>
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredPatients.map(patient => (
-                  <TableRow key={patient.id} className="border-border/30 hover:bg-slate-900/30 transition-colors">
+                  <TableRow key={patient.id} className="border-gray-100 dark:border-border/30 hover:bg-gray-50 dark:hover:bg-slate-900/30 transition-colors">
                     <TableCell className="py-3 px-4">
-                      <div className="font-semibold text-slate-100 text-sm">{patient.fullName}</div>
-                      <div className="text-[11px] text-slate-500 mt-0.5">{patient.phoneNumber || "—"}</div>
+                      <div className="font-semibold text-gray-900 dark:text-slate-100 text-sm">{patient.fullName}</div>
+                      <div className="text-[11px] text-gray-400 dark:text-slate-500 mt-0.5">{patient.phoneNumber || "—"}</div>
                     </TableCell>
                     <TableCell className="py-3 px-4">
-                      <div className="text-sm text-slate-200 font-medium">{patient.diagnosis}</div>
+                      <div className="text-sm text-gray-700 dark:text-slate-200 font-medium">{patient.diagnosis}</div>
                       {patient.diseaseType && (
-                        <div className="text-[10px] text-slate-500 mt-0.5">{patient.diseaseType}</div>
+                        <div className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">{patient.diseaseType}</div>
                       )}
                     </TableCell>
-                    <TableCell className="py-3 px-4 text-xs text-slate-400">
+                    <TableCell className="py-3 px-4 text-xs text-gray-500 dark:text-slate-400">
                       {patient.subDistrict?.district?.governorate?.nameAr || "—"}
                       {patient.subDistrict?.district?.nameAr && (
-                        <span className="block text-[10px] text-slate-600">
+                        <span className="block text-[10px] text-gray-400 dark:text-slate-600">
                           {patient.subDistrict.district.nameAr}
                         </span>
                       )}
@@ -307,7 +307,7 @@ export function PatientsClient({ initialPatients, geography, currentUserRole }: 
                           variant="ghost"
                           size="sm"
                           onClick={() => { setSelectedPatient(patient); setIsDetailsOpen(true) }}
-                          className="h-8 w-8 p-0 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+                          className="h-8 w-8 p-0 rounded-lg text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800"
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -315,7 +315,7 @@ export function PatientsClient({ initialPatients, geography, currentUserRole }: 
                           variant="ghost"
                           size="sm"
                           onClick={() => { setEditPatient(patient); setIsEditOpen(true) }}
-                          className="h-8 w-8 p-0 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+                          className="h-8 w-8 p-0 rounded-lg text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800"
                         >
                           <Edit className="h-4 w-4" />
                         </Button>

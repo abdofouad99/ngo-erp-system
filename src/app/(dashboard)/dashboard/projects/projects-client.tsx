@@ -279,12 +279,12 @@ export function ProjectsClient({
   // ── Translators & Styles ─────────────────────────────────────
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "DRAFT":     return <Badge className="bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-800 font-bold px-2 py-0.5">مسودة</Badge>
+      case "DRAFT":     return <Badge className="bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 border border-gray-300 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800 font-bold px-2 py-0.5">مسودة</Badge>
       case "ACTIVE":    return <Badge className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 font-bold px-2 py-0.5">نشط</Badge>
       case "COMPLETED": return <Badge className="bg-blue-500/15 text-blue-400 border border-blue-500/30 hover:bg-blue-500/20 font-bold px-2 py-0.5">مكتمل ✅</Badge>
       case "SUSPENDED": return <Badge className="bg-amber-500/15 text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 font-bold px-2 py-0.5">موقوف مؤقتاً</Badge>
       case "CANCELLED": return <Badge className="bg-rose-500/15 text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 font-bold px-2 py-0.5">ملغى</Badge>
-      default:          return <Badge className="bg-slate-800 text-slate-300 border border-slate-700">{status}</Badge>
+      default:          return <Badge className="bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 border border-gray-300 dark:border-slate-700">{status}</Badge>
     }
   }
 
@@ -301,17 +301,17 @@ export function ProjectsClient({
   return (
     <div className="space-y-6">
       <Tabs defaultValue="projects" dir="rtl" className="w-full" onValueChange={setActiveTab}>
-        <TabsList className="bg-slate-900/50 border border-slate-800/80 rounded-xl p-1 mb-6 flex-shrink-0 gap-1 sm:w-auto w-full justify-start">
+        <TabsList className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-slate-800/80 rounded-xl p-1 mb-6 flex-shrink-0 gap-1 sm:w-auto w-full justify-start">
           <TabsTrigger
             value="projects"
-            className="text-xs py-2 px-4 transition-all data-[state=active]:bg-emerald-500 data-[state=active]:text-slate-950 data-[state=active]:font-bold text-slate-300"
+            className="text-xs py-2 px-4 transition-all data-[state=active]:bg-emerald-500 data-[state=active]:text-slate-950 data-[state=active]:font-bold text-gray-600 dark:text-slate-300"
           >
             <Folder className="h-3.5 w-3.5 ml-1.5" />
             إدارة المشاريع الإغاثية
           </TabsTrigger>
           <TabsTrigger
             value="distributions"
-            className="text-xs py-2 px-4 transition-all data-[state=active]:bg-emerald-500 data-[state=active]:text-slate-950 data-[state=active]:font-bold text-slate-300"
+            className="text-xs py-2 px-4 transition-all data-[state=active]:bg-emerald-500 data-[state=active]:text-slate-950 data-[state=active]:font-bold text-gray-600 dark:text-slate-300"
           >
             <CheckCircle className="h-3.5 w-3.5 ml-1.5" />
             سجل التوزيع والمسح الميداني
@@ -323,17 +323,17 @@ export function ProjectsClient({
             =================================================================== */}
         <TabsContent value="projects" className="space-y-4 outline-none">
           {/* Search controls */}
-          <Card className="border border-slate-800 bg-slate-950/40 backdrop-blur-md shadow-lg">
+          <Card className="border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-950/40 backdrop-blur-md shadow-lg">
             <CardContent className="p-4">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 {/* Search query */}
                 <div className="relative md:col-span-1">
-                  <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500 dark:text-slate-400" />
                   <Input
                     placeholder="البحث باسم المشروع أو الوصف..."
                     value={projectSearch}
                     onChange={(e) => setProjectSearch(e.target.value)}
-                    className="pr-9 bg-slate-900/50 border-slate-800/80 focus-visible:bg-slate-900 focus-visible:ring-emerald-500 text-right placeholder-slate-500 text-sm text-white focus:border-emerald-500"
+                    className="pr-9 bg-white dark:bg-slate-900/50 border-gray-200 dark:border-slate-800/80 focus-visible:bg-gray-50 dark:focus-visible:bg-slate-900 focus-visible:ring-emerald-500 text-right placeholder-slate-500 text-sm text-gray-900 dark:text-white focus:border-emerald-500"
                   />
                 </div>
 
@@ -341,27 +341,27 @@ export function ProjectsClient({
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="flex h-10 w-full rounded-xl border border-slate-800 bg-slate-900/50 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 text-right text-slate-200 font-medium cursor-pointer"
+                  className="flex h-10 w-full rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 text-right text-gray-700 dark:text-slate-200 font-medium cursor-pointer"
                 >
-                  <option value="ALL" className="bg-slate-950 text-white">كل التصنيفات</option>
-                  <option value="IN_KIND" className="bg-slate-950 text-white">عيني (سلل، ملابس)</option>
-                  <option value="CASH" className="bg-slate-950 text-white">نقدي (حوالات مالية)</option>
-                  <option value="MEDICAL" className="bg-slate-950 text-white">طبي (عمليات، علاج)</option>
-                  <option value="TRAINING" className="bg-slate-950 text-white">تأهيل وتمكين</option>
+                  <option value="ALL" className="bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-white">كل التصنيفات</option>
+                  <option value="IN_KIND" className="bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-white">عيني (سلل، ملابس)</option>
+                  <option value="CASH" className="bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-white">نقدي (حوالات مالية)</option>
+                  <option value="MEDICAL" className="bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-white">طبي (عمليات، علاج)</option>
+                  <option value="TRAINING" className="bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-white">تأهيل وتمكين</option>
                 </select>
 
                 {/* Status Filter */}
                 <select
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="flex h-10 w-full rounded-xl border border-slate-800 bg-slate-900/50 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 text-right text-slate-200 font-medium cursor-pointer"
+                  className="flex h-10 w-full rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 text-right text-gray-700 dark:text-slate-200 font-medium cursor-pointer"
                 >
-                  <option value="ALL" className="bg-slate-950 text-white">كل الحالات التنفيذية</option>
-                  <option value="DRAFT" className="bg-slate-950 text-white">تخطيط ومسودات</option>
-                  <option value="ACTIVE" className="bg-slate-950 text-white">نشط (قيد التنفيذ)</option>
-                  <option value="COMPLETED" className="bg-slate-950 text-white">مكتمل</option>
-                  <option value="SUSPENDED" className="bg-slate-950 text-white">موقوف مؤقتاً</option>
-                  <option value="CANCELLED" className="bg-slate-950 text-white">ملغى</option>
+                  <option value="ALL" className="bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-white">كل الحالات التنفيذية</option>
+                  <option value="DRAFT" className="bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-white">تخطيط ومسودات</option>
+                  <option value="ACTIVE" className="bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-white">نشط (قيد التنفيذ)</option>
+                  <option value="COMPLETED" className="bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-white">مكتمل</option>
+                  <option value="SUSPENDED" className="bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-white">موقوف مؤقتاً</option>
+                  <option value="CANCELLED" className="bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-white">ملغى</option>
                 </select>
               </div>
             </CardContent>
@@ -370,55 +370,55 @@ export function ProjectsClient({
           {/* ── DYNAMIC KPI CARDS (react to filters) ─────────────── */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {/* Projects Count */}
-            <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-4 flex items-center gap-3 transition-all duration-300">
+            <div className="bg-gray-50 dark:bg-slate-900/60 border border-gray-200 dark:border-slate-800/80 rounded-xl p-4 flex items-center gap-3 transition-all duration-300">
               <div className="rounded-xl bg-blue-500/10 p-2.5 text-blue-400 flex-shrink-0">
                 <Folder className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[10px] font-semibold text-slate-400 mb-0.5">المشاريع المعروضة</p>
-                <p className="text-xl font-extrabold text-white tabular-nums">{dynamicKPIs.count.toLocaleString("ar-SA-u-nu-latn")}</p>
+                <p className="text-[10px] font-semibold text-gray-500 dark:text-slate-400 mb-0.5">المشاريع المعروضة</p>
+                <p className="text-xl font-extrabold text-gray-900 dark:text-white tabular-nums">{dynamicKPIs.count.toLocaleString("ar-SA-u-nu-latn")}</p>
                 <p className="text-[9px] text-blue-400/70 font-medium">من إجمالي {initialProjects.length}</p>
               </div>
             </div>
             {/* Target */}
-            <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-4 flex items-center gap-3 transition-all duration-300">
+            <div className="bg-gray-50 dark:bg-slate-900/60 border border-gray-200 dark:border-slate-800/80 rounded-xl p-4 flex items-center gap-3 transition-all duration-300">
               <div className="rounded-xl bg-amber-500/10 p-2.5 text-amber-400 flex-shrink-0">
                 <Target className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[10px] font-semibold text-slate-400 mb-0.5">المستهدفون</p>
-                <p className="text-xl font-extrabold text-white tabular-nums">{dynamicKPIs.target.toLocaleString("ar-SA-u-nu-latn")}</p>
+                <p className="text-[10px] font-semibold text-gray-500 dark:text-slate-400 mb-0.5">المستهدفون</p>
+                <p className="text-xl font-extrabold text-gray-900 dark:text-white tabular-nums">{dynamicKPIs.target.toLocaleString("ar-SA-u-nu-latn")}</p>
                 <p className="text-[9px] text-amber-400/70 font-medium">حسب الفلتر الحالي</p>
               </div>
             </div>
             {/* Delivered */}
-            <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-4 flex items-center gap-3 transition-all duration-300">
+            <div className="bg-gray-50 dark:bg-slate-900/60 border border-gray-200 dark:border-slate-800/80 rounded-xl p-4 flex items-center gap-3 transition-all duration-300">
               <div className="rounded-xl bg-emerald-500/10 p-2.5 text-emerald-400 flex-shrink-0">
                 <CheckCircle className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[10px] font-semibold text-slate-400 mb-0.5">تم التسليم</p>
-                <p className="text-xl font-extrabold text-white tabular-nums">{dynamicKPIs.delivered.toLocaleString("ar-SA-u-nu-latn")}</p>
+                <p className="text-[10px] font-semibold text-gray-500 dark:text-slate-400 mb-0.5">تم التسليم</p>
+                <p className="text-xl font-extrabold text-gray-900 dark:text-white tabular-nums">{dynamicKPIs.delivered.toLocaleString("ar-SA-u-nu-latn")}</p>
                 <p className="text-[9px] text-emerald-400/70 font-medium">نسبة: {dynamicKPIs.progress}%</p>
               </div>
             </div>
             {/* Budget */}
-            <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-4 flex items-center gap-3 transition-all duration-300">
+            <div className="bg-gray-50 dark:bg-slate-900/60 border border-gray-200 dark:border-slate-800/80 rounded-xl p-4 flex items-center gap-3 transition-all duration-300">
               <div className="rounded-xl bg-indigo-500/10 p-2.5 text-indigo-400 flex-shrink-0">
                 <Banknote className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[10px] font-semibold text-slate-400 mb-0.5">إجمالي الميزانية</p>
-                <p className="text-lg font-extrabold text-white tabular-nums">{dynamicKPIs.budget > 0 ? dynamicKPIs.budget.toLocaleString("en-US") : "-"}</p>
+                <p className="text-[10px] font-semibold text-gray-500 dark:text-slate-400 mb-0.5">إجمالي الميزانية</p>
+                <p className="text-lg font-extrabold text-gray-900 dark:text-white tabular-nums">{dynamicKPIs.budget > 0 ? dynamicKPIs.budget.toLocaleString("en-US") : "-"}</p>
                 <p className="text-[9px] text-indigo-400/70 font-medium">{dynamicKPIs.currencies.join(" · ") || "متعدد"}</p>
               </div>
             </div>
           </div>
 
           {/* Table Action Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-900/20 p-4 border border-slate-800/80 rounded-xl">
-            <div className="text-sm text-slate-400 font-bold">
-              تم العثور على <span className="font-extrabold text-white text-base">{filteredProjects.length}</span> مشروع
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white dark:bg-slate-900/20 p-4 border border-gray-100 dark:border-slate-800/80 rounded-xl">
+            <div className="text-sm text-gray-500 dark:text-slate-400 font-bold">
+              تم العثور على <span className="font-extrabold text-gray-900 dark:text-white text-base">{filteredProjects.length}</span> مشروع
             </div>
             <Button
               onClick={() => exportProjectsToExcel(filteredProjects)}
@@ -431,22 +431,22 @@ export function ProjectsClient({
           </div>
 
           {/* Table */}
-          <Card className="border border-slate-800 bg-slate-950/30 backdrop-blur-md shadow-xl overflow-hidden">
+          <Card className="border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-950/30 backdrop-blur-md shadow-xl overflow-hidden">
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <Table className="w-full text-right">
-                  <TableHeader className="bg-slate-900/80 border-b border-slate-800">
-                    <TableRow className="hover:bg-slate-900 border-b border-slate-800">
-                      <TableHead className="text-right text-slate-200 font-bold py-4 pr-6">المشروع والجهة الكافلة</TableHead>
-                      <TableHead className="text-right text-slate-200 font-bold py-4">الفئة</TableHead>
-                      <TableHead className="text-right text-slate-200 font-bold py-4">الحالة</TableHead>
-                      <TableHead className="text-right text-slate-200 font-bold py-4">الميزانية</TableHead>
-                      <TableHead className="text-right text-slate-200 font-bold py-4">المستهدف</TableHead>
-                      <TableHead className="text-right text-slate-200 font-bold py-4">مؤشر الإنجاز</TableHead>
-                      <TableHead className="text-center text-slate-200 font-bold py-4 pl-6">الإجراءات</TableHead>
+                  <TableHeader className="bg-gray-100 dark:bg-slate-900/80 border-b border-gray-200 dark:border-slate-800">
+                    <TableRow className="hover:bg-gray-50 dark:hover:bg-slate-900 border-b border-gray-200 dark:border-slate-800">
+                      <TableHead className="text-right text-gray-700 dark:text-slate-200 font-bold py-4 pr-6">المشروع والجهة الكافلة</TableHead>
+                      <TableHead className="text-right text-gray-700 dark:text-slate-200 font-bold py-4">الفئة</TableHead>
+                      <TableHead className="text-right text-gray-700 dark:text-slate-200 font-bold py-4">الحالة</TableHead>
+                      <TableHead className="text-right text-gray-700 dark:text-slate-200 font-bold py-4">الميزانية</TableHead>
+                      <TableHead className="text-right text-gray-700 dark:text-slate-200 font-bold py-4">المستهدف</TableHead>
+                      <TableHead className="text-right text-gray-700 dark:text-slate-200 font-bold py-4">مؤشر الإنجاز</TableHead>
+                      <TableHead className="text-center text-gray-700 dark:text-slate-200 font-bold py-4 pl-6">الإجراءات</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody className="divide-y divide-slate-800/50 text-slate-300">
+                  <TableBody className="divide-y divide-gray-200 dark:divide-slate-800/50 text-gray-600 dark:text-slate-300">
                     {filteredProjects.length > 0 ? (
                       filteredProjects.map((project) => {
                         const totalTarget   = project.targetCount || 0
@@ -457,16 +457,16 @@ export function ProjectsClient({
                           : (totalTarget > 0 ? Math.min(Math.round((deliveredCount / totalTarget) * 100), 100) : 100)
 
                         return (
-                          <TableRow key={project.id} className="hover:bg-slate-900/40 border-b border-slate-900/50 transition-all duration-200">
+                          <TableRow key={project.id} className="hover:bg-gray-50 dark:hover:bg-slate-900/40 border-b border-gray-100 dark:border-slate-900/50 transition-all duration-200">
                             {/* Name + Sponsor Badge */}
                             <TableCell className="py-4 pr-6">
                               <div className="space-y-1.5">
-                                <p className="font-bold text-white text-sm leading-snug">{project.name}</p>
+                                <p className="font-bold text-gray-900 dark:text-white text-sm leading-snug">{project.name}</p>
                                 {getSponsorBadge(project.name)}
                               </div>
                             </TableCell>
                             {/* Category */}
-                            <TableCell className="py-4 text-xs font-semibold text-slate-400">
+                            <TableCell className="py-4 text-xs font-semibold text-gray-500 dark:text-slate-400">
                               {translateCategory(project.category)}
                             </TableCell>
                             {/* Status */}
@@ -482,18 +482,18 @@ export function ProjectsClient({
                               )}
                             </TableCell>
                             {/* Target count */}
-                            <TableCell className="py-4 font-bold text-slate-300 tabular-nums text-sm">
+                            <TableCell className="py-4 font-bold text-gray-600 dark:text-slate-300 tabular-nums text-sm">
                               {project.targetCount !== null ? `${project.targetCount} مستفيد` : "-"}
                             </TableCell>
                             {/* Progress bar */}
                             <TableCell className="py-4">
                               {totalTarget > 0 ? (
                                 <div className="w-28 space-y-1">
-                                  <div className="flex items-center justify-between text-[10px] font-bold text-slate-400">
+                                  <div className="flex items-center justify-between text-[10px] font-bold text-gray-500 dark:text-slate-400">
                                     <span className={progress === 100 ? "text-emerald-400" : ""}>{progress}%</span>
                                     <span>{deliveredCount} مستلم</span>
                                   </div>
-                                  <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden">
+                                  <div className="h-1.5 w-full bg-gray-200 dark:bg-slate-900 rounded-full overflow-hidden">
                                     <div
                                       className={`h-full rounded-full transition-all ${progress === 100 ? "bg-gradient-to-r from-emerald-500 to-emerald-400" : "bg-gradient-to-r from-blue-600 to-blue-400"}`}
                                       style={{ width: `${progress}%` }}
@@ -501,7 +501,7 @@ export function ProjectsClient({
                                   </div>
                                 </div>
                               ) : (
-                                <span className="text-slate-500 text-xs italic">لا يوجد مستهدف</span>
+                                <span className="text-gray-400 dark:text-slate-500 text-xs italic">لا يوجد مستهدف</span>
                               )}
                             </TableCell>
                             {/* Actions */}
@@ -559,7 +559,7 @@ export function ProjectsClient({
                       })
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center py-12 text-sm text-slate-500 font-medium">
+                        <TableCell colSpan={7} className="text-center py-12 text-sm text-gray-400 dark:text-slate-500 font-medium">
                           لا توجد نتائج تطابق خيارات بحث المشاريع.
                         </TableCell>
                       </TableRow>
@@ -576,17 +576,17 @@ export function ProjectsClient({
             =================================================================== */}
         <TabsContent value="distributions" className="space-y-4 outline-none">
           {/* Filters */}
-          <Card className="border border-slate-800 bg-slate-950/40 backdrop-blur-md shadow-lg">
+          <Card className="border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-950/40 backdrop-blur-md shadow-lg">
             <CardContent className="p-4">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 {/* Search */}
                 <div className="relative md:col-span-2">
-                  <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500 dark:text-slate-400" />
                   <Input
                     placeholder="البحث باسم المشروع، المستفيد، أو المادة المسلمة..."
                     value={distributionSearch}
                     onChange={(e) => setDistributionSearch(e.target.value)}
-                    className="pr-9 bg-slate-900/50 border-slate-800/80 focus-visible:bg-slate-900 focus-visible:ring-emerald-500 text-right placeholder-slate-500 text-sm text-white focus:border-emerald-500"
+                    className="pr-9 bg-white dark:bg-slate-900/50 border-gray-200 dark:border-slate-800/80 focus-visible:bg-gray-50 dark:focus-visible:bg-slate-900 focus-visible:ring-emerald-500 text-right placeholder-slate-500 text-sm text-gray-900 dark:text-white focus:border-emerald-500"
                   />
                 </div>
 
@@ -594,20 +594,20 @@ export function ProjectsClient({
                 <select
                   value={selectedDeliveryStatus}
                   onChange={(e) => setSelectedDeliveryStatus(e.target.value)}
-                  className="flex h-10 w-full rounded-xl border border-slate-800 bg-slate-900/50 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 text-right text-slate-200 font-medium cursor-pointer"
+                  className="flex h-10 w-full rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 text-right text-gray-700 dark:text-slate-200 font-medium cursor-pointer"
                 >
-                  <option value="ALL" className="bg-slate-950 text-white">كل حالات الاستلام</option>
-                  <option value="DELIVERED" className="bg-slate-950 text-white">تم تسليم المساعدات</option>
-                  <option value="PENDING" className="bg-slate-950 text-white">قيد الانتظار</option>
+                  <option value="ALL" className="bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-white">كل حالات الاستلام</option>
+                  <option value="DELIVERED" className="bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-white">تم تسليم المساعدات</option>
+                  <option value="PENDING" className="bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-white">قيد الانتظار</option>
                 </select>
               </div>
             </CardContent>
           </Card>
 
           {/* Table Action Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-900/20 p-4 border border-slate-800/80 rounded-xl">
-            <div className="text-sm text-slate-400 font-bold">
-              تم العثور على <span className="font-extrabold text-white text-base">{filteredDistributions.length}</span> سجل
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white dark:bg-slate-900/20 p-4 border border-gray-100 dark:border-slate-800/80 rounded-xl">
+            <div className="text-sm text-gray-500 dark:text-slate-400 font-bold">
+              تم العثور على <span className="font-extrabold text-gray-900 dark:text-white text-base">{filteredDistributions.length}</span> سجل
             </div>
             <Button
               onClick={() => exportDistributionsToExcel(filteredDistributions)}
@@ -620,39 +620,39 @@ export function ProjectsClient({
           </div>
 
           {/* Table */}
-          <Card className="border border-slate-800 bg-slate-950/30 backdrop-blur-md shadow-xl overflow-hidden">
+          <Card className="border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-950/30 backdrop-blur-md shadow-xl overflow-hidden">
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <Table className="w-full text-right">
-                  <TableHeader className="bg-slate-900/80 border-b border-slate-800">
-                    <TableRow className="hover:bg-slate-900 border-b border-slate-800">
-                      <TableHead className="text-right text-slate-200 font-bold py-4 pr-6">المشروع</TableHead>
-                      <TableHead className="text-right text-slate-200 font-bold py-4">المستفيد المستلم</TableHead>
-                      <TableHead className="text-right text-slate-200 font-bold py-4">رقم الدفعة</TableHead>
-                      <TableHead className="text-right text-slate-200 font-bold py-4">المادة الموزعة</TableHead>
-                      <TableHead className="text-right text-slate-200 font-bold py-4">الكمية والقيمة</TableHead>
-                      <TableHead className="text-right text-slate-200 font-bold py-4">تاريخ الاستلام</TableHead>
-                      <TableHead className="text-center text-slate-200 font-bold py-4">تأكيد الاستلام</TableHead>
-                      <TableHead className="text-center text-slate-200 font-bold py-4 pl-6">إجراءات الحذف</TableHead>
+                  <TableHeader className="bg-gray-100 dark:bg-slate-900/80 border-b border-gray-200 dark:border-slate-800">
+                    <TableRow className="hover:bg-gray-50 dark:hover:bg-slate-900 border-b border-gray-200 dark:border-slate-800">
+                      <TableHead className="text-right text-gray-700 dark:text-slate-200 font-bold py-4 pr-6">المشروع</TableHead>
+                      <TableHead className="text-right text-gray-700 dark:text-slate-200 font-bold py-4">المستفيد المستلم</TableHead>
+                      <TableHead className="text-right text-gray-700 dark:text-slate-200 font-bold py-4">رقم الدفعة</TableHead>
+                      <TableHead className="text-right text-gray-700 dark:text-slate-200 font-bold py-4">المادة الموزعة</TableHead>
+                      <TableHead className="text-right text-gray-700 dark:text-slate-200 font-bold py-4">الكمية والقيمة</TableHead>
+                      <TableHead className="text-right text-gray-700 dark:text-slate-200 font-bold py-4">تاريخ الاستلام</TableHead>
+                      <TableHead className="text-center text-gray-700 dark:text-slate-200 font-bold py-4">تأكيد الاستلام</TableHead>
+                      <TableHead className="text-center text-gray-700 dark:text-slate-200 font-bold py-4 pl-6">إجراءات الحذف</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody className="divide-y divide-slate-800/50 text-slate-300">
+                  <TableBody className="divide-y divide-gray-200 dark:divide-slate-800/50 text-gray-600 dark:text-slate-300">
                     {filteredDistributions.length > 0 ? (
                       filteredDistributions.map((dist) => (
-                        <TableRow key={dist.id} className="hover:bg-slate-900/40 border-b border-slate-900/50 transition-all duration-200">
+                        <TableRow key={dist.id} className="hover:bg-gray-50 dark:hover:bg-slate-900/40 border-b border-gray-100 dark:border-slate-900/50 transition-all duration-200">
                           {/* Project Name */}
                           <TableCell className="py-4 pr-6">
                             <div className="space-y-1">
-                              <p className="font-bold text-white text-sm">{dist.project?.name}</p>
+                              <p className="font-bold text-gray-900 dark:text-white text-sm">{dist.project?.name}</p>
                               {dist.project && getSponsorBadge(dist.project.name)}
                             </div>
                           </TableCell>
                           {/* Beneficiary Name */}
-                          <TableCell className="py-4 font-bold text-white text-sm">
+                          <TableCell className="py-4 font-bold text-gray-900 dark:text-white text-sm">
                             {dist.beneficiary?.fullName}
                           </TableCell>
                           {/* Batch */}
-                          <TableCell className="py-4 font-semibold text-xs text-slate-400 tabular-nums">
+                          <TableCell className="py-4 font-semibold text-xs text-gray-500 dark:text-slate-400 tabular-nums">
                             دفعة {dist.batchNumber}
                           </TableCell>
                           {/* Delivered Item */}
@@ -660,16 +660,16 @@ export function ProjectsClient({
                             {dist.deliveredItem}
                           </TableCell>
                           {/* Quantity & value */}
-                          <TableCell className="py-4 text-xs font-bold text-slate-300 space-y-0.5 tabular-nums">
+                          <TableCell className="py-4 text-xs font-bold text-gray-600 dark:text-slate-300 space-y-0.5 tabular-nums">
                             <div>الكمية: {dist.quantity}</div>
                             {dist.unitValue !== null && (
-                              <div className="text-[10px] text-slate-500 font-medium">
+                              <div className="text-[10px] text-gray-400 dark:text-slate-500 font-medium">
                                 القيمة: {dist.unitValue} {dist.currency}
                               </div>
                             )}
                           </TableCell>
                           {/* Delivery Date */}
-                          <TableCell className="py-4 font-mono text-xs text-slate-400">
+                          <TableCell className="py-4 font-mono text-xs text-gray-500 dark:text-slate-400">
                             {dist.isDelivered ? (
                               dist.deliveryDate ? (
                                 new Date(dist.deliveryDate).toLocaleDateString("ar-YE-u-nu-latn")
@@ -722,7 +722,7 @@ export function ProjectsClient({
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={8} className="text-center py-12 text-sm text-slate-500 font-medium">
+                        <TableCell colSpan={8} className="text-center py-12 text-sm text-gray-400 dark:text-slate-500 font-medium">
                           لا توجد نتائج تطابق خيارات الاستلام الميداني.
                         </TableCell>
                       </TableRow>

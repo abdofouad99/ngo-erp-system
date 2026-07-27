@@ -153,7 +153,7 @@ export function TargetingClient({ geography }: GeographyProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4 flex-wrap bg-slate-900/60 p-5 rounded-2xl border border-emerald-500/20 backdrop-blur-xl shadow-xl">
+      <div className="flex items-center justify-between gap-4 flex-wrap bg-gray-50 dark:bg-slate-900/60 p-5 rounded-2xl border border-emerald-500/20 backdrop-blur-xl shadow-xl">
         <div className="flex items-center gap-3">
           <div className="p-3 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 text-white shadow-xl shadow-emerald-900/30">
             <Target className="h-7 w-7" />
@@ -165,8 +165,8 @@ export function TargetingClient({ geography }: GeographyProps) {
               </span>
               <Sparkles className="h-3.5 w-3.5 text-amber-400 animate-pulse" />
             </div>
-            <h2 className="text-xl font-black text-slate-100 mt-1">بناء كشف مستفيدين مشروع</h2>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <h2 className="text-xl font-black text-gray-800 dark:text-slate-100 mt-1">بناء كشف مستفيدين مشروع</h2>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
               حدّد معايير الاستحقاق، عايِن الأسر المطابقة، ثم اعتمد الكشف وصدّره
             </p>
           </div>
@@ -176,9 +176,9 @@ export function TargetingClient({ geography }: GeographyProps) {
       {/* Main Split Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Right Form Side: معايير الاستحقاق (4 Cols) */}
-        <div className="lg:col-span-4 bg-slate-900/60 border border-emerald-500/20 rounded-2xl p-5 backdrop-blur-xl space-y-5 h-fit shadow-2xl">
+        <div className="lg:col-span-4 bg-gray-50 dark:bg-slate-900/60 border border-emerald-500/20 rounded-2xl p-5 backdrop-blur-xl space-y-5 h-fit shadow-2xl">
           <div className="flex items-center justify-between border-b border-border/40 pb-3">
-            <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+            <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100 flex items-center gap-2">
               <Filter className="h-4 w-4 text-emerald-400" /> معايير الاستحقاق
             </h3>
           </div>
@@ -186,22 +186,22 @@ export function TargetingClient({ geography }: GeographyProps) {
           {/* Project Name & Intervention */}
           <div className="space-y-3">
             <div>
-              <label className="text-xs font-bold text-slate-300 block mb-1">اسم المشروع / الدورة</label>
+              <label className="text-xs font-bold text-gray-600 dark:text-slate-300 block mb-1">اسم المشروع / الدورة</label>
               <input
                 type="text"
                 placeholder="مثال: سلة غذائية — رمضان 1448"
                 value={projectNameInput}
                 onChange={e => setProjectNameInput(e.target.value)}
-                className="w-full bg-slate-950 border border-emerald-500/30 text-white text-right rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 placeholder-slate-500"
+                className="w-full bg-gray-50 dark:bg-slate-950 border border-emerald-500/30 text-gray-900 dark:text-white text-right rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 placeholder-slate-500"
               />
             </div>
 
             <div>
-              <label className="text-xs font-bold text-slate-300 block mb-1">نوع التدخل</label>
+              <label className="text-xs font-bold text-gray-600 dark:text-slate-300 block mb-1">نوع التدخل</label>
               <select
                 value={interventionType}
                 onChange={e => setInterventionType(e.target.value)}
-                className="w-full bg-slate-950 border border-emerald-500/30 text-white text-right rounded-xl px-3 py-2 text-xs font-bold cursor-pointer"
+                className="w-full bg-gray-50 dark:bg-slate-950 border border-emerald-500/30 text-gray-900 dark:text-white text-right rounded-xl px-3 py-2 text-xs font-bold cursor-pointer"
               >
                 <option value="سلة غذائية">سلة غذائية</option>
                 <option value="مساعدة نقدية">مساعدة نقدية</option>
@@ -216,9 +216,9 @@ export function TargetingClient({ geography }: GeographyProps) {
           </div>
 
           {/* Need Score Slider */}
-          <div className="space-y-2 bg-slate-950 p-3.5 rounded-xl border border-emerald-500/20">
+          <div className="space-y-2 bg-gray-50 dark:bg-slate-950 p-3.5 rounded-xl border border-emerald-500/20">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-slate-300">الحد الأدنى لدرجة الأولوية:</label>
+              <label className="text-xs font-bold text-gray-600 dark:text-slate-300">الحد الأدنى لدرجة الأولوية:</label>
               <span className="text-xs font-extrabold text-emerald-400 font-mono bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
                 {minNeedScore} نقطة فأعلى
               </span>
@@ -230,9 +230,9 @@ export function TargetingClient({ geography }: GeographyProps) {
               step={5}
               value={minNeedScore}
               onChange={e => setMinNeedScore(parseInt(e.target.value))}
-              className="w-full accent-emerald-500 bg-slate-800 cursor-pointer h-2 rounded-lg"
+              className="w-full accent-emerald-500 bg-gray-200 dark:bg-slate-800 cursor-pointer h-2 rounded-lg"
             />
-            <div className="flex justify-between text-[10px] text-slate-400 font-semibold px-1">
+            <div className="flex justify-between text-[10px] text-gray-500 dark:text-slate-400 font-semibold px-1">
               <span>0 (الكل)</span>
               <span>35 (متوسط)</span>
               <span>55 (عالي)</span>
@@ -243,7 +243,7 @@ export function TargetingClient({ geography }: GeographyProps) {
           {/* Geography Cascade */}
           <div className="space-y-3">
             <div>
-              <label className="text-xs font-bold text-slate-300 block mb-1">المديرية</label>
+              <label className="text-xs font-bold text-gray-600 dark:text-slate-300 block mb-1">المديرية</label>
               <select
                 value={selectedGov}
                 onChange={e => {
@@ -251,7 +251,7 @@ export function TargetingClient({ geography }: GeographyProps) {
                   setSelectedDist("")
                   setSelectedSubDist("")
                 }}
-                className="w-full bg-slate-950 border border-emerald-500/30 text-white text-right rounded-xl px-3 py-2 text-xs font-bold cursor-pointer"
+                className="w-full bg-gray-50 dark:bg-slate-950 border border-emerald-500/30 text-gray-900 dark:text-white text-right rounded-xl px-3 py-2 text-xs font-bold cursor-pointer"
               >
                 <option value="">كل المديريات والمحافظات</option>
                 {geography.map((g: any) => (
@@ -265,19 +265,19 @@ export function TargetingClient({ geography }: GeographyProps) {
 
           {/* Limit Count */}
           <div>
-            <label className="text-xs font-bold text-slate-300 block mb-1">الحد الأقصى لعدد المستفيدين</label>
+            <label className="text-xs font-bold text-gray-600 dark:text-slate-300 block mb-1">الحد الأقصى لعدد المستفيدين</label>
             <input
               type="number"
               value={limitCount}
               onChange={e => setLimitCount(e.target.value)}
               placeholder="اتركه فارغاً لغير محدود"
-              className="w-full bg-slate-950 border border-emerald-500/30 text-white text-right rounded-xl px-3 py-2 text-xs placeholder-slate-500 font-mono"
+              className="w-full bg-gray-50 dark:bg-slate-950 border border-emerald-500/30 text-gray-900 dark:text-white text-right rounded-xl px-3 py-2 text-xs placeholder-slate-500 font-mono"
             />
           </div>
 
           {/* Special Categories Tag Chips */}
           <div className="space-y-2 border-t border-border/40 pt-3">
-            <label className="text-xs font-bold text-slate-300 block">اشتراط فئات (يجب توفّرها جميعاً):</label>
+            <label className="text-xs font-bold text-gray-600 dark:text-slate-300 block">اشتراط فئات (يجب توفّرها جميعاً):</label>
             <div className="flex flex-wrap gap-1.5">
               {vulnerabilityChips.map((chip) => {
                 const active = selectedTags.includes(chip.id)
@@ -289,7 +289,7 @@ export function TargetingClient({ geography }: GeographyProps) {
                     className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-all border ${
                       active
                         ? "bg-emerald-500 text-slate-950 border-emerald-400 shadow-md shadow-emerald-500/20 scale-105"
-                        : "bg-slate-950 text-slate-400 border-border/60 hover:border-emerald-500/40"
+                        : "bg-gray-50 dark:bg-slate-950 text-gray-500 dark:text-slate-400 border-gray-200 dark:border-border/60 hover:border-emerald-500/40"
                     }`}
                   >
                     {chip.label}
@@ -301,32 +301,32 @@ export function TargetingClient({ geography }: GeographyProps) {
 
           {/* Exclusion Checkboxes */}
           <div className="space-y-2 border-t border-border/40 pt-3 text-xs">
-            <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
+            <label className="flex items-center gap-2 text-gray-600 dark:text-slate-300 cursor-pointer">
               <input
                 type="checkbox"
                 checked={excludeDaysCheck}
                 onChange={e => setExcludeDaysCheck(e.target.checked)}
-                className="rounded border-slate-700 bg-slate-950 text-emerald-500 focus:ring-emerald-500 h-4 w-4"
+                className="rounded border-gray-300 dark:border-slate-700 bg-gray-50 dark:bg-slate-950 text-emerald-500 focus:ring-emerald-500 h-4 w-4"
               />
               <span>استبعاد من استلم مساعدة خلال آخر 90 يوماً</span>
             </label>
 
-            <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
+            <label className="flex items-center gap-2 text-gray-600 dark:text-slate-300 cursor-pointer">
               <input
                 type="checkbox"
                 checked={excludeDuplicatesCheck}
                 onChange={e => setExcludeDuplicatesCheck(e.target.checked)}
-                className="rounded border-slate-700 bg-slate-950 text-emerald-500 focus:ring-emerald-500 h-4 w-4"
+                className="rounded border-gray-300 dark:border-slate-700 bg-gray-50 dark:bg-slate-950 text-emerald-500 focus:ring-emerald-500 h-4 w-4"
               />
               <span>استبعاد السجلات المكرّرة المشتبه بها</span>
             </label>
 
-            <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
+            <label className="flex items-center gap-2 text-gray-600 dark:text-slate-300 cursor-pointer">
               <input
                 type="checkbox"
                 checked={excludeSponsoredCheck}
                 onChange={e => setExcludeSponsoredCheck(e.target.checked)}
-                className="rounded border-slate-700 bg-slate-950 text-emerald-500 focus:ring-emerald-500 h-4 w-4"
+                className="rounded border-gray-300 dark:border-slate-700 bg-gray-50 dark:bg-slate-950 text-emerald-500 focus:ring-emerald-500 h-4 w-4"
               />
               <span>استبعاد الأسر المكفولة أصلاً من جهة مانحة</span>
             </label>
@@ -352,15 +352,15 @@ export function TargetingClient({ geography }: GeographyProps) {
 
         {/* Left Side: Results & Commit Actions (8 Cols) */}
         <div className="lg:col-span-8 space-y-4">
-          <div className="bg-slate-900/60 border border-emerald-500/20 rounded-2xl p-5 backdrop-blur-xl shadow-2xl flex flex-col justify-between min-h-[500px]">
+          <div className="bg-gray-50 dark:bg-slate-900/60 border border-emerald-500/20 rounded-2xl p-5 backdrop-blur-xl shadow-2xl flex flex-col justify-between min-h-[500px]">
             <div>
               <div className="flex items-center justify-between border-b border-border/40 pb-4 flex-wrap gap-3">
                 <div>
-                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
                     <CheckCircle2 className="h-5 w-5 text-emerald-400" />
                     الأسر المطابقة
                   </h3>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
                     {hasSearched ? `تم العثور على (${results.length}) أسرة مستحقة للتدخل` : "لم تُطبَّق معايير بعد"}
                   </p>
                 </div>
@@ -369,7 +369,7 @@ export function TargetingClient({ geography }: GeographyProps) {
                   <button
                     onClick={handleExportExcel}
                     disabled={results.length === 0}
-                    className="bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-200 border border-border/60 rounded-xl px-4 py-2 text-xs font-bold flex items-center gap-1.5 transition-all"
+                    className="bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 disabled:opacity-40 text-gray-700 dark:text-slate-200 border border-gray-200 dark:border-border/60 rounded-xl px-4 py-2 text-xs font-bold flex items-center gap-1.5 transition-all"
                   >
                     <Download className="h-3.5 w-3.5 text-emerald-400" /> تصدير Excel
                   </button>
@@ -389,7 +389,7 @@ export function TargetingClient({ geography }: GeographyProps) {
               {results.length > 0 ? (
                 <div className="mt-4 overflow-x-auto">
                   <table className="w-full text-right text-xs">
-                    <thead className="bg-slate-950 text-slate-300 font-bold border-b border-border/60">
+                    <thead className="bg-gray-100 dark:bg-slate-950 text-gray-600 dark:text-slate-300 font-bold border-b border-gray-200 dark:border-border/60">
                       <tr>
                         <th className="py-3 px-3">#</th>
                         <th className="py-3 px-3">كود الأسرة</th>
@@ -400,19 +400,19 @@ export function TargetingClient({ geography }: GeographyProps) {
                         <th className="py-3 px-3 text-center">درجة الاحتياج</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border/30 text-slate-300">
+                    <tbody className="divide-y divide-border/30 text-gray-600 dark:text-slate-300">
                       {results.map((r, i) => (
-                        <tr key={r.family.id} className="hover:bg-slate-950/60 transition-colors">
-                          <td className="py-3 px-3 font-mono font-bold text-slate-400">{i + 1}</td>
+                        <tr key={r.family.id} className="hover:bg-gray-100 dark:hover:bg-slate-950/60 transition-colors">
+                          <td className="py-3 px-3 font-mono font-bold text-gray-500 dark:text-slate-400">{i + 1}</td>
                           <td className="py-3 px-3 font-mono font-bold text-emerald-400">
                             YT-2026-{r.family.id.slice(-4).toUpperCase()}
                           </td>
-                          <td className="py-3 px-3 font-bold text-white">{r.family.headFullName}</td>
+                          <td className="py-3 px-3 font-bold text-gray-900 dark:text-white">{r.family.headFullName}</td>
                           <td className="py-3 px-3 font-mono">{r.family.headNationalId}</td>
-                          <td className="py-3 px-3 text-slate-400">
+                          <td className="py-3 px-3 text-gray-500 dark:text-slate-400">
                             {r.family.subDistrict?.district?.governorate?.nameAr} - {r.family.subDistrict?.district?.nameAr}
                           </td>
-                          <td className="py-3 px-3 text-center font-bold text-white tabular-nums">
+                          <td className="py-3 px-3 text-center font-bold text-gray-900 dark:text-white tabular-nums">
                             {r.family.manualMembersCount || r.family.familyMembersCount || 1}
                           </td>
                           <td className="py-3 px-3 text-center">
@@ -424,12 +424,12 @@ export function TargetingClient({ geography }: GeographyProps) {
                   </table>
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center py-20 text-center text-slate-400 space-y-3">
-                  <div className="p-4 rounded-full bg-slate-950 border border-border/40 text-slate-500">
+                <div className="flex flex-col items-center justify-center py-20 text-center text-gray-500 dark:text-slate-400 space-y-3">
+                  <div className="p-4 rounded-full bg-gray-100 dark:bg-slate-950 border border-border/40 text-gray-400 dark:text-slate-500">
                     <Target className="h-8 w-8" />
                   </div>
-                  <p className="text-sm font-bold text-slate-300">لم تُطبَّق معايير بعد</p>
-                  <p className="text-xs text-slate-500 max-w-xs">
+                  <p className="text-sm font-bold text-gray-600 dark:text-slate-300">لم تُطبَّق معايير بعد</p>
+                  <p className="text-xs text-gray-400 dark:text-slate-500 max-w-xs">
                     حدّد شروط الاستحقاق ونوع التدخل في اللوحة اليمنى ثم انقر على "تطبيق المعايير" لعرض الكشف.
                   </p>
                 </div>

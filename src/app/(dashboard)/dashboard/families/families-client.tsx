@@ -236,73 +236,73 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
       {/* ── Top 8 Metric Summary Cards (طراز البطاقات الجانبية الملونة) ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: الأسر المسجلة */}
-        <div className="bg-slate-900/60 border-l-4 border-l-cyan-500 border border-border/50 rounded-2xl p-4 shadow-xl backdrop-blur-md relative overflow-hidden">
-          <span className="text-xs text-slate-400 font-bold block mb-1">الأسر المسجلة</span>
-          <div className="text-3xl font-black text-white font-mono">{totalCount}</div>
-          <span className="text-[11px] text-slate-400 font-medium block mt-1">
+        <div className="bg-gray-50 dark:bg-slate-900/60 border-l-4 border-l-cyan-500 border border-border/50 rounded-2xl p-4 shadow-xl backdrop-blur-md relative overflow-hidden">
+          <span className="text-xs text-gray-500 dark:text-slate-400 font-bold block mb-1">الأسر المسجلة</span>
+          <div className="text-3xl font-black text-gray-900 dark:text-white font-mono">{totalCount}</div>
+          <span className="text-[11px] text-gray-500 dark:text-slate-400 font-medium block mt-1">
             من أصل {totalCount} سجلاً في القاعدة
           </span>
         </div>
 
         {/* Card 2: إجمالي الأفراد */}
-        <div className="bg-slate-900/60 border-l-4 border-l-teal-500 border border-border/50 rounded-2xl p-4 shadow-xl backdrop-blur-md relative overflow-hidden">
-          <span className="text-xs text-slate-400 font-bold block mb-1">إجمالي الأفراد</span>
+        <div className="bg-gray-50 dark:bg-slate-900/60 border-l-4 border-l-teal-500 border border-border/50 rounded-2xl p-4 shadow-xl backdrop-blur-md relative overflow-hidden">
+          <span className="text-xs text-gray-500 dark:text-slate-400 font-bold block mb-1">إجمالي الأفراد</span>
           <div className="text-3xl font-black text-teal-400 font-mono">{totalPeople}</div>
-          <span className="text-[11px] text-slate-400 font-medium block mt-1">
+          <span className="text-[11px] text-gray-500 dark:text-slate-400 font-medium block mt-1">
             بمتوسط {avgPeople} فرد لكل أسرة
           </span>
         </div>
 
         {/* Card 3: أسر ذات أولوية حرجة */}
-        <div className="bg-slate-900/60 border-l-4 border-l-rose-500 border border-border/50 rounded-2xl p-4 shadow-xl backdrop-blur-md relative overflow-hidden">
-          <span className="text-xs text-slate-400 font-bold block mb-1">أسر ذات أولوية حرجة</span>
+        <div className="bg-gray-50 dark:bg-slate-900/60 border-l-4 border-l-rose-500 border border-border/50 rounded-2xl p-4 shadow-xl backdrop-blur-md relative overflow-hidden">
+          <span className="text-xs text-gray-500 dark:text-slate-400 font-bold block mb-1">أسر ذات أولوية حرجة</span>
           <div className="text-3xl font-black text-rose-400 font-mono">{criticalCount}</div>
-          <span className="text-[11px] text-slate-400 font-medium block mt-1">
+          <span className="text-[11px] text-gray-500 dark:text-slate-400 font-medium block mt-1">
             {criticalPct}% من الأسر · و {highPriorityCount} أسرة أولوية عالية
           </span>
         </div>
 
         {/* Card 4: أيتام داخل الأسر */}
-        <div className="bg-slate-900/60 border-l-4 border-l-amber-500 border border-border/50 rounded-2xl p-4 shadow-xl backdrop-blur-md relative overflow-hidden">
-          <span className="text-xs text-slate-400 font-bold block mb-1">أيتام داخل الأسر</span>
+        <div className="bg-gray-50 dark:bg-slate-900/60 border-l-4 border-l-amber-500 border border-border/50 rounded-2xl p-4 shadow-xl backdrop-blur-md relative overflow-hidden">
+          <span className="text-xs text-gray-500 dark:text-slate-400 font-bold block mb-1">أيتام داخل الأسر</span>
           <div className="text-3xl font-black text-amber-400 font-mono">{totalOrphans}</div>
-          <span className="text-[11px] text-slate-400 font-medium block mt-1">
+          <span className="text-[11px] text-gray-500 dark:text-slate-400 font-medium block mt-1">
             موزعون على {orphanFamiliesCount} أسرة كافلة
           </span>
         </div>
 
         {/* Card 5: أسر نازحة */}
-        <div className="bg-slate-900/60 border-l-4 border-l-blue-500 border border-border/50 rounded-2xl p-4 shadow-xl backdrop-blur-md relative overflow-hidden">
-          <span className="text-xs text-slate-400 font-bold block mb-1">أسر نازحة</span>
+        <div className="bg-gray-50 dark:bg-slate-900/60 border-l-4 border-l-blue-500 border border-border/50 rounded-2xl p-4 shadow-xl backdrop-blur-md relative overflow-hidden">
+          <span className="text-xs text-gray-500 dark:text-slate-400 font-bold block mb-1">أسر نازحة</span>
           <div className="text-3xl font-black text-blue-400 font-mono">{displacedCount}</div>
-          <span className="text-[11px] text-slate-400 font-medium block mt-1">
+          <span className="text-[11px] text-gray-500 dark:text-slate-400 font-medium block mt-1">
             {displacedPct}% من إجمالي الأسر
           </span>
         </div>
 
         {/* Card 6: ذوو إعاقة / مرض مزمن */}
-        <div className="bg-slate-900/60 border-l-4 border-l-indigo-500 border border-border/50 rounded-2xl p-4 shadow-xl backdrop-blur-md relative overflow-hidden">
-          <span className="text-xs text-slate-400 font-bold block mb-1">ذوو إعاقة / مرض مزمن</span>
+        <div className="bg-gray-50 dark:bg-slate-900/60 border-l-4 border-l-indigo-500 border border-border/50 rounded-2xl p-4 shadow-xl backdrop-blur-md relative overflow-hidden">
+          <span className="text-xs text-gray-500 dark:text-slate-400 font-bold block mb-1">ذوو إعاقة / مرض مزمن</span>
           <div className="text-3xl font-black text-indigo-400 font-mono">{disabledCount}</div>
-          <span className="text-[11px] text-slate-400 font-medium block mt-1">
+          <span className="text-[11px] text-gray-500 dark:text-slate-400 font-medium block mt-1">
             في {disabledPct}% من الأسر
           </span>
         </div>
 
         {/* Card 7: وسيط نصيب الفرد شهرياً */}
-        <div className="bg-slate-900/60 border-l-4 border-l-emerald-500 border border-border/50 rounded-2xl p-4 shadow-xl backdrop-blur-md relative overflow-hidden">
-          <span className="text-xs text-slate-400 font-bold block mb-1">وسيط نصيب الفرد شهرياً</span>
+        <div className="bg-gray-50 dark:bg-slate-900/60 border-l-4 border-l-emerald-500 border border-border/50 rounded-2xl p-4 shadow-xl backdrop-blur-md relative overflow-hidden">
+          <span className="text-xs text-gray-500 dark:text-slate-400 font-bold block mb-1">وسيط نصيب الفرد شهرياً</span>
           <div className="text-3xl font-black text-emerald-400 font-mono">{medianIncome.toLocaleString("ar-YE-u-nu-latn")}</div>
-          <span className="text-[11px] text-slate-400 font-medium block mt-1">
+          <span className="text-[11px] text-gray-500 dark:text-slate-400 font-medium block mt-1">
             ريال يمني / فرد
           </span>
         </div>
 
         {/* Card 8: لم تستلم أي مساعدة */}
-        <div className="bg-slate-900/60 border-l-4 border-l-pink-500 border border-border/50 rounded-2xl p-4 shadow-xl backdrop-blur-md relative overflow-hidden">
-          <span className="text-xs text-slate-400 font-bold block mb-1">لم تستلم أي مساعدة</span>
+        <div className="bg-gray-50 dark:bg-slate-900/60 border-l-4 border-l-pink-500 border border-border/50 rounded-2xl p-4 shadow-xl backdrop-blur-md relative overflow-hidden">
+          <span className="text-xs text-gray-500 dark:text-slate-400 font-bold block mb-1">لم تستلم أي مساعدة</span>
           <div className="text-3xl font-black text-pink-400 font-mono">{noAidCount}</div>
-          <span className="text-[11px] text-slate-400 font-medium block mt-1">
+          <span className="text-[11px] text-gray-500 dark:text-slate-400 font-medium block mt-1">
             {noAidPct}% لم تصلهم أي جهة
           </span>
         </div>
@@ -351,7 +351,7 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
           </div>
 
           {/* Vulnerability Tags Chips Bar (اختيار متعدد) */}
-          <div className="space-y-2 border-t border-border/40 pt-3">
+          <div className="space-y-2 border-t border-gray-100 dark:border-border/40 pt-3">
             <span className="text-xs font-bold text-[#1C355E]/70 dark:text-slate-300 block">فئات الهشاشة (اختيار متعدد):</span>
             <div className="flex flex-wrap gap-2">
               {vulnerabilityChips.map((chip) => {
@@ -419,17 +419,17 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
             <Table className="w-full text-right">
               <TableHeader className="bg-[#1C355E] dark:bg-slate-950 border-b border-[#1C355E]/20 dark:border-border/80">
                 <TableRow className="hover:bg-transparent border-border/60">
-                  <TableHead className="text-right text-white font-bold py-3.5 pr-4 text-xs">الكود</TableHead>
-                  <TableHead className="text-right text-white font-bold py-3.5 pr-2 text-xs">رب الأسرة والزوجة</TableHead>
-                  <TableHead className="text-right text-slate-200 font-bold py-3.5 text-xs">الهوية الوطنية</TableHead>
-                  <TableHead className="text-right text-slate-200 font-bold py-3.5 text-xs">الجوال</TableHead>
-                  <TableHead className="text-right text-slate-200 font-bold py-3.5 text-xs">المديرية / المنطقة</TableHead>
-                  <TableHead className="text-center text-slate-200 font-bold py-3.5 text-xs">الأفراد</TableHead>
-                  <TableHead className="text-right text-slate-200 font-bold py-3.5 text-xs">نصيب الفرد</TableHead>
-                  <TableHead className="text-right text-slate-200 font-bold py-3.5 text-xs">السكن</TableHead>
-                  <TableHead className="text-right text-slate-200 font-bold py-3.5 text-xs">الفئات والسمات</TableHead>
-                  <TableHead className="text-center text-slate-200 font-bold py-3.5 text-xs">مؤشر الحاجة</TableHead>
-                  <TableHead className="text-center text-white font-bold py-3.5 pl-4 text-xs">الإجراءات والبطاقة</TableHead>
+                  <TableHead className="text-right text-gray-100 dark:text-white font-bold py-3.5 pr-4 text-xs">الكود</TableHead>
+                  <TableHead className="text-right text-gray-100 dark:text-white font-bold py-3.5 pr-2 text-xs">رب الأسرة والزوجة</TableHead>
+                  <TableHead className="text-right text-gray-200 dark:text-slate-200 font-bold py-3.5 text-xs">الهوية الوطنية</TableHead>
+                  <TableHead className="text-right text-gray-200 dark:text-slate-200 font-bold py-3.5 text-xs">الجوال</TableHead>
+                  <TableHead className="text-right text-gray-200 dark:text-slate-200 font-bold py-3.5 text-xs">المديرية / المنطقة</TableHead>
+                  <TableHead className="text-center text-gray-200 dark:text-slate-200 font-bold py-3.5 text-xs">الأفراد</TableHead>
+                  <TableHead className="text-right text-gray-200 dark:text-slate-200 font-bold py-3.5 text-xs">نصيب الفرد</TableHead>
+                  <TableHead className="text-right text-gray-200 dark:text-slate-200 font-bold py-3.5 text-xs">السكن</TableHead>
+                  <TableHead className="text-right text-gray-200 dark:text-slate-200 font-bold py-3.5 text-xs">الفئات والسمات</TableHead>
+                  <TableHead className="text-center text-gray-200 dark:text-slate-200 font-bold py-3.5 text-xs">مؤشر الحاجة</TableHead>
+                  <TableHead className="text-center text-gray-100 dark:text-white font-bold py-3.5 pl-4 text-xs">الإجراءات والبطاقة</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -541,7 +541,7 @@ export function FamiliesClient({ initialFamilies, geography, currentUserRole }: 
                   })
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={11} className="py-12 text-center text-slate-400 text-xs">
+                    <TableCell colSpan={11} className="py-12 text-center text-gray-500 dark:text-slate-400 text-xs">
                       لا توجد أسر مطابقة لخيارات الفلترة الحالية.
                     </TableCell>
                   </TableRow>

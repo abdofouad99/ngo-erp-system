@@ -282,9 +282,9 @@ export function ReportsClient({ initialBeneficiaries, geography, sponsors }: Rep
               onChange={(e) => setGovId(e.target.value)}
               className="flex h-10 w-full rounded-xl border border-slate-800/80 bg-slate-900/60 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right text-slate-200 font-medium transition-all hover:border-slate-700"
             >
-              <option className="bg-slate-950 text-white" value="ALL">كل المحافظات</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="ALL">كل المحافظات</option>
               {geography.map((gov) => (
-                <option className="bg-slate-950 text-white" key={gov.id} value={gov.id.toString()}>
+                <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" key={gov.id} value={gov.id.toString()}>
                   {gov.nameAr}
                 </option>
               ))}
@@ -297,9 +297,9 @@ export function ReportsClient({ initialBeneficiaries, geography, sponsors }: Rep
               onChange={(e) => setDistId(e.target.value)}
               className="flex h-10 w-full rounded-xl border border-slate-800/80 bg-slate-900/60 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right text-slate-200 font-medium disabled:opacity-50 transition-all hover:border-slate-700"
             >
-              <option className="bg-slate-950 text-white" value="ALL">كل المديريات</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="ALL">كل المديريات</option>
               {activeDistricts.map((dist: any) => (
-                <option className="bg-slate-950 text-white" key={dist.id} value={dist.id.toString()}>
+                <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" key={dist.id} value={dist.id.toString()}>
                   {dist.nameAr}
                 </option>
               ))}
@@ -311,11 +311,11 @@ export function ReportsClient({ initialBeneficiaries, geography, sponsors }: Rep
               onChange={(e) => setCategory(e.target.value)}
               className="flex h-10 w-full rounded-xl border border-slate-800/80 bg-slate-900/60 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right text-slate-200 font-medium transition-all hover:border-slate-700"
             >
-              <option className="bg-slate-950 text-white" value="ALL">كل الفئات</option>
-              <option className="bg-slate-950 text-white" value="ORPHAN">يتيم (Orphan)</option>
-              <option className="bg-slate-950 text-white" value="STUDENT">طالب علم (Student)</option>
-              <option className="bg-slate-950 text-white" value="PATIENT">مريض (Patient)</option>
-              <option className="bg-slate-950 text-white" value="GENERAL">عام</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="ALL">كل الفئات</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="ORPHAN">يتيم (Orphan)</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="STUDENT">طالب علم (Student)</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="PATIENT">مريض (Patient)</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="GENERAL">عام</option>
             </select>
 
             {/* Poverty Level */}
@@ -324,10 +324,10 @@ export function ReportsClient({ initialBeneficiaries, geography, sponsors }: Rep
               onChange={(e) => setPovertyLevel(e.target.value)}
               className="flex h-10 w-full rounded-xl border border-slate-800/80 bg-slate-900/60 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right text-slate-200 font-medium transition-all hover:border-slate-700"
             >
-              <option className="bg-slate-950 text-white" value="ALL">كل مستويات الفقر</option>
-              <option className="bg-slate-950 text-white" value="SEVERE">فقر شديد</option>
-              <option className="bg-slate-950 text-white" value="MEDIUM">فقر متوسط</option>
-              <option className="bg-slate-950 text-white" value="LOW">فقر منخفض</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="ALL">كل مستويات الفقر</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="SEVERE">فقر شديد</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="MEDIUM">فقر متوسط</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="LOW">فقر منخفض</option>
             </select>
 
             {/* Sponsorship status */}
@@ -336,9 +336,9 @@ export function ReportsClient({ initialBeneficiaries, geography, sponsors }: Rep
               onChange={(e) => setSponsorshipStatus(e.target.value)}
               className="flex h-10 w-full rounded-xl border border-slate-800/80 bg-slate-900/60 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right text-slate-200 font-medium transition-all hover:border-slate-700"
             >
-              <option className="bg-slate-950 text-white" value="ALL">حالة الكفالة (الكل)</option>
-              <option className="bg-slate-950 text-white" value="SPONSORED">مكفول</option>
-              <option className="bg-slate-950 text-white" value="UNSPONSORED">في قائمة الانتظار</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="ALL">حالة الكفالة (الكل)</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="SPONSORED">مكفول</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="UNSPONSORED">في قائمة الانتظار</option>
             </select>
 
             {/* Educational stage */}
@@ -347,11 +347,11 @@ export function ReportsClient({ initialBeneficiaries, geography, sponsors }: Rep
               onChange={(e) => setEducationalStage(e.target.value)}
               className="flex h-10 w-full rounded-xl border border-slate-800/80 bg-slate-900/60 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right text-slate-200 font-medium transition-all hover:border-slate-700"
             >
-              <option className="bg-slate-950 text-white" value="ALL">المرحلة الدراسية (الكل)</option>
-              <option className="bg-slate-950 text-white" value="الابتدائية">الابتدائية</option>
-              <option className="bg-slate-950 text-white" value="الأساسية">الأساسية / الإعدادية</option>
-              <option className="bg-slate-950 text-white" value="الثانوية">الثانوية</option>
-              <option className="bg-slate-950 text-white" value="الجامعية">الجامعية</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="ALL">المرحلة الدراسية (الكل)</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="الابتدائية">الابتدائية</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="الأساسية">الأساسية / الإعدادية</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="الثانوية">الثانوية</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="الجامعية">الجامعية</option>
             </select>
 
             {/* Gender */}
@@ -360,9 +360,9 @@ export function ReportsClient({ initialBeneficiaries, geography, sponsors }: Rep
               onChange={(e) => setGender(e.target.value)}
               className="flex h-10 w-full rounded-xl border border-slate-800/80 bg-slate-900/60 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right text-slate-200 font-medium transition-all hover:border-slate-700"
             >
-              <option className="bg-slate-950 text-white" value="ALL">الجنس (الكل)</option>
-              <option className="bg-slate-950 text-white" value="MALE">ذكور</option>
-              <option className="bg-slate-950 text-white" value="FEMALE">إناث</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="ALL">الجنس (الكل)</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="MALE">ذكور</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="FEMALE">إناث</option>
             </select>
 
             {/* Disability */}
@@ -371,9 +371,9 @@ export function ReportsClient({ initialBeneficiaries, geography, sponsors }: Rep
               onChange={(e) => setDisability(e.target.value)}
               className="flex h-10 w-full rounded-xl border border-slate-800/80 bg-slate-900/60 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right text-slate-200 font-medium transition-all hover:border-slate-700"
             >
-              <option className="bg-slate-950 text-white" value="ALL">ذوي الاحتياجات الخاصة (الكل)</option>
-              <option className="bg-slate-950 text-white" value="YES">يعاني من إعاقة</option>
-              <option className="bg-slate-950 text-white" value="NO">لا توجد إعاقات</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="ALL">ذوي الاحتياجات الخاصة (الكل)</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="YES">يعاني من إعاقة</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="NO">لا توجد إعاقات</option>
             </select>
 
             {/* Sponsor Agency */}
@@ -382,9 +382,9 @@ export function ReportsClient({ initialBeneficiaries, geography, sponsors }: Rep
               onChange={(e) => setSponsorId(e.target.value)}
               className="flex h-10 w-full rounded-xl border border-slate-800/80 bg-slate-900/60 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-right text-slate-200 font-medium transition-all hover:border-slate-700"
             >
-              <option className="bg-slate-950 text-white" value="ALL">جهة الكفالة (الكل)</option>
+              <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="ALL">جهة الكفالة (الكل)</option>
               {sponsors.map((sp: any) => (
-                <option className="bg-slate-950 text-white" key={sp.id} value={sp.id}>
+                <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" key={sp.id} value={sp.id}>
                   {sp.name}
                 </option>
               ))}
