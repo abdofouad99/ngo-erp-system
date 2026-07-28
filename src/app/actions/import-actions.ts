@@ -6,6 +6,7 @@ import { createAuditLog, diffObjects } from "@/lib/audit-utils"
 import { createNotification } from "@/app/actions/notification-actions"
 import { Gender, PovertyLevel, OrphanType, VerificationStatus, BeneficiaryCategory } from "@prisma/client"
 import { getCurrentUser } from "@/app/actions/auth-actions"
+import { calculateFamilyNeedScore } from "@/lib/need-score-calculator"
 
 export async function importFamiliesBulk(families: any[]) {
   try {
@@ -56,10 +57,6 @@ export async function importFamiliesBulk(families: any[]) {
           if (sub) {
             subDistrictId = sub.id
           }
-        }
-
-import { calculateFamilyNeedScore } from "@/lib/need-score-calculator"
-
         // Parse fields
         const gender = fam.headGender === "أنثى" || fam.headGender === "FEMALE" ? Gender.FEMALE : Gender.MALE
         let poverty: PovertyLevel | null = null

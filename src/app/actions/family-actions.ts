@@ -7,6 +7,7 @@ import { Gender, PovertyLevel } from "@prisma/client"
 import { diffObjects, createAuditLog } from "@/lib/audit-utils"
 import { createNotification } from "@/app/actions/notification-actions"
 import { getCurrentUser } from "@/app/actions/auth-actions"
+import { calculateFamilyNeedScore } from "@/lib/need-score-calculator"
 
 // =============================================================================
 // VALIDATION SCHEMA
@@ -192,12 +193,6 @@ export async function createFamily(rawInput: any) {
     const adminUser = await prisma.user.findFirst({
       where: { role: "ADMIN" },
     })
-    if (!adminUser) {
-      return { success: false, error: "فشل النظام في تحديد هوية المستخدم المسؤول عن الإدخال" }
-    }
-
-import { calculateFamilyNeedScore } from "@/lib/need-score-calculator"
-
     // Calculate need score and poverty level
     const calculatedNeed = calculateFamilyNeedScore({
       manualMembersCount: validatedData.manualMembersCount || validatedData.familyMembersCount || 1,
