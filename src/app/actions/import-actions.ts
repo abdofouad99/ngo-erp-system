@@ -57,6 +57,7 @@ export async function importFamiliesBulk(families: any[]) {
           if (sub) {
             subDistrictId = sub.id
           }
+        }
         // Parse fields
         const gender = fam.headGender === "أنثى" || fam.headGender === "FEMALE" ? Gender.FEMALE : Gender.MALE
         let poverty: PovertyLevel | null = null
