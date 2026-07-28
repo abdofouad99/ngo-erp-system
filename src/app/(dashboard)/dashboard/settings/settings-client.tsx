@@ -1,0 +1,936 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { getGeoStructure, createGovernorate, createDistrict, createSubDistrict, getSystemStats, getUsersList, createSystemUser, toggleUserStatus } from "@/app/actions/settings-actions"
+import { getAllTagsAdmin, createTag, toggleTag, deleteTag, seedInitialTags } from "@/app/actions/tag-actions"
+import { TagCategory, Role } from "@prisma/client"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  User,
+  Settings,
+  Map,
+  Plus,
+  Info,
+  Server,
+  Users,
+  Heart,
+  Briefcase,
+  Coins,
+  FileText,
+  Activity,
+  CheckCircle,
+  Database,
+  MapPin,
+  Tag,
+  Trash2,
+  ToggleLeft,
+  ToggleRight,
+  Sparkles
+} from "lucide-react"
+
+interface SettingsClientProps {
+  initialGeoStructure: any[]
+  initialStats: any
+  initialTags: any[]
+  initialUsers: any[]
+}
+
+export function SettingsClient({
+  initialGeoStructure,
+  initialStats,
+  initialTags,
+  initialUsers,
+}: SettingsClientProps) {
+  const [activeTab, setActiveTab] = useState("geo")
+  const [geoStructure, setGeoStructure] = useState<any[]>(initialGeoStructure)
+  const [stats, setStats] = useState<any>(initialStats)
+  const [loading, setLoading] = useState(false)
+
+  // Tags state
+  const [allTags, setAllTags] = useState<any[]>(initialTags)
+  const [newTagName, setNewTagName] = useState("")
+  const [newTagCategory, setNewTagCategory] = useState<TagCategory>("ORPHAN_OPERATIONAL_STATUS" as TagCategory)
+  const [newTagColor, setNewTagColor] = useState("#6366f1")
+  const [seedingTags, setSeedingTags] = useState(false)
+
+  // Users state
+  const [usersList, setUsersList] = useState<any[]>(initialUsers)
+  const [newUserName, setNewUserName] = useState("")
+  const [newUserEmail, setNewUserEmail] = useState("")
+  const [newUserPassword, setNewUserPassword] = useState("")
+  const [newUserPhone, setNewUserPhone] = useState("")
+  const [newUserRole, setNewUserRole] = useState<Role>("MARKETER" as Role)
+
+  // Form states
+  const [govName, setGovName] = useState("")
+  const [distName, setDistName] = useState("")
+  const [distGovId, setDistGovId] = useState("")
+  const [subName, setSubName] = useState("")
+  const [subGovId, setSubGovId] = useState("")
+  const [subDistId, setSubDistId] = useState("")
+
+  const [submitting, setSubmitting] = useState(false)
+  const [message, setMessage] = useState({ text: "", type: "" })
+
+  const loadData = async () => {
+    setLoading(true)
+    const [geoRes, statsRes, tagsRes, usersRes] = await Promise.all([
+      getGeoStructure(),
+      getSystemStats(),
+      getAllTagsAdmin(),
+      getUsersList(),
+    ])
+    if (geoRes.success) setGeoStructure(geoRes.governorates || [])
+    if (statsRes.success) setStats(statsRes.stats || null)
+    if (tagsRes.success) setAllTags(tagsRes.tags || [])
+    if (usersRes.success) setUsersList(usersRes.users || [])
+    setLoading(false)
+  }
+
+  const handleCreateGov = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!govName) return
+    setSubmitting(true)
+    const res = await createGovernorate({ nameAr: govName })
+    if (res.success) {
+      setGovName("")
+      setMessage({ text: "تمت إضافة المحافظة بنجاح!", type: "success" })
+      loadData()
+    } else {
+      setMessage({ text: res.error || "فشل إضافة المحافظة", type: "error" })
+    }
+    setSubmitting(false)
+  }
+
+  const handleCreateDist = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!distName || !distGovId) return
+    setSubmitting(true)
+    const res = await createDistrict({ nameAr: distName, governorateId: Number(distGovId) })
+    if (res.success) {
+      setDistName("")
+      setMessage({ text: "تمت إضافة المديرية بنجاح!", type: "success" })
+      loadData()
+    } else {
+      setMessage({ text: res.error || "فشل إضافة المديرية", type: "error" })
+    }
+    setSubmitting(false)
+  }
+
+  const handleCreateSub = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!subName || !subDistId) return
+    setSubmitting(true)
+    const res = await createSubDistrict({ nameAr: subName, districtId: Number(subDistId) })
+    if (res.success) {
+      setSubName("")
+      setMessage({ text: "تمت إضافة العزلة/الحي بنجاح!", type: "success" })
+      loadData()
+    } else {
+      setMessage({ text: res.error || "فشل إضافة العزلة/الحي", type: "error" })
+    }
+    setSubmitting(false)
+  }
+
+  // Selected Districts for the sub-district form based on selected Governorate
+  const getDistrictsForGov = (govId: string) => {
+    if (!govId) return []
+    const gov = geoStructure.find((g) => g.id === Number(govId))
+    return gov ? gov.districts : []
+  }
+
+  return (
+    <div className="space-y-6 p-6 max-w-7xl mx-auto text-right" dir="rtl">
+      {/* Page Title */}
+      <div className="border-b border-gray-200 dark:border-slate-800 pb-5">
+        <h2 className="text-xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
+          <Settings className="h-6 w-6 text-emerald-500 animate-spin-slow" />
+          إعدادات النظام والإدارة العامة
+        </h2>
+        <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+          إدارة الملف الشخصي، إضافة وتعديل النطاقات الجغرافية، والتحقق من صحة النظام وإحصائياته.
+        </p>
+      </div>
+
+      {message.text && (
+        <div
+          className={`p-3 rounded-lg text-xs font-bold border ${
+            message.type === "success"
+              ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-450 border-emerald-200 dark:border-emerald-900/50"
+              : "bg-rose-50 dark:bg-red-950/40 text-rose-700 dark:text-red-400 border-rose-200 dark:border-red-900/50"
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl" className="space-y-6">
+        <TabsList className="bg-gray-100 dark:bg-slate-950 p-1 rounded-xl w-full sm:w-auto flex justify-start gap-1 overflow-x-auto border border-gray-200 dark:border-slate-800/80">
+          <TabsTrigger value="geo" className="rounded-lg text-xs font-bold gap-1.5 px-4 py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white">
+            <Map className="h-4 w-4 text-gray-500 dark:text-slate-400" />
+            إدارة المناطق الجغرافية
+          </TabsTrigger>
+          <TabsTrigger value="tags" className="rounded-lg text-xs font-bold gap-1.5 px-4 py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white">
+            <Tag className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
+            إدارة التصنيفات
+          </TabsTrigger>
+          <TabsTrigger value="users" className="rounded-lg text-xs font-bold gap-1.5 px-4 py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white">
+            <Users className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
+            إدارة المستخدمين والمسوقين
+          </TabsTrigger>
+          <TabsTrigger value="profile" className="rounded-lg text-xs font-bold gap-1.5 px-4 py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white">
+            <User className="h-4 w-4 text-gray-500 dark:text-slate-400" />
+            الملف الشخصي
+          </TabsTrigger>
+          <TabsTrigger value="system" className="rounded-lg text-xs font-bold gap-1.5 px-4 py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white">
+            <Server className="h-4 w-4 text-gray-500 dark:text-slate-400" />
+            تشخيص وإحصائيات النظام
+          </TabsTrigger>
+        </TabsList>
+
+        {/* ── TABS CONTENT: GEO MANAGEMENT ── */}
+        <TabsContent value="geo" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* Create Governorate */}
+            <Card className="bg-white dark:bg-slate-900/40 border border-gray-200 dark:border-slate-800/80 backdrop-blur-md rounded-2xl shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-extrabold text-gray-900 dark:text-white flex items-center gap-1.5">
+                  <Plus className="h-4.5 w-4.5 text-emerald-500" />
+                  إضافة محافظة جديدة
+                </CardTitle>
+                <CardDescription className="text-[11px] text-gray-500 dark:text-slate-400">إنشاء تقسيم إداري رئيسي (محافظة).</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleCreateGov} className="space-y-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-700 dark:text-slate-350">اسم المحافظة بالعربية</label>
+                    <Input
+                      placeholder="مثال: صنعاء، عدن، تعز..."
+                      value={govName}
+                      onChange={(e) => setGovName(e.target.value)}
+                      className="h-9 text-xs rounded-lg bg-white dark:bg-slate-900/60 border-gray-200 dark:border-slate-800/80 text-gray-900 dark:text-white placeholder:text-gray-400 focus-visible:ring-emerald-500 transition-all"
+                      required
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={submitting || !govName}
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg h-9 font-bold text-xs shadow-md shadow-emerald-900/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
+                  >
+                    حفظ المحافظة
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+
+            {/* Create District */}
+            <Card className="bg-white dark:bg-slate-900/40 border border-gray-200 dark:border-slate-800/80 backdrop-blur-md rounded-2xl shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-extrabold text-gray-900 dark:text-white flex items-center gap-1.5">
+                  <Plus className="h-4.5 w-4.5 text-emerald-500" />
+                  إضافة مديرية جديدة
+                </CardTitle>
+                <CardDescription className="text-[11px] text-gray-500 dark:text-slate-400">ربط مديرية جديدة بمحافظة مسجلة.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleCreateDist} className="space-y-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-700 dark:text-slate-350">اختر المحافظة التابعة لها</label>
+                    <select
+                      value={distGovId}
+                      onChange={(e) => setDistGovId(e.target.value)}
+                      className="flex h-9 w-full rounded-lg border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs font-semibold focus-visible:outline-none text-right text-gray-800 dark:text-slate-200 transition-all"
+                      required
+                    >
+                      <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="">-- اختر محافظة --</option>
+                      {geoStructure.map((g) => (
+                        <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" key={g.id} value={g.id}>{g.nameAr}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-700 dark:text-slate-350">اسم المديرية</label>
+                    <Input
+                      placeholder="مثال: مديرية السبعين، مديرية المعلا..."
+                      value={distName}
+                      onChange={(e) => setDistName(e.target.value)}
+                      className="h-9 text-xs rounded-lg bg-white dark:bg-slate-900/60 border-gray-200 dark:border-slate-800/80 text-gray-900 dark:text-white placeholder:text-gray-400 focus-visible:ring-emerald-500 transition-all"
+                      required
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={submitting || !distName || !distGovId}
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg h-9 font-bold text-xs shadow-md shadow-emerald-900/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
+                  >
+                    حفظ المديرية
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+
+            {/* Create Sub-District / Village */}
+            <Card className="bg-white dark:bg-slate-900/40 border border-gray-200 dark:border-slate-800/80 backdrop-blur-md rounded-2xl shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-extrabold text-gray-900 dark:text-white flex items-center gap-1.5">
+                  <Plus className="h-4.5 w-4.5 text-emerald-500" />
+                  إضافة عزلة أو حي سكني
+                </CardTitle>
+                <CardDescription className="text-[11px] text-gray-500 dark:text-slate-400">ربط حي أو قرية بمديرية معينة لتسهيل الاختيار.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleCreateSub} className="space-y-3">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-700 dark:text-slate-350">اختر المحافظة</label>
+                      <select
+                        value={subGovId}
+                        onChange={(e) => {
+                          setSubGovId(e.target.value)
+                          setSubDistId("")
+                        }}
+                        className="flex h-9 w-full rounded-lg border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/60 px-2 py-1 text-[11px] font-semibold focus-visible:outline-none text-right text-gray-800 dark:text-slate-200 transition-all"
+                        required
+                      >
+                        <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="">-- اختر --</option>
+                        {geoStructure.map((g) => (
+                          <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" key={g.id} value={g.id}>{g.nameAr}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-700 dark:text-slate-350">اختر المديرية</label>
+                      <select
+                        value={subDistId}
+                        onChange={(e) => setSubDistId(e.target.value)}
+                        className="flex h-9 w-full rounded-lg border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/60 px-2 py-1 text-[11px] font-semibold focus-visible:outline-none text-right text-gray-800 dark:text-slate-200 transition-all"
+                        disabled={!subGovId}
+                        required
+                      >
+                        <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="">-- اختر --</option>
+                        {getDistrictsForGov(subGovId).map((d: any) => (
+                          <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" key={d.id} value={d.id}>{d.nameAr}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-700 dark:text-slate-350">اسم الحي / العزلة / القرية</label>
+                    <Input
+                      placeholder="مثال: حي الأصبحي، قرية الحجر..."
+                      value={subName}
+                      onChange={(e) => setSubName(e.target.value)}
+                      className="h-9 text-xs rounded-lg bg-white dark:bg-slate-900/60 border-gray-200 dark:border-slate-800/80 text-gray-900 dark:text-white placeholder:text-gray-400 focus-visible:ring-emerald-500 transition-all"
+                      required
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={submitting || !subName || !subDistId}
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg h-9 font-bold text-xs shadow-md shadow-emerald-900/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
+                  >
+                    حفظ الحي/العزلة
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Geographical Tree View */}
+          <Card className="bg-white dark:bg-slate-900/40 border border-gray-200 dark:border-slate-800/80 backdrop-blur-md rounded-2xl shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-sm font-extrabold text-gray-900 dark:text-white flex items-center gap-1.5">
+                <MapPin className="h-4.5 w-4.5 text-emerald-500" />
+                هيكل التقسيم الجغرافي النشط ({geoStructure.length} محافظة)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="text-center py-6 text-xs text-gray-500 dark:text-slate-450">جاري تحميل الهيكل الجغرافي...</div>
+              ) : geoStructure.length === 0 ? (
+                <div className="text-center py-8 text-xs text-gray-400 dark:text-slate-450 italic">لا توجد مناطق جغرافية مسجلة بعد.</div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {geoStructure.map((gov) => (
+                    <div key={gov.id} className="border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/30 rounded-xl p-4 space-y-2">
+                      <div className="font-bold text-gray-800 dark:text-slate-200 border-b border-gray-200 dark:border-slate-850 pb-1 flex justify-between items-center text-xs">
+                        <span>محافظة {gov.nameAr}</span>
+                        <Badge className="bg-gray-200 dark:bg-slate-800 text-gray-700 dark:text-slate-300 border border-gray-300 dark:border-slate-700/50 text-[9px] font-extrabold">
+                          {gov.districts?.length || 0} مديرية
+                        </Badge>
+                      </div>
+                      <div className="space-y-2 max-h-[150px] overflow-y-auto pr-1">
+                        {gov.districts?.map((d: any) => (
+                          <div key={d.id} className="text-[11px] bg-white dark:bg-slate-950/40 p-2 rounded-lg border border-gray-200 dark:border-slate-850 space-y-1">
+                            <div className="font-bold text-gray-800 dark:text-slate-200 flex justify-between">
+                              <span>مديرية: {d.nameAr}</span>
+                              <span className="text-gray-400 dark:text-slate-500 text-[9px]">{d.subDistricts?.length || 0} حي</span>
+                            </div>
+                            {d.subDistricts && d.subDistricts.length > 0 && (
+                              <div className="flex flex-wrap gap-1 pt-1 border-t border-dashed border-gray-200 dark:border-slate-850">
+                                {d.subDistricts.map((s: any) => (
+                                  <span key={s.id} className="bg-gray-100 dark:bg-slate-900 px-1.5 py-0.5 rounded text-[9px] text-gray-600 dark:text-slate-400 font-semibold border border-gray-200 dark:border-slate-800">
+                                    {s.nameAr}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ── TABS CONTENT: PROFILE ── */}
+        <TabsContent value="profile">
+          <Card className="bg-white dark:bg-slate-900/40 border border-gray-200 dark:border-slate-800/80 backdrop-blur-md rounded-2xl shadow-sm max-w-2xl">
+            <CardHeader>
+              <CardTitle className="text-sm font-extrabold text-gray-900 dark:text-white flex items-center gap-1.5">
+                <User className="h-4.5 w-4.5 text-emerald-500" />
+                بيانات حساب المستخدم النشط
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-4 border-b border-gray-200 dark:border-slate-800/85 pb-4">
+                <div className="h-16 w-16 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white text-xl font-bold">
+                  م
+                </div>
+                <div className="space-y-1">
+                  <h4 className="text-sm font-bold text-gray-900 dark:text-white">مشرف النظام العام</h4>
+                  <Badge className="bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/50 font-bold text-[10px]">
+                    صلاحية: مسؤول النظام الكامل (ADMIN)
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 text-xs">
+                <div className="space-y-1">
+                  <span className="text-gray-500 dark:text-slate-400 block font-semibold">البريد الإلكتروني</span>
+                  <span className="font-bold text-gray-900 dark:text-slate-200">admin@ngo.com</span>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-gray-500 dark:text-slate-400 block font-semibold">حالة الحساب</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                    <CheckCircle className="h-3.5 w-3.5" /> نشط وموثق
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-gray-500 dark:text-slate-400 block font-semibold">تاريخ الانضمام</span>
+                  <span className="font-bold text-gray-900 dark:text-slate-200">10 يونيو 2026</span>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-gray-500 dark:text-slate-400 block font-semibold">اللغة الافتراضية</span>
+                  <span className="font-bold text-gray-900 dark:text-slate-200">العربية (RTL)</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ── TABS CONTENT: SYSTEM DIAGNOSTICS ── */}
+        <TabsContent value="system">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            {/* System Diagnostics Metrics */}
+            <Card className="bg-white dark:bg-slate-900/40 border border-gray-200 dark:border-slate-800/80 backdrop-blur-md rounded-2xl shadow-sm md:col-span-2">
+              <CardHeader>
+                <CardTitle className="text-sm font-extrabold text-gray-900 dark:text-white flex items-center gap-1.5">
+                  <Database className="h-4.5 w-4.5 text-emerald-500" />
+                  حالة قاعدة البيانات ومعدلات التخزين
+                </CardTitle>
+                <CardDescription className="text-[11px] text-gray-500 dark:text-slate-400">
+                  ملخص لإحصائيات الجداول المخزنة في Supabase PostgreSQL.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="text-center py-6 text-xs text-gray-500 dark:text-slate-450">جاري تحميل إحصائيات النظام...</div>
+                ) : !stats ? (
+                  <div className="text-center py-6 text-xs text-gray-500 dark:text-slate-450">فشل في الحصول على بيانات التشخيص.</div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    
+                    <div className="bg-gray-50 dark:bg-slate-900/30 p-3 rounded-xl border border-gray-200 dark:border-slate-800/50 flex items-center gap-3">
+                      <Users className="h-6 w-6 text-gray-400 dark:text-slate-500" />
+                      <div>
+                        <span className="text-[9px] font-bold text-gray-500 dark:text-slate-400 block">العائلات المسجلة</span>
+                        <span className="text-sm font-extrabold text-gray-900 dark:text-slate-100">{stats.families}</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 dark:bg-slate-900/30 p-3 rounded-xl border border-gray-200 dark:border-slate-800/50 flex items-center gap-3">
+                      <Heart className="h-6 w-6 text-rose-500 dark:text-rose-400 animate-pulse" />
+                      <div>
+                        <span className="text-[9px] font-bold text-gray-500 dark:text-slate-400 block">الأيتام والطلاب</span>
+                        <span className="text-sm font-extrabold text-gray-900 dark:text-slate-100">{stats.orphans}</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 dark:bg-slate-900/30 p-3 rounded-xl border border-gray-200 dark:border-slate-800/50 flex items-center gap-3">
+                      <Briefcase className="h-6 w-6 text-blue-500 dark:text-blue-400" />
+                      <div>
+                        <span className="text-[9px] font-bold text-gray-500 dark:text-slate-400 block">المشاريع الإغاثية</span>
+                        <span className="text-sm font-extrabold text-gray-900 dark:text-slate-100">{stats.projects}</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 dark:bg-slate-900/30 p-3 rounded-xl border border-gray-200 dark:border-slate-800/50 flex items-center gap-3">
+                      <Coins className="h-6 w-6 text-amber-500 dark:text-amber-400" />
+                      <div>
+                        <span className="text-[9px] font-bold text-gray-500 dark:text-slate-400 block">الكفلاء والكفالات</span>
+                        <span className="text-sm font-extrabold text-gray-900 dark:text-slate-100">{stats.sponsorships}</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 dark:bg-slate-900/30 p-3 rounded-xl border border-gray-200 dark:border-slate-800/50 flex items-center gap-3">
+                      <FileText className="h-6 w-6 text-emerald-500 dark:text-emerald-400" />
+                      <div>
+                        <span className="text-[9px] font-bold text-gray-500 dark:text-slate-400 block">سندات القبض المالي</span>
+                        <span className="text-sm font-extrabold text-gray-900 dark:text-slate-100">{stats.receipts}</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 dark:bg-slate-900/30 p-3 rounded-xl border border-gray-200 dark:border-slate-800/50 flex items-center gap-3">
+                      <Activity className="h-6 w-6 text-purple-500 dark:text-purple-400" />
+                      <div>
+                        <span className="text-[9px] font-bold text-gray-500 dark:text-slate-400 block">الأنشطة والتدقيق</span>
+                        <span className="text-sm font-extrabold text-gray-900 dark:text-slate-100">{stats.auditLogs + stats.caseActivities}</span>
+                      </div>
+                    </div>
+
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Connection and Version Card */}
+            <Card className="border border-gray-200 dark:border-slate-800/80 backdrop-blur-md rounded-2xl shadow-sm bg-gradient-to-br from-gray-900 via-slate-900 to-slate-950 text-white animate-fade-in">
+              <CardHeader>
+                <CardTitle className="text-sm font-extrabold flex items-center gap-1.5">
+                  <Info className="h-4.5 w-4.5 text-emerald-400" />
+                  تفاصيل بيئة التشغيل
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 text-xs font-medium text-slate-300">
+                <div className="flex justify-between items-center border-b border-slate-800/50 pb-2">
+                  <span>خادم قاعدة البيانات:</span>
+                  <Badge className="bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">Supabase PG</Badge>
+                </div>
+                <div className="flex justify-between items-center border-b border-slate-800/50 pb-2">
+                  <span>إطار العمل:</span>
+                  <Badge className="bg-slate-800 text-slate-200">Next.js 15.5</Badge>
+                </div>
+                <div className="flex justify-between items-center border-b border-slate-800/50 pb-2">
+                  <span>نسخة العميل Prisma:</span>
+                  <span className="font-mono text-[10px]">v5.22.0</span>
+                </div>
+                <div className="flex justify-between items-center pb-1">
+                  <span>حالة الاتصال بالخادم:</span>
+                  <span className="text-emerald-400 flex items-center gap-1 font-bold">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    متصل ونشط
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+
+          </div>
+        </TabsContent>
+
+        {/* ── TAGS MANAGEMENT TAB ── */}
+        <TabsContent value="tags" className="space-y-6">
+          {/* Header + Seed Button */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-extrabold text-gray-900 dark:text-white">إدارة التصنيفات المرنة</h3>
+              <p className="text-xs text-gray-500 dark:text-white/50 mt-1">أضف وعدّل التصنيفات التي تظهر على الأيتام والأسر. التغييرات تنعكس فوراً.</p>
+            </div>
+            <Button
+              onClick={async () => {
+                setSeedingTags(true)
+                const res = await seedInitialTags()
+                setMessage({ text: res.message || res.error || "", type: res.success ? "success" : "error" })
+                await loadData()
+                setSeedingTags(false)
+              }}
+              disabled={seedingTags}
+              className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              {seedingTags ? "جاري الإضافة..." : "إضافة التصنيفات الافتراضية"}
+            </Button>
+          </div>
+
+          {/* Add New Tag Form */}
+          <Card className="bg-white dark:bg-slate-900/40 border border-indigo-200 dark:border-indigo-500/20 backdrop-blur-md rounded-2xl">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-extrabold text-gray-900 dark:text-white flex items-center gap-1.5">
+                <Plus className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
+                إضافة تصنيف جديد
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault()
+                  if (!newTagName) return
+                  setSubmitting(true)
+                  const fd = new FormData()
+                  fd.set("nameAr", newTagName)
+                  fd.set("category", newTagCategory)
+                  fd.set("color", newTagColor)
+                  const res = await createTag(fd)
+                  if (res.success) {
+                    setNewTagName("")
+                    setMessage({ text: res.message || "تم إنشاء التصنيف", type: "success" })
+                    await loadData()
+                  } else {
+                    setMessage({ text: res.error || "فشل", type: "error" })
+                  }
+                  setSubmitting(false)
+                }}
+                className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end"
+              >
+                <div className="sm:col-span-2 space-y-1">
+                  <label className="text-xs font-bold text-gray-700 dark:text-white/60">اسم التصنيف</label>
+                  <Input
+                    value={newTagName}
+                    onChange={(e) => setNewTagName(e.target.value)}
+                    placeholder="مثال: تحت المتابعة"
+                    className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white text-sm h-9"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-700 dark:text-white/60">الفئة</label>
+                  <select
+                    value={newTagCategory}
+                    onChange={(e) => setNewTagCategory(e.target.value as TagCategory)}
+                    className="w-full h-9 rounded-md border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-gray-900 dark:text-white"
+                  >
+                    <option value="ORPHAN_OPERATIONAL_STATUS">الحالة التشغيلية للأيتام</option>
+                    <option value="FUNDING_SOURCE">جهة التمويل</option>
+                    <option value="FAMILY_NEED">احتياجات الأسرة</option>
+                    <option value="MEDICAL_CONDITION">الحالة الطبية</option>
+                    <option value="CUSTOM">مخصص</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-700 dark:text-white/60">اللون</label>
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="color"
+                      value={newTagColor}
+                      onChange={(e) => setNewTagColor(e.target.value)}
+                      className="h-9 w-12 rounded-md border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 cursor-pointer"
+                    />
+                    <Button type="submit" disabled={submitting} className="flex-1 h-9 text-xs bg-indigo-600 hover:bg-indigo-700 text-white">
+                      <Plus className="h-3 w-3 ml-1" /> إضافة
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Tags List grouped by category */}
+          {([
+            { key: "ORPHAN_OPERATIONAL_STATUS", label: "الحالة التشغيلية للأيتام", color: "blue" },
+            { key: "FUNDING_SOURCE", label: "جهات التمويل والكفالة", color: "teal" },
+            { key: "FAMILY_NEED", label: "احتياجات الأسرة", color: "amber" },
+            { key: "MEDICAL_CONDITION", label: "الحالات الطبية", color: "rose" },
+            { key: "CUSTOM", label: "تصنيفات مخصصة", color: "purple" },
+          ] as const).map(({ key, label }) => {
+            const catTags = allTags.filter((t) => t.category === key)
+            if (catTags.length === 0) return null
+            return (
+              <Card key={key} className="bg-white dark:bg-slate-900/40 border border-gray-200 dark:border-slate-800/80 backdrop-blur-md rounded-2xl">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-extrabold text-gray-900 dark:text-white flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <Tag className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
+                      {label}
+                    </span>
+                    <span className="text-xs font-normal text-gray-400 dark:text-white/40">{catTags.length} تصنيف</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {catTags.map((tag) => (
+                      <div
+                        key={tag.id}
+                        className={`flex items-center justify-between rounded-xl px-3 py-2.5 border transition-all ${
+                          tag.isActive
+                            ? "bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-white/10"
+                            : "bg-gray-50/50 dark:bg-white/[0.02] border-gray-100 dark:border-white/5 opacity-50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="h-3.5 w-3.5 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: tag.color }}
+                          />
+                          <span className="text-sm font-semibold text-gray-900 dark:text-white">{tag.nameAr}</span>
+                          {!tag.isActive && (
+                            <span className="text-[10px] bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded-full">معطّل</span>
+                          )}
+                          <span className="text-[10px] text-gray-400 dark:text-white/30">
+                            {tag._count.beneficiaryTags + tag._count.familyTags} استخدام
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={async () => {
+                              const res = await toggleTag(tag.id)
+                              setMessage({ text: res.message || res.error || "", type: res.success ? "success" : "error" })
+                              await loadData()
+                            }}
+                            className="text-gray-400 dark:text-white/40 hover:text-gray-700 dark:hover:text-white transition-colors p-1 rounded"
+                            title={tag.isActive ? "تعطيل" : "تفعيل"}
+                          >
+                            {tag.isActive
+                              ? <ToggleRight className="h-5 w-5 text-emerald-500 dark:text-emerald-400" />
+                              : <ToggleLeft className="h-5 w-5 text-gray-400 dark:text-slate-500" />}
+                          </button>
+                          <button
+                            onClick={async () => {
+                              if (!confirm(`هل أنت متأكد من حذف "${tag.nameAr}"؟`)) return
+                              const res = await deleteTag(tag.id)
+                              setMessage({ text: res.message || res.error || "", type: res.success ? "success" : "error" })
+                              await loadData()
+                            }}
+                            className="text-gray-300 dark:text-white/20 hover:text-rose-600 dark:hover:text-red-400 transition-colors p-1 rounded"
+                            title="حذف"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })}
+        </TabsContent>
+
+        {/* ── TABS CONTENT: USERS MANAGEMENT ── */}
+        <TabsContent value="users" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* Create User Form */}
+            <Card className="bg-white dark:bg-slate-900/40 border border-gray-200 dark:border-slate-800/80 backdrop-blur-md rounded-2xl shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-extrabold text-gray-900 dark:text-white flex items-center gap-1.5">
+                  <Plus className="h-4.5 w-4.5 text-emerald-500" />
+                  إضافة مستخدم / مسوق جديد
+                </CardTitle>
+                <CardDescription className="text-[11px] text-gray-500 dark:text-slate-400">إنشاء حساب جديد وتفويضه بصلاحيات محددة.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form
+                    onSubmit={async (e) => {
+                    e.preventDefault()
+                    if (!newUserName || !newUserEmail || !newUserPassword) return
+                    setSubmitting(true)
+                    const res = await createSystemUser({
+                      name: newUserName,
+                      email: newUserEmail,
+                      password: newUserPassword,
+                      role: newUserRole,
+                      phone: newUserPhone
+                    })
+                    if (res.success) {
+                      if (res.notifyCredentials) {
+                        try {
+                          const welcomeMsg = `🌹 مرحباً بك *${res.notifyCredentials.name}* في *مؤسسة الأيتام الخيرية التنموية*.\n\nلقد تم إنشاء حساب مسوق ميداني خاص بك في النظام بنجاح! 🎉\n\n🔑 *بيانات الدخول الخاصة بك:*\n📧 البريد الإلكتروني: \`${res.notifyCredentials.email}\`\n🔒 كلمة المرور: \`${res.notifyCredentials.password}\`\n\n🔗 *رابط لوحة التحكم للدخول وتحديث البيانات:*\nhttps://ngo-erp-system.vercel.app/login\n\n🔹 يرجى استخدام هذه البيانات لتسجيل الدخول والبدء بتسجيل وإدارة ملفات الأيتام.`
+                          
+                          let cleaned = res.notifyCredentials.phone.replace(/\D/g, "")
+                          if (cleaned.startsWith("00")) cleaned = cleaned.substring(2)
+                          if (cleaned.startsWith("0")) cleaned = "967" + cleaned.substring(1)
+                          else if (cleaned.length === 9 && (cleaned.startsWith("7") || cleaned.startsWith("1"))) cleaned = "967" + cleaned
+
+                          await fetch("http://127.0.0.1:5005/send", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ phone: cleaned, message: welcomeMsg }),
+                            mode: "cors"
+                          })
+                        } catch (err) {
+                          console.warn("⚠️ Local WhatsApp bot is not running:", err)
+                        }
+                      }
+                      setNewUserName("")
+                      setNewUserEmail("")
+                      setNewUserPassword("")
+                      setNewUserPhone("")
+                      setNewUserRole("MARKETER" as Role)
+                      setMessage({ text: "تم إنشاء حساب المستخدم بنجاح ومزامنته مع Supabase Auth!", type: "success" })
+                      loadData()
+                    } else {
+                      setMessage({ text: res.error || "فشل إنشاء حساب المستخدم", type: "error" })
+                    }
+                    setSubmitting(false)
+                  }}
+                  className="space-y-3"
+                >
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-700 dark:text-slate-350">الاسم الكامل</label>
+                    <Input
+                      placeholder="مثال: محمد أحمد علي"
+                      value={newUserName}
+                      onChange={(e) => setNewUserName(e.target.value)}
+                      className="h-9 text-xs rounded-lg bg-white dark:bg-slate-900/60 border-gray-200 dark:border-slate-800/80 text-gray-900 dark:text-white placeholder:text-gray-400 focus-visible:ring-emerald-500 transition-all"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-700 dark:text-slate-350">البريد الإلكتروني</label>
+                    <Input
+                      type="email"
+                      placeholder="name@ngo.com"
+                      value={newUserEmail}
+                      onChange={(e) => setNewUserEmail(e.target.value)}
+                      className="h-9 text-xs rounded-lg bg-white dark:bg-slate-900/60 border-gray-200 dark:border-slate-800/80 text-gray-900 dark:text-white placeholder:text-gray-400 focus-visible:ring-emerald-500 transition-all"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-700 dark:text-slate-350">كلمة المرور</label>
+                    <Input
+                      type="password"
+                      placeholder="••••••••"
+                      value={newUserPassword}
+                      onChange={(e) => setNewUserPassword(e.target.value)}
+                      className="h-9 text-xs rounded-lg bg-white dark:bg-slate-900/60 border-gray-200 dark:border-slate-800/80 text-gray-900 dark:text-white placeholder:text-gray-400 focus-visible:ring-emerald-500 transition-all"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-700 dark:text-slate-350">رقم الهاتف (لإرسال وتساب)</label>
+                    <Input
+                      placeholder="770000000"
+                      value={newUserPhone}
+                      onChange={(e) => setNewUserPhone(e.target.value)}
+                      className="h-9 text-xs rounded-lg bg-white dark:bg-slate-900/60 border-gray-200 dark:border-slate-800/80 text-gray-900 dark:text-white placeholder:text-gray-400 focus-visible:ring-emerald-500 transition-all"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-700 dark:text-slate-350">الصلاحية / الدور</label>
+                    <select
+                      value={newUserRole}
+                      onChange={(e) => setNewUserRole(e.target.value as Role)}
+                      className="flex h-9 w-full rounded-lg border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs font-semibold focus-visible:outline-none text-right text-gray-800 dark:text-slate-200 transition-all"
+                      required
+                    >
+                      <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="MARKETER">مسوق ميداني (MARKETER)</option>
+                      <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="DATA_ENTRY">مدخل بيانات (DATA_ENTRY)</option>
+                      <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="MANAGER">مدير برامج (MANAGER)</option>
+                      <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="VIEWER">مطلع قراءة فقط (VIEWER)</option>
+                      <option className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white" value="ADMIN">مشرف نظام كامل (ADMIN)</option>
+                    </select>
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={submitting || !newUserName || !newUserEmail || !newUserPassword}
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg h-9 font-bold text-xs shadow-md shadow-emerald-900/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
+                  >
+                    حفظ الحساب وتزويده بالصلاحية
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+
+            {/* Users List Table */}
+            <Card className="bg-white dark:bg-slate-900/40 border border-gray-200 dark:border-slate-800/80 backdrop-blur-md rounded-2xl shadow-sm lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="text-sm font-extrabold text-gray-900 dark:text-white flex items-center gap-1.5">
+                  <Users className="h-4.5 w-4.5 text-emerald-500" />
+                  قائمة المستخدمين والمسوقين المسجلين ({usersList.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="text-center py-6 text-xs text-gray-500 dark:text-slate-450">جاري تحميل قائمة المستخدمين...</div>
+                ) : usersList.length === 0 ? (
+                  <div className="text-center py-8 text-xs text-gray-400 dark:text-slate-450 italic">لا يوجد مستخدمون آخرون.</div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-right text-xs">
+                      <thead className="bg-gray-100 dark:bg-slate-950 text-gray-700 dark:text-slate-200 font-bold border-b border-gray-200 dark:border-slate-800">
+                        <tr>
+                          <th className="p-3">الاسم الكامل</th>
+                          <th className="p-3">البريد الإلكتروني</th>
+                          <th className="p-3">الهاتف</th>
+                          <th className="p-3 text-center">الدور / الصلاحية</th>
+                          <th className="p-3 text-center">الحالة</th>
+                          <th className="p-3 text-center">التحكم</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 dark:divide-slate-800/50 text-gray-700 dark:text-slate-300">
+                        {usersList.map((u) => (
+                          <tr key={u.id} className="hover:bg-gray-50 dark:hover:bg-slate-900/30 transition-all">
+                            <td className="p-3 font-bold text-gray-900 dark:text-white">{u.name}</td>
+                            <td className="p-3 font-mono text-[11px]">{u.email}</td>
+                            <td className="p-3 font-mono text-[11px]">{u.phone || "-"}</td>
+                            <td className="p-3 text-center">
+                              <Badge className="bg-slate-800 text-slate-200 border border-slate-700 font-bold text-[10px]">
+                                {u.role}
+                              </Badge>
+                            </td>
+                            <td className="p-3 text-center">
+                              {u.isActive ? (
+                                <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold text-[10px]">
+                                  نشط
+                                </Badge>
+                              ) : (
+                                <Badge className="bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 font-bold text-[10px]">
+                                  موقف
+                                </Badge>
+                              )}
+                            </td>
+                            <td className="p-3 text-center">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={async () => {
+                                  const res = await toggleUserStatus(u.id, !u.isActive)
+                                  if (res.success) {
+                                    setMessage({ text: res.message || "تم التحديث", type: "success" })
+                                    loadData()
+                                  } else {
+                                    setMessage({ text: res.error || "فشل", type: "error" })
+                                  }
+                                }}
+                                className="h-7 px-2 text-[10px] font-bold text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white"
+                              >
+                                {u.isActive ? "تعطيل" : "تفعيل"}
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  )
+}
