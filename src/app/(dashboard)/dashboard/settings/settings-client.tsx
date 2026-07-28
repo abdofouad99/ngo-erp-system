@@ -906,7 +906,7 @@ export function SettingsClient({
                                 size="sm"
                                 variant="ghost"
                                 onClick={async () => {
-                                  const res = await toggleUserStatus(u.id, !u.isActive)
+                                  const res = await toggleUserStatus(u.id)
                                   if (res.success) {
                                     setMessage({ text: res.message || "تم التحديث", type: "success" })
                                     loadData()
