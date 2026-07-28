@@ -35,7 +35,7 @@ async function getDashboardStats() {
          orphansCount, studentsCount] = await Promise.allSettled([
     prisma.family.count({ where: { isActive: true, deletedAt: null } }),
     prisma.beneficiary.count({ where: { isActive: true, deletedAt: null } }),
-    prisma.project.count({ where: { status: "ACTIVE", deletedAt: null } }),
+    prisma.project.count({ where: { deletedAt: null } }),
     prisma.sponsorship.count({ where: { status: "ACTIVE", deletedAt: null } }),
     prisma.beneficiary.count({ where: { category: "ORPHAN", isActive: true, deletedAt: null } }),
     prisma.beneficiary.count({ where: { category: "STUDENT", isActive: true, deletedAt: null } }),

@@ -58,12 +58,31 @@ export async function importFamiliesBulk(families: any[]) {
           }
         }
 
+import { calculateFamilyNeedScore } from "@/lib/need-score-calculator"
+
         // Parse fields
         const gender = fam.headGender === "أنثى" || fam.headGender === "FEMALE" ? Gender.FEMALE : Gender.MALE
         let poverty: PovertyLevel | null = null
         if (fam.povertyLevel === "شديد" || fam.povertyLevel === "SEVERE") poverty = PovertyLevel.SEVERE
         else if (fam.povertyLevel === "متوسط" || fam.povertyLevel === "MEDIUM") poverty = PovertyLevel.MEDIUM
         else if (fam.povertyLevel === "منخفض" || fam.povertyLevel === "LOW") poverty = PovertyLevel.LOW
+
+        // Calculate need score and poverty level
+        const calculatedNeed = calculateFamilyNeedScore({
+          manualMembersCount: fam.manualMembersCount ? Number(fam.manualMembersCount) : (fam.familyMembersCount ? Number(fam.familyMembersCount) : 1),
+          monthlyIncome: fam.monthlyIncome ? Number(fam.monthlyIncome) : 0,
+          orphansCount: fam.orphansCount ? Number(fam.orphansCount) : 0,
+          hasOrphans: fam.hasOrphans,
+          hasWidow: fam.hasWidow,
+          specialNeedsCount: fam.specialNeedsCount ? Number(fam.specialNeedsCount) : 0,
+          kidsUnder5Count: fam.kidsUnder5Count ? Number(fam.kidsUnder5Count) : 0,
+          elderlyAbove60Count: fam.elderlyAbove60Count ? Number(fam.elderlyAbove60Count) : 0,
+          housingType: fam.housingType || null,
+          isDisplaced: fam.isDisplaced
+        })
+
+        const finalScore = fam.vulnerabilityScore ? Number(fam.vulnerabilityScore) : calculatedNeed.score
+        const finalPoverty = poverty || (calculatedNeed.score >= 75 ? PovertyLevel.SEVERE : calculatedNeed.score >= 50 ? PovertyLevel.MEDIUM : PovertyLevel.LOW)
 
         const createdFamily = await prisma.family.create({
           data: {
@@ -75,7 +94,7 @@ export async function importFamiliesBulk(families: any[]) {
             headBirthdate: fam.headBirthdate ? new Date(fam.headBirthdate) : null,
             addressDetail: fam.addressDetail || null,
             subDistrictId: subDistrictId,
-            vulnerabilityScore: fam.vulnerabilityScore ? Number(fam.vulnerabilityScore) : 0,
+            vulnerabilityScore: finalScore,
             notes: fam.notes || null,
             guardianName: fam.guardianName || null,
             guardianRelation: fam.guardianRelation || null,
@@ -84,7 +103,7 @@ export async function importFamiliesBulk(families: any[]) {
             monthlyIncome: fam.monthlyIncome ? Number(fam.monthlyIncome) : null,
             housingType: fam.housingType || null,
             housingCondition: fam.housingCondition || null,
-            povertyLevel: poverty,
+            povertyLevel: finalPoverty,
             isActive: true,
             createdById: adminUser.id,
           }

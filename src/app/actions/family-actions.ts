@@ -196,6 +196,25 @@ export async function createFamily(rawInput: any) {
       return { success: false, error: "فشل النظام في تحديد هوية المستخدم المسؤول عن الإدخال" }
     }
 
+import { calculateFamilyNeedScore } from "@/lib/need-score-calculator"
+
+    // Calculate need score and poverty level
+    const calculatedNeed = calculateFamilyNeedScore({
+      manualMembersCount: validatedData.manualMembersCount || validatedData.familyMembersCount || 1,
+      monthlyIncome: validatedData.monthlyIncome || 0,
+      orphansCount: validatedData.orphansCount || 0,
+      hasOrphans: validatedData.hasOrphans,
+      hasWidow: validatedData.hasWidow,
+      specialNeedsCount: validatedData.specialNeedsCount || 0,
+      kidsUnder5Count: validatedData.kidsUnder5Count || 0,
+      elderlyAbove60Count: validatedData.elderlyAbove60Count || 0,
+      housingType: validatedData.housingType || null,
+      isDisplaced: validatedData.isDisplaced
+    })
+
+    const finalScore = validatedData.vulnerabilityScore > 0 ? validatedData.vulnerabilityScore : calculatedNeed.score
+    const finalPovertyLevel = validatedData.povertyLevel || (calculatedNeed.score >= 75 ? PovertyLevel.SEVERE : calculatedNeed.score >= 50 ? PovertyLevel.MEDIUM : PovertyLevel.LOW)
+
     // Create the family record
     const family = await prisma.family.create({
       data: {
@@ -208,7 +227,7 @@ export async function createFamily(rawInput: any) {
         socialStatus: validatedData.socialStatus || null,
         addressDetail: validatedData.addressDetail || null,
         subDistrictId: validatedData.subDistrictId,
-        vulnerabilityScore: validatedData.vulnerabilityScore,
+        vulnerabilityScore: finalScore,
         notes: validatedData.notes || null,
         guardianName: validatedData.guardianName || null,
         guardianRelation: validatedData.guardianRelation || null,
@@ -217,7 +236,7 @@ export async function createFamily(rawInput: any) {
         monthlyIncome: validatedData.monthlyIncome,
         housingType: validatedData.housingType || null,
         housingCondition: validatedData.housingCondition || null,
-        povertyLevel: validatedData.povertyLevel,
+        povertyLevel: finalPovertyLevel,
         isActive: true,
         createdById: adminUser.id,
 
