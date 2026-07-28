@@ -193,6 +193,9 @@ export async function createFamily(rawInput: any) {
     const adminUser = await prisma.user.findFirst({
       where: { role: "ADMIN" },
     })
+    if (!adminUser) {
+      return { success: false, error: "فشل النظام في تحديد هوية المستخدم المسؤول عن الإدخال" }
+    }
     // Calculate need score and poverty level
     const calculatedNeed = calculateFamilyNeedScore({
       manualMembersCount: validatedData.manualMembersCount || validatedData.familyMembersCount || 1,
