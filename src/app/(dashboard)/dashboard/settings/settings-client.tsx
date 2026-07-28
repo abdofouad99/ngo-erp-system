@@ -908,7 +908,7 @@ export function SettingsClient({
                                 onClick={async () => {
                                   const res = await toggleUserStatus(u.id)
                                   if (res.success) {
-                                    setMessage({ text: res.message || "تم التحديث", type: "success" })
+                                    setMessage({ text: "تم تحديث حالة الحساب بنجاح", type: "success" })
                                     loadData()
                                   } else {
                                     setMessage({ text: res.error || "فشل", type: "error" })
